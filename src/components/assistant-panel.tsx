@@ -17,7 +17,7 @@ type AssistantMode = 'floating' | 'sidebar'
 
 type AssistantPanelProps = {
   mode: AssistantMode
-  onModeChange: (mode: AssistantMode | 'tab') => void
+  onModeChange: (mode: AssistantMode | 'full') => void
   isOpen: boolean
   onOpenChange: (next: boolean) => void
   className?: string
