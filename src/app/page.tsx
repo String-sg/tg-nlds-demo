@@ -1,3 +1,8 @@
+'use client'
+
+import { useEffect, useState } from 'react'
+
+import type { LucideIcon } from 'lucide-react'
 import {
   CalendarDaysIcon,
   FileTextIcon,
@@ -5,9 +10,10 @@ import {
   InboxIcon,
   LayersIcon,
   ListCheckIcon,
+  PlusIcon,
   StarIcon,
   UsersIcon,
-  PlusIcon,
+  XIcon,
 } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
@@ -22,99 +28,184 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarSeparator,
   SidebarTrigger,
 } from '@/components/ui/sidebar'
+import { cn } from '@/lib/utils'
 
-const highlights = [
+const primaryPages = [
+  { key: 'welcome', label: 'Welcome', icon: FileTextIcon, tooltip: 'Welcome' },
+  { key: 'inbox', label: 'Inbox', icon: InboxIcon, tooltip: 'Inbox' },
+  { key: 'tasks', label: 'Tasks', icon: ListCheckIcon, tooltip: 'Tasks' },
+  { key: 'calendar', label: 'Calendar', icon: CalendarDaysIcon, tooltip: 'Calendar' },
   {
-    title: 'Kick off your workspace',
-    description:
-      'Invite your team members, set up your first project, and track progress in one place.',
-    action: 'Get Started',
+    key: 'shared-with-me',
+    label: 'Shared with Me',
+    icon: UsersIcon,
+    tooltip: 'Shared with me',
   },
-  {
-    title: 'Capture quick notes',
-    description:
-      'Use rich text notes to summarize meetings, decisions, and next steps without friction.',
-    action: 'Create Note',
-  },
-  {
-    title: 'Build checklists fast',
-    description:
-      'Break down work into tasks, assign owners, and mark items complete as you ship.',
-    action: 'Add Checklist',
-  },
-]
+] as const
 
-const quickLinks = [
-  {
-    title: 'Connect integrations',
-    body: 'Hook up your tools to sync calendars, docs, and task updates automatically.',
-  },
-  {
-    title: 'Browse templates',
-    body: 'Start with pre-built layouts for standups, roadmaps, and retrospectives.',
-  },
-  {
-    title: 'Customize themes',
-    body: 'Match your brand colors and typography across the workspace.',
-  },
-]
+type PageKey = (typeof primaryPages)[number]['key']
+type PageConfig = (typeof primaryPages)[number]
 
-const reminders = [
-  'Plan sprint retrospective agenda',
-  'Outline next product demo run-through',
-  'Draft onboarding checklist for new joiners',
-]
+type EmptyState = {
+  heading: string
+  title: string
+  description: string
+  icon: LucideIcon
+  primaryAction?: string
+  secondaryAction?: string
+}
+
+const emptyStates: Record<PageKey, EmptyState> = {
+  welcome: {
+    heading: 'Welcome back, Reza',
+    title: 'You’re all set to begin',
+    description:
+      'Nothing on your workspace yet. Create your first document to kick things off.',
+    icon: FileTextIcon,
+    primaryAction: 'New Doc',
+    secondaryAction: 'Invite a teammate',
+  },
+  inbox: {
+    heading: 'Inbox',
+    title: 'No updates right now',
+    description:
+      'When teammates mention you or share docs, they’ll show up here for quick triage.',
+    icon: InboxIcon,
+    primaryAction: 'Compose a note',
+  },
+  tasks: {
+    heading: 'Tasks',
+    title: 'Stay on top of your work',
+    description:
+      'Keep track of what’s next by adding tasks, due dates, and owners to your checklist.',
+    icon: ListCheckIcon,
+    primaryAction: 'Add a task',
+  },
+  calendar: {
+    heading: 'Calendar',
+    title: 'Your schedule looks clear',
+    description:
+      'Link your calendar to review upcoming meetings and plan focus time without conflicts.',
+    icon: CalendarDaysIcon,
+    primaryAction: 'Connect calendar',
+  },
+  'shared-with-me': {
+    heading: 'Shared with Me',
+    title: 'No shared docs yet',
+    description:
+      'Keep an eye out for folders and documents teammates share. They’ll appear here.',
+    icon: UsersIcon,
+    primaryAction: 'Browse templates',
+  },
+}
+
+const pageConfigMap: Record<PageKey, PageConfig> = primaryPages.reduce(
+  (acc, page) => {
+    acc[page.key] = page
+    return acc
+  },
+  {} as Record<PageKey, PageConfig>,
+)
+
+const MAX_TABS = 8
 
 export default function Home() {
+  const [openTabs, setOpenTabs] = useState<PageKey[]>(['welcome'])
+  const [activeTab, setActiveTab] = useState<PageKey>('welcome')
+  const [tabLimitReached, setTabLimitReached] = useState(false)
+
+  const currentState = emptyStates[activeTab]
+  const ActiveIcon = currentState.icon
+
+  const handleNavigate = (pageKey: PageKey) => {
+    setOpenTabs((tabs) => {
+      if (tabs.includes(pageKey)) {
+        setActiveTab(pageKey)
+        return tabs
+      }
+
+      if (tabs.length >= MAX_TABS) {
+        setTabLimitReached(true)
+        return tabs
+      }
+
+      const nextTabs = [...tabs, pageKey]
+      setActiveTab(pageKey)
+      return nextTabs
+    })
+  }
+
+  const handleCloseTab = (pageKey: PageKey) => {
+    setOpenTabs((tabs) => {
+      if (tabs.length === 1) {
+        return tabs
+      }
+
+      const filteredTabs = tabs.filter((key) => key !== pageKey)
+
+      setActiveTab((currentActive) => {
+        if (currentActive !== pageKey) {
+          return currentActive
+        }
+
+        const closingIndex = tabs.indexOf(pageKey)
+        return (
+          filteredTabs[closingIndex - 1] ??
+          filteredTabs[closingIndex] ??
+          filteredTabs[filteredTabs.length - 1] ??
+          'welcome'
+        )
+      })
+
+      return filteredTabs.length > 0 ? filteredTabs : (['welcome'] as PageKey[])
+    })
+  }
+
+  useEffect(() => {
+    if (openTabs.length < MAX_TABS) {
+      setTabLimitReached(false)
+    }
+  }, [openTabs])
+
+  const handleNewTab = () => {
+    handleNavigate('welcome')
+  }
+
   return (
     <div className="flex min-h-svh w-full bg-background">
       <Sidebar variant="inset" collapsible="icon">
         <SidebarContent className="gap-6">
           <SidebarGroup className="gap-3">
-            <SidebarGroupLabel className="text-xs font-semibold uppercase tracking-wide text-sidebar-foreground/60">
-              Reza’s Space
-            </SidebarGroupLabel>
+            <div className="flex h-8 w-full items-center justify-between px-2 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0">
+              <SidebarGroupLabel className="flex-1 truncate px-0 text-xs font-semibold uppercase tracking-wide text-sidebar-foreground/60 group-data-[collapsible=icon]:mt-0 group-data-[collapsible=icon]:hidden">
+                Reza’s Space
+              </SidebarGroupLabel>
+              <SidebarTrigger className="size-7 shrink-0" />
+            </div>
             <SidebarGroupContent>
               <SidebarMenu>
-                <SidebarMenuItem>
-                  <SidebarMenuButton isActive tooltip="Welcome">
-                    <FileTextIcon className="size-4" />
-                    <span>Welcome</span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
-                  <SidebarMenuButton tooltip="Inbox">
-                    <InboxIcon className="size-4" />
-                    <span>Inbox</span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
-                  <SidebarMenuButton tooltip="Tasks">
-                    <ListCheckIcon className="size-4" />
-                    <span>Tasks</span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
-                  <SidebarMenuButton tooltip="Calendar">
-                    <CalendarDaysIcon className="size-4" />
-                    <span>Calendar</span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
-                  <SidebarMenuButton tooltip="Shared with me">
-                    <UsersIcon className="size-4" />
-                    <span>Shared with Me</span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
+                {primaryPages.map((page) => {
+                  const Icon = page.icon
+
+                  return (
+                    <SidebarMenuItem key={page.key}>
+                      <SidebarMenuButton
+                        tooltip={page.tooltip}
+                        isActive={activeTab === page.key}
+                        onClick={() => handleNavigate(page.key)}
+                        type="button"
+                      >
+                        <Icon className="size-4" />
+                        <span>{page.label}</span>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  )
+                })}
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
-
-          <SidebarSeparator />
-
           <SidebarGroup className="gap-3">
             <SidebarGroupLabel className="text-xs font-semibold uppercase tracking-wide text-sidebar-foreground/60">
               Starred
@@ -130,9 +221,6 @@ export default function Home() {
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
-
-          <SidebarSeparator />
-
           <SidebarGroup className="gap-3">
             <SidebarGroupLabel className="text-xs font-semibold uppercase tracking-wide text-sidebar-foreground/60">
               Folders
@@ -156,10 +244,10 @@ export default function Home() {
           </SidebarGroup>
         </SidebarContent>
 
-        <SidebarFooter className="border-t border-sidebar-border pt-4">
+        <SidebarFooter className="border-t border-sidebar-border px-3 py-4">
           <Button
             variant="outline"
-            className="w-full justify-start gap-2 group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:rounded-full group-data-[collapsible=icon]:p-0"
+            className="w-full justify-start gap-2 rounded-lg border border-sidebar-border/40 bg-sidebar/30 px-4 py-3 shadow-sm transition-colors hover:bg-sidebar/40 hover:text-sidebar-foreground group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:rounded-full group-data-[collapsible=icon]:border-0 group-data-[collapsible=icon]:bg-transparent group-data-[collapsible=icon]:p-0"
             aria-label="Create new document"
           >
             <PlusIcon className="size-4" />
@@ -171,87 +259,105 @@ export default function Home() {
       </Sidebar>
 
       <SidebarInset>
-        <div className="flex h-16 items-center gap-3 border-b px-6">
-          <SidebarTrigger />
-          <div className="flex flex-1 flex-col">
-            <span className="text-xs uppercase tracking-wide text-muted-foreground">
-              Dashboard
-            </span>
-            <h1 className="text-lg font-semibold tracking-tight">
-              Welcome back, Reza
-            </h1>
-          </div>
-          <Button size="sm" variant="outline">
-            Customize
-          </Button>
-        </div>
+        <div className="flex flex-1 flex-col overflow-hidden">
+          <div className="border-b border-border/70 bg-muted/20 px-4">
+            <div className="flex items-center gap-2 overflow-x-auto py-2">
+              {openTabs.map((tabKey) => {
+                const tab = pageConfigMap[tabKey]
+                const Icon = tab.icon
+                const isActive = activeTab === tabKey
+                const isClosable = tabKey !== 'welcome'
 
-        <div className="flex flex-1 flex-col gap-8 overflow-y-auto px-8 py-10">
-          <section className="space-y-3">
-            <h2 className="text-xl font-semibold text-foreground">
-              Start with a quick win
-            </h2>
-            <div className="grid gap-4 md:grid-cols-3">
-              {highlights.map((highlight) => (
-                <article
-                  key={highlight.title}
-                  className="border-border/70 bg-card text-card-foreground rounded-xl border p-6"
-                >
-                  <h3 className="text-base font-semibold">{highlight.title}</h3>
-                  <p className="text-muted-foreground mt-2 text-sm leading-relaxed">
-                    {highlight.description}
-                  </p>
-                  <Button size="sm" className="mt-4">
-                    {highlight.action}
-                  </Button>
-                </article>
-              ))}
-            </div>
-          </section>
-
-          <section className="grid gap-6 lg:grid-cols-[2fr_1fr]">
-            <div className="space-y-4">
-              <h2 className="text-xl font-semibold text-foreground">
-                Quick links
-              </h2>
-              <div className="space-y-3">
-                {quickLinks.map((link) => (
-                  <article
-                    key={link.title}
-                    className="border-border/70 bg-card text-card-foreground rounded-lg border p-4"
+                return (
+                  <div
+                    key={tabKey}
+                    className={cn(
+                      'group relative flex items-center gap-2 rounded-md border px-3 py-1.5 text-sm transition-colors',
+                      isActive
+                        ? 'border-border bg-background text-foreground shadow-sm'
+                        : 'border-transparent bg-transparent text-muted-foreground hover:bg-background/70',
+                    )}
                   >
-                    <h3 className="text-sm font-semibold">{link.title}</h3>
-                    <p className="text-muted-foreground mt-1 text-sm leading-relaxed">
-                      {link.body}
-                    </p>
-                  </article>
-                ))}
-              </div>
-            </div>
-            <aside className="border-border/70 bg-muted/40 rounded-lg border p-5">
-              <h2 className="text-sm font-semibold text-foreground">
-                Today’s reminders
-              </h2>
-              <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
-                {reminders.map((item) => (
-                  <li
-                    key={item}
-                    className="flex items-start gap-2 rounded-md bg-background/60 p-2"
-                  >
-                    <span className="mt-1 inline-block size-1.5 rounded-full bg-primary" />
-                    <span className="leading-relaxed">{item}</span>
-                  </li>
-                ))}
-              </ul>
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab(tabKey)}
+                      className="flex items-center gap-2 truncate"
+                    >
+                      <Icon className="size-4" />
+                      <span className="truncate">{tab.label}</span>
+                    </button>
+                    {isClosable && (
+                      <button
+                        type="button"
+                        onClick={(event) => {
+                          event.stopPropagation()
+                          handleCloseTab(tabKey)
+                        }}
+                        className="text-muted-foreground/80 hover:text-foreground flex size-6 items-center justify-center rounded"
+                        aria-label={`Close ${tab.label}`}
+                      >
+                        <XIcon className="size-3.5" />
+                      </button>
+                    )}
+                  </div>
+                )
+              })}
               <Button
                 size="sm"
                 variant="ghost"
-                className="mt-4 px-0 font-semibold"
+                className="shrink-0 gap-2"
+                onClick={handleNewTab}
+                disabled={tabLimitReached}
               >
-                View agenda
+                <PlusIcon className="size-4" />
+                New Tab
               </Button>
-            </aside>
-          </section>
+            </div>
+            {tabLimitReached && (
+              <div className="pb-2 text-xs text-muted-foreground">
+                You’ve reached the tab limit. Close an open page before adding a new
+                one.
+              </div>
+            )}
+          </div>
+          <div className="flex h-16 items-center gap-3 border-b px-6">
+            <SidebarTrigger className="md:hidden" />
+            <div className="hidden flex-1 md:flex">
+              <h1 className="text-lg font-semibold tracking-tight">
+                {currentState.heading}
+              </h1>
+            </div>
+            <Button size="sm" variant="outline">
+              Customize
+            </Button>
+          </div>
+          <div className="flex flex-1 flex-col overflow-y-auto px-8 py-10">
+            <div className="flex flex-1 flex-col items-center justify-center text-center">
+              <div className="bg-muted text-muted-foreground flex size-16 items-center justify-center rounded-full">
+                <ActiveIcon className="size-7" />
+              </div>
+              <div className="mt-6 space-y-2">
+                <h2 className="text-2xl font-semibold tracking-tight">
+                  {currentState.title}
+                </h2>
+                <p className="text-muted-foreground text-sm leading-relaxed">
+                  {currentState.description}
+                </p>
+              </div>
+              {(currentState.primaryAction || currentState.secondaryAction) && (
+                <div className="mt-6 flex flex-wrap justify-center gap-2">
+                  {currentState.primaryAction && (
+                    <Button size="sm">{currentState.primaryAction}</Button>
+                  )}
+                  {currentState.secondaryAction && (
+                    <Button size="sm" variant="outline">
+                      {currentState.secondaryAction}
+                    </Button>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       </SidebarInset>
     </div>
