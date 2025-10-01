@@ -475,8 +475,9 @@ export default function Home() {
                     const showIndicatorRight = isDragOver && draggedIndex < index
                     
                     return (
-                      <div
+                      <button
                         key={tabKey}
+                        type="button"
                         data-tab-item
                         draggable
                         onDragStart={(e) => handleDragStart(e, tabKey)}
@@ -484,6 +485,7 @@ export default function Home() {
                         onDragOver={(e) => handleDragOver(e, tabKey)}
                         onDragLeave={handleDragLeave}
                         onDrop={(e) => handleDrop(e, tabKey)}
+                        onClick={() => setActiveTab(tabKey)}
                         className={cn(
                           'group relative flex items-center gap-2 rounded-md px-3 py-1.5 text-sm transition-all duration-200',
                         isActive
@@ -498,26 +500,20 @@ export default function Home() {
                         {showIndicatorRight && (
                           <div className="absolute -right-1 top-1/2 h-6 w-[3px] -translate-y-1/2 rounded-full bg-primary" />
                         )}
-                        <button
-                          type="button"
-                          onClick={() => setActiveTab(tabKey)}
-                          className="flex items-center gap-2 truncate pointer-events-auto"
-                        >
-                          <Icon className="size-4" />
-                          <span className="truncate">{tab.label}</span>
-                        </button>
+                        <Icon className="size-4" />
+                        <span className="truncate">{tab.label}</span>
                         <button
                           type="button"
                           onClick={(event) => {
                             event.stopPropagation()
                             handleCloseTab(tabKey)
                           }}
-                          className="text-muted-foreground/80 hover:text-foreground focus-visible:text-foreground flex size-6 items-center justify-center rounded opacity-0 transition-opacity group-hover:opacity-100 group-[.ring-1]:opacity-100 pointer-events-auto"
+                          className="text-muted-foreground/80 hover:text-foreground focus-visible:text-foreground flex size-6 items-center justify-center rounded opacity-0 transition-opacity group-hover:opacity-100 group-[.ring-1]:opacity-100"
                           aria-label={`Close ${tab.label}`}
                         >
                           <XIcon className="size-3.5" />
                         </button>
-                      </div>
+                      </button>
                     )
                   })}
                   <Tooltip disableHoverableContent>
