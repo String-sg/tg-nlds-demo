@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import React, { useState } from 'react'
 import { CheckIcon, ChevronDownIcon, ChevronRightIcon, MonitorIcon, PanelRightIcon, SendIcon, SquareIcon, XIcon } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
@@ -26,11 +26,15 @@ type AssistantPanelProps = {
   showBodyHeading?: boolean
   showHeaderControls?: boolean
   onStudentClick?: (studentName: string) => void
+  incomingMessage?: string | null
+  onMessageProcessed?: () => void
 }
 
 type AssistantBodyProps = {
   showHeading?: boolean
   onStudentClick?: (studentName: string) => void
+  incomingMessage?: string | null
+  onMessageProcessed?: () => void
 }
 
 type Message = {
@@ -91,6 +95,13 @@ const getAvatarColor = (name: string) => {
   }
 
   return colors[Math.abs(hash) % colors.length]
+}
+
+// Helper function to generate unique IDs
+let messageIdCounter = 0
+const generateMessageId = () => {
+  messageIdCounter += 1
+  return `msg-${Date.now()}-${messageIdCounter}`
 }
 
 function PTMResponseContent({ onStudentClick }: { onStudentClick?: (studentName: string) => void }) {
@@ -179,13 +190,13 @@ function PTMResponseContent({ onStudentClick }: { onStudentClick?: (studentName:
         )}
         onClick={() => onStudentClick?.('Alice Wong')}
       >
-        <div className="flex items-center gap-3">
+        <div className="flex items-start gap-3">
           <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-sm font-medium ${getAvatarColor('Alice Wong')}`}>
             {getInitials('Alice Wong')}
           </div>
           <div className="flex flex-1 flex-col gap-1.5">
             <span className="font-semibold">Alice Wong</span>
-            <div className="flex items-center gap-1.5">
+            <div className="flex flex-wrap items-center gap-1.5">
               <span className="inline-flex items-center rounded-md bg-muted px-2 py-0.5 text-xs font-medium">
                 Excellent
               </span>
@@ -208,13 +219,13 @@ function PTMResponseContent({ onStudentClick }: { onStudentClick?: (studentName:
         )}
         onClick={() => onStudentClick?.('Reza Halim')}
       >
-        <div className="flex items-center gap-3">
+        <div className="flex items-start gap-3">
           <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-sm font-medium ${getAvatarColor('Reza Halim')}`}>
             {getInitials('Reza Halim')}
           </div>
           <div className="flex flex-1 flex-col gap-1.5">
             <span className="font-semibold">Reza Halim</span>
-            <div className="flex items-center gap-1.5">
+            <div className="flex flex-wrap items-center gap-1.5">
               <span className="inline-flex items-center rounded-md bg-muted px-2 py-0.5 text-xs font-medium">
                 Above average
               </span>
@@ -241,13 +252,13 @@ function PTMResponseContent({ onStudentClick }: { onStudentClick?: (studentName:
               )}
               onClick={() => onStudentClick?.(student.name)}
             >
-              <div className="flex items-center gap-3">
+              <div className="flex items-start gap-3">
                 <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-sm font-medium ${getAvatarColor(student.name)}`}>
                   {getInitials(student.name)}
                 </div>
                 <div className="flex flex-1 flex-col gap-1.5">
                   <span className="font-semibold">{student.name}</span>
-                  <div className="flex items-center gap-1.5">
+                  <div className="flex flex-wrap items-center gap-1.5">
                     <span className="inline-flex items-center rounded-md bg-muted px-2 py-0.5 text-xs font-medium">
                       {student.grade}
                     </span>
@@ -280,7 +291,7 @@ function PTMResponseContent({ onStudentClick }: { onStudentClick?: (studentName:
   )
 }
 
-function AssistantBody({ onStudentClick }: AssistantBodyProps) {
+function AssistantBody({ onStudentClick, incomingMessage, onMessageProcessed }: AssistantBodyProps) {
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
@@ -288,11 +299,40 @@ function AssistantBody({ onStudentClick }: AssistantBodyProps) {
   const [filteredShortcuts, setFilteredShortcuts] = useState(promptShortcuts)
   const [selectedShortcutIndex, setSelectedShortcutIndex] = useState(0)
 
+  // Handle incoming messages from homepage
+  React.useEffect(() => {
+    if (incomingMessage) {
+      const userMessage: Message = {
+        id: generateMessageId(),
+        role: 'user',
+        content: incomingMessage,
+        timestamp: new Date(),
+      }
+
+      setMessages((prev) => [...prev, userMessage])
+      setIsLoading(true)
+
+      // Simulate assistant response
+      setTimeout(() => {
+        const assistantMessage: Message = {
+          id: generateMessageId(),
+          role: 'assistant',
+          content: 'This is a simulated response. In a real implementation, this would connect to an AI service.',
+          timestamp: new Date(),
+        }
+        setMessages((prev) => [...prev, assistantMessage])
+        setIsLoading(false)
+      }, 1000)
+
+      onMessageProcessed?.()
+    }
+  }, [incomingMessage, onMessageProcessed])
+
   const handleSendMessage = async () => {
     if (!input.trim() || isLoading) return
 
     const userMessage: Message = {
-      id: Date.now().toString(),
+      id: generateMessageId(),
       role: 'user',
       content: input.trim(),
       timestamp: new Date(),
@@ -305,7 +345,7 @@ function AssistantBody({ onStudentClick }: AssistantBodyProps) {
     // Simulate assistant response
     setTimeout(() => {
       const assistantMessage: Message = {
-        id: (Date.now() + 1).toString(),
+        id: generateMessageId(),
         role: 'assistant',
         content: 'This is a simulated response. In a real implementation, this would connect to an AI service.',
         timestamp: new Date(),
@@ -341,7 +381,7 @@ function AssistantBody({ onStudentClick }: AssistantBodyProps) {
 
     // Send the shortcut command as a message
     const userMessage: Message = {
-      id: Date.now().toString(),
+      id: generateMessageId(),
       role: 'user',
       content: shortcut.command,
       timestamp: new Date(),
@@ -351,7 +391,7 @@ function AssistantBody({ onStudentClick }: AssistantBodyProps) {
 
     // Add thinking indicator
     const thinkingMessage: Message = {
-      id: (Date.now() + 1).toString(),
+      id: generateMessageId(),
       role: 'assistant',
       content: 'Thought for 5 seconds',
       timestamp: new Date(),
@@ -366,7 +406,7 @@ function AssistantBody({ onStudentClick }: AssistantBodyProps) {
       setMessages((prev) => prev.filter((msg) => !msg.isThinking))
 
       const assistantMessage: Message = {
-        id: (Date.now() + 2).toString(),
+        id: generateMessageId(),
         role: 'assistant',
         content: shortcut.command === '/ptm' ? <PTMResponseContent onStudentClick={onStudentClick} /> : 'This is a simulated response. In a real implementation, this would connect to an AI service.',
         timestamp: new Date(),
@@ -497,7 +537,7 @@ function AssistantBody({ onStudentClick }: AssistantBodyProps) {
             onChange={handleInputChange}
             onKeyDown={handleKeyDown}
             placeholder="Ask the assistant anything..."
-            className="min-h-[80px] resize-none pr-12"
+            className="shimmer-input-sm min-h-[80px] resize-none pr-12"
             disabled={isLoading}
           />
           <Button
@@ -594,6 +634,8 @@ export function AssistantPanel({
   showBodyHeading = true,
   showHeaderControls = true,
   onStudentClick,
+  incomingMessage,
+  onMessageProcessed,
 }: AssistantPanelProps) {
   const content = (
     <div className={cn('flex h-full flex-col gap-4 px-2 pb-2 pt-2', className)}>
@@ -616,7 +658,12 @@ export function AssistantPanel({
           </div>
         </div>
       )}
-      <AssistantBody showHeading={showBodyHeading} onStudentClick={onStudentClick} />
+      <AssistantBody
+        showHeading={showBodyHeading}
+        onStudentClick={onStudentClick}
+        incomingMessage={incomingMessage}
+        onMessageProcessed={onMessageProcessed}
+      />
     </div>
   )
 
@@ -657,7 +704,11 @@ export function AssistantPanel({
           </SheetHeader>
         )}
         <div className="flex max-h-[calc(100vh-10rem)] min-h-[24rem] flex-col overflow-hidden p-5">
-          <AssistantBody showHeading={showBodyHeading} />
+          <AssistantBody
+            showHeading={showBodyHeading}
+            incomingMessage={incomingMessage}
+            onMessageProcessed={onMessageProcessed}
+          />
         </div>
       </SheetContent>
     </Sheet>

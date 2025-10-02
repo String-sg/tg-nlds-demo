@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import {
   Edit2Icon,
   SparklesIcon,
@@ -51,33 +52,57 @@ const studentAlertsData = [
 
 interface HomeContentProps {
   onNavigateToClassroom?: () => void
+  onAssistantMessage?: (message: string) => void
 }
 
-export function HomeContent({ onNavigateToClassroom }: HomeContentProps = {}) {
+export function HomeContent({ onNavigateToClassroom, onAssistantMessage }: HomeContentProps = {}) {
+  const [assistantInput, setAssistantInput] = useState('')
+
+  const handleAssistantSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (assistantInput.trim() && onAssistantMessage) {
+      onAssistantMessage(assistantInput.trim())
+      setAssistantInput('')
+    }
+  }
   return (
     <div className="mx-auto w-full max-w-5xl space-y-6 pb-16 sm:space-y-8">
       {/* Assistant Input */}
-      <div className="flex flex-col gap-3 pt-4 sm:gap-4">
+      <form onSubmit={handleAssistantSubmit} className="flex flex-col gap-3 pt-4 sm:gap-4">
         <div className="relative w-full">
           <div className="absolute left-5 top-1/2 z-10 -translate-y-1/2">
             <SparklesIcon className="size-5 text-stone-600" />
           </div>
           <Input
             type="text"
+            value={assistantInput}
+            onChange={(e) => setAssistantInput(e.target.value)}
             placeholder="Ask me about students, assignments, or lesson plans..."
             className="shimmer-input relative h-14 rounded-lg border-stone-200 bg-white pl-14 pr-6 text-sm transition-all placeholder:text-stone-400 hover:shadow-md focus-visible:border-stone-300 focus-visible:shadow-md sm:h-16 sm:text-base"
           />
         </div>
         <div className="flex flex-wrap items-center gap-2 text-xs text-stone-600">
           <span className="hidden sm:inline">Try asking:</span>
-          <button className="rounded-md border-stone-200 bg-stone-50 px-2.5 py-1.5 font-medium text-stone-800 transition-colors hover:bg-stone-100">
+          <button
+            type="button"
+            onClick={() => {
+              onAssistantMessage?.('Find student with needs')
+            }}
+            className="rounded-md border-stone-200 bg-stone-50 px-2.5 py-1.5 font-medium text-stone-800 transition-colors hover:bg-stone-100"
+          >
             &quot;Find student with needs&quot;
           </button>
-          <button className="rounded-md border-stone-200 bg-stone-50 px-2.5 py-1.5 font-medium text-stone-800 transition-colors hover:bg-stone-100">
+          <button
+            type="button"
+            onClick={() => {
+              onAssistantMessage?.('Draft a parent email')
+            }}
+            className="rounded-md border-stone-200 bg-stone-50 px-2.5 py-1.5 font-medium text-stone-800 transition-colors hover:bg-stone-100"
+          >
             &quot;Draft a parent email&quot;
           </button>
         </div>
-      </div>
+      </form>
 
       {/* Quick Actions */}
       <div className="grid grid-cols-2 gap-2 sm:gap-3 md:grid-cols-4">

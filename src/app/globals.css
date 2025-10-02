@@ -152,6 +152,18 @@
     animation: shimmer-glow 3s ease-in-out;
   }
 
+  .shimmer-input-sm {
+    --shimmer-color1-rgb: 255, 176, 112;
+    --shimmer-color2-rgb: 160, 148, 255;
+    --shimmer-opacity1: 0.3;
+    --shimmer-opacity2: 0.2;
+    --shimmer-blur: 60px;
+    --shimmer-spread: 15px;
+    --shimmer-offset: 100px;
+
+    animation: shimmer-glow-vertical 3s ease-in-out;
+  }
+
   @keyframes shimmer-glow {
     0% {
       box-shadow: 0 0 0 0 rgba(var(--shimmer-color1-rgb), 0),
@@ -160,6 +172,21 @@
     50% {
       box-shadow: calc(-1 * var(--shimmer-offset)) 0 var(--shimmer-blur) var(--shimmer-spread) rgba(var(--shimmer-color1-rgb), var(--shimmer-opacity1)),
                   var(--shimmer-offset) 0 var(--shimmer-blur) var(--shimmer-spread) rgba(var(--shimmer-color2-rgb), var(--shimmer-opacity2));
+    }
+    100% {
+      box-shadow: 0 0 0 0 rgba(var(--shimmer-color1-rgb), 0),
+                  0 0 0 0 rgba(var(--shimmer-color2-rgb), 0);
+    }
+  }
+
+  @keyframes shimmer-glow-vertical {
+    0% {
+      box-shadow: 0 0 0 0 rgba(var(--shimmer-color1-rgb), 0),
+                  0 0 0 0 rgba(var(--shimmer-color2-rgb), 0);
+    }
+    50% {
+      box-shadow: 0 calc(-1 * var(--shimmer-offset)) var(--shimmer-blur) var(--shimmer-spread) rgba(var(--shimmer-color1-rgb), var(--shimmer-opacity1)),
+                  0 var(--shimmer-offset) var(--shimmer-blur) var(--shimmer-spread) rgba(var(--shimmer-color2-rgb), var(--shimmer-opacity2));
     }
     100% {
       box-shadow: 0 0 0 0 rgba(var(--shimmer-color1-rgb), 0),

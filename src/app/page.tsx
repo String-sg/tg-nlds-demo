@@ -222,6 +222,7 @@ export default function Home() {
   const [dragOverTab, setDragOverTab] = useState<ClosableTabKey | null>(null)
   const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1200)
   const [studentProfileTabs, setStudentProfileTabs] = useState<Map<string, string>>(new Map()) // Map of tab key to student name
+  const [pendingAssistantMessage, setPendingAssistantMessage] = useState<string | null>(null)
 
   const currentState = emptyStates[activeTab as keyof typeof emptyStates]
   const ActiveIcon = currentState?.icon
@@ -266,6 +267,18 @@ export default function Home() {
     })
 
     handleNavigate(tabKey)
+  }
+
+  const handleAssistantMessage = (message: string) => {
+    setPendingAssistantMessage(message)
+    setIsAssistantOpen(true)
+    if (assistantMode === 'floating') {
+      setAssistantMode('sidebar')
+    }
+  }
+
+  const handleMessageProcessed = () => {
+    setPendingAssistantMessage(null)
   }
 
   const handleCloseTab = useCallback((pageKey: TabKey) => {
@@ -774,7 +787,10 @@ export default function Home() {
                     )}
                   </div>
                 ) : isHomeActive ? (
-                  <HomeContent onNavigateToClassroom={() => handleNavigate('classroom')} />
+                  <HomeContent
+                    onNavigateToClassroom={() => handleNavigate('classroom')}
+                    onAssistantMessage={handleAssistantMessage}
+                  />
                 ) : activeTab === 'roundup' ? (
                   <RoundupContent onPrepForMeeting={() => handleNavigate('classroom')} />
                 ) : activeTab === 'classroom' ? (
@@ -899,7 +915,7 @@ export default function Home() {
                 !isAssistantOpen && 'right-[calc(20rem*-1)]',
               )}
             >
-              <div className="bg-sidebar border-sidebar-border flex h-full w-full flex-col rounded-2xl border">
+              <div className="bg-white border-sidebar-border flex h-full w-full flex-col rounded-2xl border">
                 <AssistantPanel
                   mode="sidebar"
                   isOpen={isAssistantOpen}
@@ -907,6 +923,8 @@ export default function Home() {
                   onModeChange={handleAssistantModeChange}
                   className="flex h-full w-full flex-col"
                   onStudentClick={handleOpenStudentProfile}
+                  incomingMessage={pendingAssistantMessage}
+                  onMessageProcessed={handleMessageProcessed}
                 />
               </div>
             </div>
@@ -921,6 +939,8 @@ export default function Home() {
             onOpenChange={setIsAssistantOpen}
             onModeChange={handleAssistantModeChange}
             onStudentClick={handleOpenStudentProfile}
+            incomingMessage={pendingAssistantMessage}
+            onMessageProcessed={handleMessageProcessed}
           />
         )}
       </div>
