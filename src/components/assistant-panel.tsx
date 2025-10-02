@@ -296,7 +296,7 @@ export function AssistantPanel({
     <Sheet open={isOpen} onOpenChange={onOpenChange}>
       <SheetContent
         side="right"
-        className="bottom-4 right-4 top-auto h-auto max-h-[calc(100vh-2rem)] w-[min(95vw,22rem)] translate-x-0 rounded-2xl border shadow-2xl sm:bottom-6 sm:right-6 sm:w-[26rem] md:w-[28rem]"
+        className="bottom-4 right-4 top-auto h-auto max-h-[calc(100vh-2rem)] w-[min(95vw,22rem)] translate-x-0 rounded-2xl border shadow-2xl data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom sm:bottom-6 sm:right-6 sm:w-[26rem] md:w-[28rem]"
         showOverlay={false}
         showCloseButton={false}
         bounded={false}

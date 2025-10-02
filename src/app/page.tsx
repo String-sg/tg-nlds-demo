@@ -850,14 +850,14 @@ export default function Home() {
             {/* Sidebar gap */}
             <div
               className={cn(
-                'relative w-[20rem] bg-transparent transition-[width] duration-200 ease-linear',
+                'relative w-[20rem] bg-transparent transition-[width] duration-150 ease-in-out',
                 !isAssistantOpen && 'w-0',
               )}
             />
             {/* Sidebar container */}
             <div
               className={cn(
-                'fixed inset-y-0 z-10 hidden h-svh w-[20rem] transition-[right,width] duration-200 ease-linear md:flex',
+                'fixed inset-y-0 z-10 hidden h-svh w-[20rem] transition-[right,width] duration-150 ease-in-out md:flex',
                 'right-0 p-2',
                 !isAssistantOpen && 'right-[calc(20rem*-1)]',
               )}
