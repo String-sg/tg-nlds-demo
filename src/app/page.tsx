@@ -354,6 +354,9 @@ export default function Home() {
     // Sidebar mode - keep assistant open without forcing navigation
     setAssistantMode('sidebar')
     setIsAssistantOpen(true)
+    if (isAssistantTabActive) {
+      handleCloseTab(assistantTabConfig.key)
+    }
   }
 
   const handleDragStart = (event: React.DragEvent, tabKey: ClosableTabKey) => {
