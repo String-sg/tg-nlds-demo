@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 
 import type { LucideIcon } from 'lucide-react'
 import {
@@ -230,7 +230,7 @@ export default function Home() {
     })
   }
 
-  const handleCloseTab = (pageKey: TabKey) => {
+  const handleCloseTab = useCallback((pageKey: TabKey) => {
     setOpenTabs((tabs) => {
       if (pageKey === newTabConfig.key) {
         return tabs
@@ -253,7 +253,7 @@ export default function Home() {
 
       return filteredTabs
     })
-  }
+  }, [])
 
   useEffect(() => {
     if (openTabs.length < MAX_TABS) {
@@ -265,14 +265,14 @@ export default function Home() {
     setActiveTab(newTabConfig.key)
   }
 
-  const handleAssistantButtonClick = () => {
+  const handleAssistantButtonClick = useCallback(() => {
     if (assistantMode === 'floating') {
       setIsAssistantOpen((previous) => !previous)
       return
     }
 
     setIsAssistantOpen((previous) => !previous)
-  }
+  }, [assistantMode])
 
   const handleAssistantModeChange = (mode: AssistantMode | 'full') => {
     if (mode === 'full') {
@@ -291,12 +291,9 @@ export default function Home() {
       return
     }
 
-    // Sidebar mode
+    // Sidebar mode - keep assistant open without forcing navigation
     setAssistantMode('sidebar')
     setIsAssistantOpen(true)
-    if (!isAssistantTabActive) {
-      handleNavigate(assistantTabConfig.key)
-    }
   }
 
   const handleDragStart = (event: React.DragEvent, tabKey: ClosableTabKey) => {
@@ -353,6 +350,23 @@ export default function Home() {
     setDraggedTab(null)
     setDragOverTab(null)
   }
+
+  // Keyboard shortcut for assistant toggle (Cmd/Ctrl + K)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault()
+        if (isAssistantTabActive) {
+          handleCloseTab(assistantTabConfig.key)
+        } else {
+          handleAssistantButtonClick()
+        }
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [isAssistantTabActive, handleAssistantButtonClick, handleCloseTab])
 
   return (
     <div className="flex min-h-svh w-full bg-background">
