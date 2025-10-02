@@ -10,6 +10,7 @@ import {
   FolderIcon,
   HomeIcon,
   InboxIcon,
+  MessageSquareIcon,
   NewspaperIcon,
   PieChartIcon,
   PlusIcon,
@@ -473,6 +474,7 @@ export default function Home() {
           <div className="sticky top-0 z-20 overflow-hidden rounded-t-2xl bg-background">
             <div className="border-b border-border/70 bg-muted/20 px-4 backdrop-blur-sm">
               <div className="tab-scrollbar-hidden -mx-4 flex items-center gap-2 overflow-x-auto px-4 py-2">
+                <div className="flex flex-1 items-center gap-2">
                 <TooltipProvider delayDuration={150}>
                   {openTabs.map((tabKey, index) => {
                     const tab = tabConfigMap[tabKey]
@@ -561,6 +563,20 @@ export default function Home() {
                     <TooltipContent side="bottom">New Tab</TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
+                </div>
+                {!isAssistantTabActive && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="gap-2"
+                    onClick={handleAssistantButtonClick}
+                    aria-expanded={isAssistantOpen}
+                    aria-controls="assistant-panel"
+                  >
+                    <MessageSquareIcon className="size-4" />
+                    Assistant
+                  </Button>
+                )}
               </div>
               {tabLimitReached && (
                 <div className="pb-2 text-xs text-muted-foreground">
@@ -577,28 +593,15 @@ export default function Home() {
                 </h1>
               </div>
               <div className="flex items-center gap-2">
-                {!isAssistantTabActive && (
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="gap-2"
-                    onClick={handleAssistantButtonClick}
-                    aria-expanded={isAssistantOpen}
-                    aria-controls="assistant-panel"
-                  >
-                    <BotIcon className="size-4" />
-                    Assistant
-                  </Button>
-                )}
                 {isAssistantTabActive && (
                   <AssistantModeSwitcher
                     mode={assistantMode}
                     onModeChange={handleAssistantModeChange}
                     activeOption={isAssistantTabActive ? 'full' : assistantMode}
                   />
-              )}
+                )}
+              </div>
             </div>
-          </div>
           </div>
           <div className="flex flex-1 overflow-hidden rounded-b-[15px]">
             <div
