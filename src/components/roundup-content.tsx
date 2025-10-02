@@ -47,7 +47,7 @@ const mockRoundupItems: RoundupItem[] = [
     title: 'Bullying Case Data Collection',
     date: '20 Oct 2025 (17 days left)',
     description:
-      'Prepare documentation and data collection for reported bullying cases. Two incidents require follow-up interviews and parent notifications.',
+      'Prepare documentation for two reported bullying cases requiring follow-up interviews.',
     actions: [
       { label: 'Prepare Documentation', icon: SparklesIcon, variant: 'outline' },
     ],
@@ -56,6 +56,8 @@ const mockRoundupItems: RoundupItem[] = [
 
 export function RoundupContent() {
   const [currentIndex, setCurrentIndex] = useState(0)
+  const visualGap = 24
+  const scaleStep = 0.035
   const containerRef = useRef<HTMLDivElement>(null)
   const isScrollingRef = useRef(false)
 
@@ -96,8 +98,8 @@ export function RoundupContent() {
 
   const getCardStyle = (index: number) => {
     const diff = index - currentIndex
-    const CARD_OFFSET = 12 // Consistent gap between cards
-    const SCALE_STEP = 0.03 // Consistent scale reduction
+    const VISUAL_GAP = visualGap // Visual gap between card edges in pixels
+    const SCALE_STEP = scaleStep // Scale reduction per card
 
     if (diff < 0) {
       // Cards that have been swiped away
@@ -109,11 +111,16 @@ export function RoundupContent() {
       }
     }
 
-    // For all visible cards, use the same formula
-    const offset = CARD_OFFSET * diff
     const scale = 1 - SCALE_STEP * diff
     const opacity = Math.max(0.3, 1 - 0.25 * diff)
     const zIndex = 10 - diff
+
+    // Calculate offset: each card should be VISUAL_GAP below the previous card's bottom edge
+    // Since cards scale from center, we need to account for the height reduction
+    // Card 1: offset = 0
+    // Card 2: offset = VISUAL_GAP (one gap from card 1)
+    // Card 3: offset = VISUAL_GAP * 2 (two gaps total: one from card 1 to 2, one from card 2 to 3)
+    const offset = VISUAL_GAP * diff
 
     return {
       transform: `translateY(${offset}px) scale(${scale})`,
