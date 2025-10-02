@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { CheckIcon, ChevronDownIcon, MonitorIcon, PanelRightIcon, SendIcon, SparklesIcon, SquareIcon, XIcon } from 'lucide-react'
+import { CheckIcon, ChevronDownIcon, ChevronRightIcon, MonitorIcon, PanelRightIcon, SendIcon, SparklesIcon, SquareIcon, XIcon } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import {
@@ -34,8 +34,9 @@ type AssistantBodyProps = {
 type Message = {
   id: string
   role: 'user' | 'assistant'
-  content: string
+  content: string | React.ReactNode
   timestamp: Date
+  isThinking?: boolean
 }
 
 const promptShortcuts = [
@@ -55,6 +56,53 @@ const promptShortcuts = [
     prompt: 'Generate a detailed progress report for selected students including attendance, grades, and behavior notes.'
   },
 ]
+
+function PTMResponseContent() {
+  return (
+    <div className="flex flex-col gap-4">
+      <p className="text-sm">
+        On October 14, 2025, you'll be meeting with six parents, and there are two important pieces of information regarding two students that you should keep in mind.
+      </p>
+      <p className="text-sm font-medium">Here are the two students you might want to focus on.</p>
+
+      {/* Student 1 */}
+      <div className="flex flex-col gap-3 rounded-lg border bg-background p-4">
+        <div className="flex items-center gap-3">
+          <div className="flex size-12 items-center justify-center rounded-full bg-muted">
+            <span className="text-sm font-medium">👧</span>
+          </div>
+          <div className="flex flex-1 flex-col">
+            <div className="flex items-center gap-2">
+              <span className="rounded bg-yellow-100 px-2 py-0.5 text-xs font-medium text-yellow-800">S</span>
+              <span className="font-semibold">Wei Zhao Chen</span>
+            </div>
+          </div>
+        </div>
+        <p className="text-sm text-muted-foreground">
+          This student is with special educational needs (SEN), which affects her learning. Specifically she has dyslexia and difficulties with reading. Her academic performance is currently at an average level.
+        </p>
+      </div>
+
+      {/* Student 2 */}
+      <div className="flex flex-col gap-3 rounded-lg border bg-background p-4">
+        <div className="flex items-center gap-3">
+          <div className="flex size-12 items-center justify-center rounded-full bg-muted">
+            <span className="text-sm font-medium">👦</span>
+          </div>
+          <div className="flex flex-1 flex-col">
+            <div className="flex items-center gap-2">
+              <span className="rounded bg-yellow-100 px-2 py-0.5 text-xs font-medium text-yellow-800">S</span>
+              <span className="font-semibold">Chris Lim</span>
+            </div>
+          </div>
+        </div>
+        <p className="text-sm text-muted-foreground">
+          This student has special educational needs (SEN), which impact her learning. In addition to dyslexia, she also has ADHD which affects her focus and attention in class.
+        </p>
+      </div>
+    </div>
+  )
+}
 
 function AssistantBody({ showHeading = true }: AssistantBodyProps) {
   const [messages, setMessages] = useState<Message[]>([])
@@ -128,19 +176,32 @@ function AssistantBody({ showHeading = true }: AssistantBodyProps) {
     }
 
     setMessages((prev) => [...prev, userMessage])
+
+    // Add thinking indicator
+    const thinkingMessage: Message = {
+      id: (Date.now() + 1).toString(),
+      role: 'assistant',
+      content: 'Thought for 5 seconds',
+      timestamp: new Date(),
+      isThinking: true,
+    }
+    setMessages((prev) => [...prev, thinkingMessage])
     setIsLoading(true)
 
     // Simulate assistant response
     setTimeout(() => {
+      // Remove thinking message and add actual response
+      setMessages((prev) => prev.filter((msg) => !msg.isThinking))
+
       const assistantMessage: Message = {
-        id: (Date.now() + 1).toString(),
+        id: (Date.now() + 2).toString(),
         role: 'assistant',
-        content: 'This is a simulated response. In a real implementation, this would connect to an AI service.',
+        content: shortcut.command === '/ptm' ? <PTMResponseContent /> : 'This is a simulated response. In a real implementation, this would connect to an AI service.',
         timestamp: new Date(),
       }
       setMessages((prev) => [...prev, assistantMessage])
       setIsLoading(false)
-    }, 1000)
+    }, 5000)
   }
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -175,16 +236,33 @@ function AssistantBody({ showHeading = true }: AssistantBodyProps) {
             <div
               key={message.id}
               className={cn(
-                'flex flex-col gap-1 rounded-lg p-3 text-sm',
+                'flex flex-col gap-1 text-sm',
                 message.role === 'user'
-                  ? 'ml-auto max-w-[85%] bg-primary text-primary-foreground'
-                  : 'mr-auto max-w-[85%] bg-background',
+                  ? 'ml-auto max-w-[85%] rounded-lg bg-primary p-3 text-primary-foreground'
+                  : message.isThinking
+                    ? 'mr-auto flex-row items-center gap-2'
+                    : 'mr-auto max-w-full',
               )}
             >
-              <p className="whitespace-pre-wrap break-words">{message.content}</p>
-              <span className="text-xs opacity-60">
-                {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-              </span>
+              {message.isThinking ? (
+                <>
+                  <span className="text-muted-foreground">{message.content}</span>
+                  <ChevronRightIcon className="size-4 text-muted-foreground" />
+                </>
+              ) : (
+                <>
+                  {typeof message.content === 'string' ? (
+                    <p className="whitespace-pre-wrap break-words">{message.content}</p>
+                  ) : (
+                    <div>{message.content}</div>
+                  )}
+                  {!message.isThinking && (
+                    <span className="text-xs opacity-60">
+                      {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </span>
+                  )}
+                </>
+              )}
             </div>
           ))}
           {isLoading && (
