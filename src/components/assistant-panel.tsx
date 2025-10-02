@@ -280,6 +280,25 @@ function AssistantBody({ showHeading = true }: AssistantBodyProps) {
         </div>
 
       <div className="flex flex-col gap-2">
+        {/* Shortcut hints */}
+        <div className="flex items-center gap-2">
+          {promptShortcuts.map((shortcut) => (
+            <button
+              key={shortcut.command}
+              type="button"
+              onClick={() => {
+                setInput(shortcut.command)
+                setShowShortcuts(true)
+                setSelectedShortcutIndex(promptShortcuts.indexOf(shortcut))
+              }}
+              className="flex items-center gap-1.5 rounded-md bg-muted px-2.5 py-1.5 text-xs transition-colors hover:bg-accent"
+            >
+              <span className="text-muted-foreground">/</span>
+              <span>{shortcut.label}</span>
+            </button>
+          ))}
+        </div>
+
         <div className="relative">
           {showShortcuts && filteredShortcuts.length > 0 && (
             <div className="absolute bottom-full left-0 right-0 z-10 mb-2 overflow-hidden rounded-lg border bg-background shadow-lg">
