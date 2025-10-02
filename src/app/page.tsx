@@ -858,7 +858,7 @@ export default function Home() {
             <div
               className={cn(
                 'fixed inset-y-0 z-10 hidden h-svh w-[20rem] transition-[right,width] duration-200 ease-in-out md:flex',
-                'right-0 p-2',
+                'right-0 py-2 pr-2',
                 !isAssistantOpen && 'right-[calc(20rem*-1)]',
               )}
             >
