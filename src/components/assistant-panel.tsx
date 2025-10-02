@@ -116,7 +116,7 @@ function AssistantBody({ showHeading = true }: AssistantBodyProps) {
   }
 
   const handleShortcutSelect = (shortcut: typeof promptShortcuts[0]) => {
-    setInput(shortcut.prompt)
+    setInput(shortcut.command)
     setShowShortcuts(false)
   }
 
@@ -188,16 +188,13 @@ function AssistantBody({ showHeading = true }: AssistantBodyProps) {
                   type="button"
                   onClick={() => handleShortcutSelect(shortcut)}
                   className={cn(
-                    'flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-accent',
+                    'flex w-full items-center gap-3 px-4 py-2.5 text-left transition-colors hover:bg-accent',
                     index === selectedShortcutIndex && 'bg-accent'
                   )}
                 >
-                  <div className="flex flex-1 flex-col gap-1">
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-medium text-muted-foreground">{shortcut.command}</span>
-                      <span className="text-sm font-medium">{shortcut.label}</span>
-                    </div>
-                    <p className="line-clamp-2 text-xs text-muted-foreground">{shortcut.prompt}</p>
+                  <div className="flex flex-1 items-center gap-2">
+                    <span className="text-xs font-medium text-muted-foreground">{shortcut.command}</span>
+                    <span className="text-sm font-medium">{shortcut.label}</span>
                   </div>
                 </button>
               ))}
