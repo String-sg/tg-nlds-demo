@@ -862,7 +862,7 @@ export default function Home() {
                 !isAssistantOpen && 'right-[calc(20rem*-1)]',
               )}
             >
-              <div className="bg-sidebar border-sidebar-border flex h-full w-full flex-col rounded-2xl border shadow-sm">
+              <div className="bg-sidebar border-sidebar-border flex h-full w-full flex-col rounded-2xl border">
                 <AssistantPanel
                   mode="sidebar"
                   isOpen={isAssistantOpen}

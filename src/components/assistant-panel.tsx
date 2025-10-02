@@ -89,37 +89,7 @@ function AssistantBody({ showHeading = true }: AssistantBodyProps) {
 
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-4">
-      {showHeading && (
-        <div className="flex items-center gap-2">
-          <SparklesIcon className="size-5 text-primary" />
-          <h3 className="text-base font-semibold">Assistant</h3>
-        </div>
-      )}
-
-      {messages.length === 0 ? (
-        <div className="flex flex-1 flex-col gap-4 rounded-lg border border-dashed border-muted-foreground/40 bg-muted/20 p-4">
-          <p className="text-sm text-muted-foreground">
-            Ask questions, request summaries, or get insights about the current page.
-          </p>
-          <div className="flex flex-col gap-2">
-            <p className="text-xs font-medium text-muted-foreground">Quick actions:</p>
-            <div className="flex flex-wrap gap-2">
-              {quickActions.map((action) => (
-                <Button
-                  key={action.label}
-                  size="sm"
-                  variant="outline"
-                  onClick={() => handleQuickAction(action.prompt)}
-                  className="text-xs"
-                >
-                  {action.label}
-                </Button>
-              ))}
-            </div>
-          </div>
-        </div>
-      ) : (
-        <div className="flex flex-1 flex-col gap-3 overflow-y-auto rounded-lg border bg-muted/20 p-4">
+      <div className="flex flex-1 flex-col gap-3 overflow-y-auto rounded-lg border bg-muted/20 p-4">
           {messages.map((message) => (
             <div
               key={message.id}
@@ -149,7 +119,6 @@ function AssistantBody({ showHeading = true }: AssistantBodyProps) {
             </div>
           )}
         </div>
-      )}
 
       <div className="flex flex-col gap-2">
         <div className="relative">
@@ -296,7 +265,7 @@ export function AssistantPanel({
     <Sheet open={isOpen} onOpenChange={onOpenChange}>
       <SheetContent
         side="right"
-        className="bottom-4 right-4 top-auto h-auto max-h-[calc(100vh-2rem)] w-[min(95vw,22rem)] translate-x-0 rounded-2xl border shadow-2xl data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom data-[state=closed]:duration-150 data-[state=open]:duration-200 sm:bottom-6 sm:right-6 sm:w-[26rem] md:w-[28rem]"
+        className="bottom-4 right-4 top-auto h-auto max-h-[calc(100vh-2rem)] w-[min(95vw,22rem)] translate-x-0 rounded-2xl border data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom data-[state=closed]:duration-150 data-[state=open]:duration-200 sm:bottom-6 sm:right-6 sm:w-[26rem] md:w-[28rem]"
         showOverlay={false}
         showCloseButton={false}
         bounded={false}
