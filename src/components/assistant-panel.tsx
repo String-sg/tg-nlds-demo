@@ -38,16 +38,30 @@ type Message = {
   timestamp: Date
 }
 
-const quickActions = [
-  { label: 'Summarize this page', prompt: 'Summarize the content on this page' },
-  { label: 'Explain concept', prompt: 'Explain the key concepts shown here' },
-  { label: 'Suggest improvements', prompt: 'Suggest improvements for this page' },
+const promptShortcuts = [
+  {
+    label: 'Parent teacher meet prep',
+    command: '/ptm',
+    prompt: 'Prepare for parent-teacher meeting on October 14, 2025. Review student data and identify key discussion points for parents.'
+  },
+  {
+    label: 'Lesson plan summary',
+    command: '/lesson',
+    prompt: 'Summarize the current lesson plan and suggest improvements based on student engagement data.'
+  },
+  {
+    label: 'Student progress report',
+    command: '/progress',
+    prompt: 'Generate a detailed progress report for selected students including attendance, grades, and behavior notes.'
+  },
 ]
 
 function AssistantBody({ showHeading = true }: AssistantBodyProps) {
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const [showShortcuts, setShowShortcuts] = useState(false)
+  const [filteredShortcuts, setFilteredShortcuts] = useState(promptShortcuts)
 
   const handleSendMessage = async () => {
     if (!input.trim() || isLoading) return
@@ -80,10 +94,38 @@ function AssistantBody({ showHeading = true }: AssistantBodyProps) {
     setInput(prompt)
   }
 
+  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const value = e.target.value
+    setInput(value)
+
+    // Check if user is typing a slash command
+    if (value.startsWith('/')) {
+      setShowShortcuts(true)
+      const search = value.slice(1).toLowerCase()
+      const filtered = promptShortcuts.filter(
+        shortcut =>
+          shortcut.command.toLowerCase().includes(search) ||
+          shortcut.label.toLowerCase().includes(search)
+      )
+      setFilteredShortcuts(filtered)
+    } else {
+      setShowShortcuts(false)
+    }
+  }
+
+  const handleShortcutSelect = (shortcut: typeof promptShortcuts[0]) => {
+    setInput(shortcut.prompt)
+    setShowShortcuts(false)
+  }
+
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
-      handleSendMessage()
+      if (!showShortcuts) {
+        handleSendMessage()
+      }
+    } else if (e.key === 'Escape' && showShortcuts) {
+      setShowShortcuts(false)
     }
   }
 
@@ -122,9 +164,29 @@ function AssistantBody({ showHeading = true }: AssistantBodyProps) {
 
       <div className="flex flex-col gap-2">
         <div className="relative">
+          {showShortcuts && filteredShortcuts.length > 0 && (
+            <div className="absolute bottom-full left-0 right-0 z-10 mb-2 overflow-hidden rounded-lg border bg-background shadow-lg">
+              {filteredShortcuts.map((shortcut) => (
+                <button
+                  key={shortcut.command}
+                  type="button"
+                  onClick={() => handleShortcutSelect(shortcut)}
+                  className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-accent"
+                >
+                  <div className="flex flex-1 flex-col gap-1">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-medium text-muted-foreground">{shortcut.command}</span>
+                      <span className="text-sm font-medium">{shortcut.label}</span>
+                    </div>
+                    <p className="line-clamp-2 text-xs text-muted-foreground">{shortcut.prompt}</p>
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
           <Textarea
             value={input}
-            onChange={(e) => setInput(e.target.value)}
+            onChange={handleInputChange}
             onKeyDown={handleKeyDown}
             placeholder="Ask the assistant anything..."
             className="min-h-[80px] resize-none pr-12"
