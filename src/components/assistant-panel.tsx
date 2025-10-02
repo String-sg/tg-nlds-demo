@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { CheckIcon, ChevronDownIcon, MonitorIcon, PanelRightIcon, SendIcon, SparklesIcon, SquareIcon, XIcon } from 'lucide-react'
+import { CheckIcon, ChevronDownIcon, ChevronRightIcon, MonitorIcon, PanelRightIcon, SendIcon, SquareIcon, XIcon } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import {
@@ -25,29 +25,268 @@ type AssistantPanelProps = {
   className?: string
   showBodyHeading?: boolean
   showHeaderControls?: boolean
+  onStudentClick?: (studentName: string) => void
 }
 
 type AssistantBodyProps = {
   showHeading?: boolean
+  onStudentClick?: (studentName: string) => void
 }
 
 type Message = {
   id: string
   role: 'user' | 'assistant'
-  content: string
+  content: string | React.ReactNode
   timestamp: Date
+  isThinking?: boolean
 }
 
-const quickActions = [
-  { label: 'Summarize this page', prompt: 'Summarize the content on this page' },
-  { label: 'Explain concept', prompt: 'Explain the key concepts shown here' },
-  { label: 'Suggest improvements', prompt: 'Suggest improvements for this page' },
+const promptShortcuts = [
+  {
+    label: 'Parent teacher meet prep',
+    command: '/ptm',
+    prompt: 'Prepare for parent-teacher meeting on October 14, 2025. Review student data and identify key discussion points for parents.'
+  },
+  {
+    label: 'Lesson plan summary',
+    command: '/lesson',
+    prompt: 'Summarize the current lesson plan and suggest improvements based on student engagement data.'
+  },
+  {
+    label: 'Student progress report',
+    command: '/progress',
+    prompt: 'Generate a detailed progress report for selected students including attendance, grades, and behavior notes.'
+  },
 ]
 
-function AssistantBody({ showHeading = true }: AssistantBodyProps) {
+// Helper function to get initials from name
+const getInitials = (name: string) => {
+  return name
+    .split(' ')
+    .map(word => word[0])
+    .slice(0, 2)
+    .join('')
+    .toUpperCase()
+}
+
+// Helper function to get consistent color for avatar based on name
+const getAvatarColor = (name: string) => {
+  const colors = [
+    'bg-blue-100 text-blue-700',
+    'bg-green-100 text-green-700',
+    'bg-yellow-100 text-yellow-700',
+    'bg-purple-100 text-purple-700',
+    'bg-pink-100 text-pink-700',
+    'bg-indigo-100 text-indigo-700',
+    'bg-red-100 text-red-700',
+    'bg-orange-100 text-orange-700',
+    'bg-teal-100 text-teal-700',
+    'bg-cyan-100 text-cyan-700',
+  ]
+
+  // Generate a consistent hash from the name
+  let hash = 0
+  for (let i = 0; i < name.length; i++) {
+    hash = name.charCodeAt(i) + ((hash << 5) - hash)
+  }
+
+  return colors[Math.abs(hash) % colors.length]
+}
+
+function PTMResponseContent({ onStudentClick }: { onStudentClick?: (studentName: string) => void }) {
+  const [currentPage, setCurrentPage] = useState(0)
+
+  const topStudents = [
+    {
+      name: 'Sarah Johnson',
+      grade: 'Excellent',
+      tags: ['Top performer'],
+      description: 'Consistently achieves high grades across all subjects. Shows strong leadership skills and actively participates in class discussions.'
+    },
+    {
+      name: 'Marcus Lee',
+      grade: 'Above average',
+      tags: ['Improved'],
+      description: 'Has shown significant improvement this semester. Particularly strong in mathematics and science subjects.'
+    },
+    {
+      name: 'Emily Wong',
+      grade: 'Excellent',
+      tags: ['Top performer'],
+      description: 'Excels in creative subjects and demonstrates exceptional critical thinking abilities. Active in extracurricular activities.'
+    },
+    {
+      name: 'Daniel Rodriguez',
+      grade: 'Above average',
+      tags: ['Consistent'],
+      description: 'Maintains steady performance across all subjects. Shows good time management and organizational skills.'
+    },
+    {
+      name: 'Aisha Patel',
+      grade: 'Above average',
+      tags: ['Creative'],
+      description: 'Demonstrates strong creative abilities and innovative problem-solving approaches. Excellent collaboration skills.'
+    }
+  ]
+
+  const otherStudents = [
+    {
+      name: 'James Wilson',
+      grade: 'Average',
+      tags: ['Steady'],
+      description: 'Maintains consistent performance. Would benefit from additional support in reading comprehension.'
+    },
+    {
+      name: 'Olivia Martinez',
+      grade: 'Above average',
+      tags: ['Engaged'],
+      description: 'Shows enthusiasm in class and actively seeks help when needed. Strong in group work.'
+    },
+    {
+      name: 'Ryan Kim',
+      grade: 'Average',
+      tags: ['Improving'],
+      description: 'Recent improvement noted. Responds well to one-on-one attention and feedback.'
+    },
+    {
+      name: 'Sophie Taylor',
+      grade: 'Below average',
+      tags: ['Needs support'],
+      description: 'Struggling with core concepts. Would benefit from additional tutoring and parental involvement.'
+    },
+    {
+      name: 'Michael Brown',
+      grade: 'Average',
+      tags: ['Potential'],
+      description: 'Shows potential but lacks focus. Encouragement and structured study time recommended.'
+    }
+  ]
+
+  const studentsToShow = currentPage === 0 ? [] : currentPage === 1 ? topStudents : otherStudents
+
+  return (
+    <div className="flex flex-col gap-4">
+      <p className="text-sm">
+        On October 14, 2025, you&apos;ll be meeting with six parents, and there are two important pieces of information regarding two students that you should keep in mind.
+      </p>
+      <p className="text-sm font-medium">Here are the two students you might want to focus on.</p>
+
+      {/* Student 1 - Alice Wong */}
+      <div
+        className={cn(
+          "flex flex-col gap-3 rounded-lg border bg-background p-4",
+          onStudentClick && "cursor-pointer hover:bg-accent transition-colors"
+        )}
+        onClick={() => onStudentClick?.('Alice Wong')}
+      >
+        <div className="flex items-center gap-3">
+          <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-sm font-medium ${getAvatarColor('Alice Wong')}`}>
+            {getInitials('Alice Wong')}
+          </div>
+          <div className="flex flex-1 flex-col gap-1.5">
+            <span className="font-semibold">Alice Wong</span>
+            <div className="flex items-center gap-1.5">
+              <span className="inline-flex items-center rounded-md bg-muted px-2 py-0.5 text-xs font-medium">
+                Excellent
+              </span>
+              <span className="inline-flex items-center rounded-md bg-muted px-2 py-0.5 text-xs font-medium">
+                Consistent and hardworking
+              </span>
+            </div>
+          </div>
+        </div>
+        <p className="text-sm text-muted-foreground">
+          Alice recently scored an A in her latest assessment, a significant improvement from her consistent B grades. This positive trend demonstrates her dedication and hard work, making it a meaningful achievement to celebrate with her parents.
+        </p>
+      </div>
+
+      {/* Student 2 - Reza Halim */}
+      <div
+        className={cn(
+          "flex flex-col gap-3 rounded-lg border bg-background p-4",
+          onStudentClick && "cursor-pointer hover:bg-accent transition-colors"
+        )}
+        onClick={() => onStudentClick?.('Reza Halim')}
+      >
+        <div className="flex items-center gap-3">
+          <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-sm font-medium ${getAvatarColor('Reza Halim')}`}>
+            {getInitials('Reza Halim')}
+          </div>
+          <div className="flex flex-1 flex-col gap-1.5">
+            <span className="font-semibold">Reza Halim</span>
+            <div className="flex items-center gap-1.5">
+              <span className="inline-flex items-center rounded-md bg-muted px-2 py-0.5 text-xs font-medium">
+                Above average
+              </span>
+              <span className="inline-flex items-center rounded-md bg-muted px-2 py-0.5 text-xs font-medium">
+                Improved behavior
+              </span>
+            </div>
+          </div>
+        </div>
+        <p className="text-sm text-muted-foreground">
+          Reza has shown remarkable growth and improvement since his last discipline case. The Case Management team&apos;s observations reveal a clear positive trajectory in both his behavior and academic engagement, a story worth celebrating with his parents.
+        </p>
+      </div>
+
+      {currentPage > 0 && (
+        <>
+          <p className="text-sm font-medium">{currentPage === 1 ? 'Top 5 students in priority' : 'Other 5 students'}</p>
+          {studentsToShow.map((student) => (
+            <div
+              key={student.name}
+              className={cn(
+                "flex flex-col gap-3 rounded-lg border bg-background p-4",
+                onStudentClick && "cursor-pointer hover:bg-accent transition-colors"
+              )}
+              onClick={() => onStudentClick?.(student.name)}
+            >
+              <div className="flex items-center gap-3">
+                <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-sm font-medium ${getAvatarColor(student.name)}`}>
+                  {getInitials(student.name)}
+                </div>
+                <div className="flex flex-1 flex-col gap-1.5">
+                  <span className="font-semibold">{student.name}</span>
+                  <div className="flex items-center gap-1.5">
+                    <span className="inline-flex items-center rounded-md bg-muted px-2 py-0.5 text-xs font-medium">
+                      {student.grade}
+                    </span>
+                    {student.tags.map((tag) => (
+                      <span key={tag} className="inline-flex items-center rounded-md bg-muted px-2 py-0.5 text-xs font-medium">
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                {student.description}
+              </p>
+            </div>
+          ))}
+        </>
+      )}
+
+      {currentPage < 2 && (
+        <Button
+          variant="outline"
+          className="w-full"
+          onClick={() => setCurrentPage(currentPage + 1)}
+        >
+          {currentPage === 0 ? 'Show all summaries' : 'Show other 5'}
+        </Button>
+      )}
+    </div>
+  )
+}
+
+function AssistantBody({ onStudentClick }: AssistantBodyProps) {
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const [showShortcuts, setShowShortcuts] = useState(false)
+  const [filteredShortcuts, setFilteredShortcuts] = useState(promptShortcuts)
+  const [selectedShortcutIndex, setSelectedShortcutIndex] = useState(0)
 
   const handleSendMessage = async () => {
     if (!input.trim() || isLoading) return
@@ -76,64 +315,126 @@ function AssistantBody({ showHeading = true }: AssistantBodyProps) {
     }, 1000)
   }
 
-  const handleQuickAction = (prompt: string) => {
-    setInput(prompt)
+  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const value = e.target.value
+    setInput(value)
+
+    // Check if user is typing a slash command
+    if (value.startsWith('/')) {
+      setShowShortcuts(true)
+      setSelectedShortcutIndex(0)
+      const search = value.slice(1).toLowerCase()
+      const filtered = promptShortcuts.filter(
+        shortcut =>
+          shortcut.command.toLowerCase().includes(search) ||
+          shortcut.label.toLowerCase().includes(search)
+      )
+      setFilteredShortcuts(filtered)
+    } else {
+      setShowShortcuts(false)
+    }
+  }
+
+  const handleShortcutSelect = async (shortcut: typeof promptShortcuts[0]) => {
+    setShowShortcuts(false)
+    setInput('')
+
+    // Send the shortcut command as a message
+    const userMessage: Message = {
+      id: Date.now().toString(),
+      role: 'user',
+      content: shortcut.command,
+      timestamp: new Date(),
+    }
+
+    setMessages((prev) => [...prev, userMessage])
+
+    // Add thinking indicator
+    const thinkingMessage: Message = {
+      id: (Date.now() + 1).toString(),
+      role: 'assistant',
+      content: 'Thought for 5 seconds',
+      timestamp: new Date(),
+      isThinking: true,
+    }
+    setMessages((prev) => [...prev, thinkingMessage])
+    setIsLoading(true)
+
+    // Simulate assistant response
+    setTimeout(() => {
+      // Remove thinking message and add actual response
+      setMessages((prev) => prev.filter((msg) => !msg.isThinking))
+
+      const assistantMessage: Message = {
+        id: (Date.now() + 2).toString(),
+        role: 'assistant',
+        content: shortcut.command === '/ptm' ? <PTMResponseContent onStudentClick={onStudentClick} /> : 'This is a simulated response. In a real implementation, this would connect to an AI service.',
+        timestamp: new Date(),
+      }
+      setMessages((prev) => [...prev, assistantMessage])
+      setIsLoading(false)
+    }, 5000)
   }
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
+    if (showShortcuts && filteredShortcuts.length > 0) {
+      if (e.key === 'ArrowDown') {
+        e.preventDefault()
+        setSelectedShortcutIndex((prev) =>
+          prev < filteredShortcuts.length - 1 ? prev + 1 : 0
+        )
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault()
+        setSelectedShortcutIndex((prev) =>
+          prev > 0 ? prev - 1 : filteredShortcuts.length - 1
+        )
+      } else if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault()
+        handleShortcutSelect(filteredShortcuts[selectedShortcutIndex])
+      } else if (e.key === 'Escape') {
+        e.preventDefault()
+        setShowShortcuts(false)
+      }
+    } else if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
       handleSendMessage()
     }
   }
 
   return (
-    <div className="flex flex-1 flex-col gap-4">
-      {showHeading && (
-        <div className="flex items-center gap-2">
-          <SparklesIcon className="size-5 text-primary" />
-          <h3 className="text-base font-semibold">Assistant</h3>
-        </div>
-      )}
-
-      {messages.length === 0 ? (
-        <div className="flex flex-1 flex-col gap-4 rounded-lg border border-dashed border-muted-foreground/40 bg-muted/20 p-4">
-          <p className="text-sm text-muted-foreground">
-            Ask questions, request summaries, or get insights about the current page.
-          </p>
-          <div className="flex flex-col gap-2">
-            <p className="text-xs font-medium text-muted-foreground">Quick actions:</p>
-            <div className="flex flex-wrap gap-2">
-              {quickActions.map((action) => (
-                <Button
-                  key={action.label}
-                  size="sm"
-                  variant="outline"
-                  onClick={() => handleQuickAction(action.prompt)}
-                  className="text-xs"
-                >
-                  {action.label}
-                </Button>
-              ))}
-            </div>
-          </div>
-        </div>
-      ) : (
-        <div className="flex flex-1 flex-col gap-3 overflow-y-auto rounded-lg border bg-muted/20 p-4">
+    <div className="flex min-h-0 flex-1 flex-col gap-4">
+      <div className="flex flex-1 flex-col gap-3 overflow-y-auto rounded-lg bg-muted/20">
           {messages.map((message) => (
             <div
               key={message.id}
               className={cn(
-                'flex flex-col gap-1 rounded-lg p-3 text-sm',
+                'flex flex-col gap-1 text-sm',
                 message.role === 'user'
-                  ? 'ml-auto max-w-[85%] bg-primary text-primary-foreground'
-                  : 'mr-auto max-w-[85%] bg-background',
+                  ? 'ml-auto max-w-[85%] rounded-lg bg-orange-500 p-3 text-white'
+                  : message.isThinking
+                    ? 'mr-auto flex-row items-center gap-2'
+                    : 'mr-auto max-w-full',
               )}
             >
-              <p className="whitespace-pre-wrap break-words">{message.content}</p>
-              <span className="text-xs opacity-60">
-                {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-              </span>
+              {message.isThinking ? (
+                <>
+                  <span className="text-muted-foreground">{message.content}</span>
+                  <ChevronRightIcon className="size-4 text-muted-foreground" />
+                </>
+              ) : (
+                <>
+                  {typeof message.content === 'string' ? (
+                    <p className="whitespace-pre-wrap break-words">{message.content}</p>
+                  ) : (
+                    <div>{message.content}</div>
+                  )}
+                  {!message.isThinking && (
+                    <span className="text-xs opacity-60">
+                      {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </span>
+                  )}
+                </>
+              )}
             </div>
           ))}
           {isLoading && (
@@ -149,15 +450,53 @@ function AssistantBody({ showHeading = true }: AssistantBodyProps) {
             </div>
           )}
         </div>
-      )}
 
       <div className="flex flex-col gap-2">
+        {/* Shortcut hints */}
+        <div className="flex items-center gap-2">
+          {promptShortcuts.map((shortcut) => (
+            <button
+              key={shortcut.command}
+              type="button"
+              onClick={() => {
+                setInput(shortcut.command)
+                setShowShortcuts(true)
+                setSelectedShortcutIndex(promptShortcuts.indexOf(shortcut))
+              }}
+              className="flex items-center gap-1.5 rounded-md bg-muted px-2.5 py-1.5 text-xs transition-colors hover:bg-accent"
+            >
+              <span className="text-muted-foreground">/</span>
+              <span>{shortcut.label}</span>
+            </button>
+          ))}
+        </div>
+
         <div className="relative">
+          {showShortcuts && filteredShortcuts.length > 0 && (
+            <div className="absolute bottom-full left-0 right-0 z-10 mb-2 overflow-hidden rounded-lg border bg-background shadow-lg">
+              {filteredShortcuts.map((shortcut, index) => (
+                <button
+                  key={shortcut.command}
+                  type="button"
+                  onClick={() => handleShortcutSelect(shortcut)}
+                  className={cn(
+                    'flex w-full items-center gap-3 px-4 py-2.5 text-left transition-colors hover:bg-accent',
+                    index === selectedShortcutIndex && 'bg-accent'
+                  )}
+                >
+                  <div className="flex flex-1 items-center gap-2">
+                    <span className="text-xs font-medium text-muted-foreground">{shortcut.command}</span>
+                    <span className="text-sm font-medium">{shortcut.label}</span>
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
           <Textarea
             value={input}
-            onChange={(e) => setInput(e.target.value)}
+            onChange={handleInputChange}
             onKeyDown={handleKeyDown}
-            placeholder="Ask the assistant anything... (Press Enter to send)"
+            placeholder="Ask the assistant anything..."
             className="min-h-[80px] resize-none pr-12"
             disabled={isLoading}
           />
@@ -170,10 +509,6 @@ function AssistantBody({ showHeading = true }: AssistantBodyProps) {
             <SendIcon className="size-4" />
           </Button>
         </div>
-        <p className="text-xs text-muted-foreground">
-          Press <kbd className="rounded bg-muted px-1.5 py-0.5 font-mono">Enter</kbd> to send,{' '}
-          <kbd className="rounded bg-muted px-1.5 py-0.5 font-mono">Shift+Enter</kbd> for new line
-        </p>
       </div>
     </div>
   )
@@ -258,11 +593,12 @@ export function AssistantPanel({
   className,
   showBodyHeading = true,
   showHeaderControls = true,
+  onStudentClick,
 }: AssistantPanelProps) {
   const content = (
-    <div className={cn('flex h-full flex-col gap-4 p-4 transition-all duration-300 ease-in-out', className)}>
+    <div className={cn('flex h-full flex-col gap-4 px-2 pb-2 pt-2', className)}>
       {showHeaderControls && (
-        <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center justify-between gap-2 px-2 py-0.5">
           <div className="flex items-center gap-2">
             <h2 className="text-base font-semibold leading-none">Assistant</h2>
           </div>
@@ -280,7 +616,7 @@ export function AssistantPanel({
           </div>
         </div>
       )}
-      <AssistantBody showHeading={showBodyHeading} />
+      <AssistantBody showHeading={showBodyHeading} onStudentClick={onStudentClick} />
     </div>
   )
 
@@ -289,18 +625,14 @@ export function AssistantPanel({
       return null
     }
 
-    return (
-      <div className="animate-in slide-in-from-right duration-300">
-        {content}
-      </div>
-    )
+    return content
   }
 
   return (
     <Sheet open={isOpen} onOpenChange={onOpenChange}>
       <SheetContent
         side="right"
-        className="bottom-4 right-4 top-auto h-auto max-h-[calc(100vh-2rem)] w-[min(95vw,22rem)] translate-x-0 rounded-2xl border shadow-2xl sm:bottom-6 sm:right-6 sm:w-[26rem] md:w-[28rem]"
+        className="bottom-4 right-4 top-auto h-auto max-h-[calc(100vh-2rem)] w-[min(95vw,22rem)] translate-x-0 rounded-2xl border data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom data-[state=closed]:duration-200 data-[state=open]:duration-300 sm:bottom-6 sm:right-6 sm:w-[26rem] md:w-[28rem]"
         showOverlay={false}
         showCloseButton={false}
         bounded={false}

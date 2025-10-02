@@ -57,17 +57,19 @@ const getAvatarColor = (name: string) => {
 
 // Mock student data with Singaporean names
 const studentsData = [
-  { id: 1, name: 'Tan Wei Jie', present: 100, english: 88, math: 76, science: 82, conduct: 'Above average', status: 'GEP', remark: 'None' },
-  { id: 2, name: 'Lim Hui Ling', present: 50, english: 79, math: 85, science: 91, conduct: 'Average', status: 'SEN', remark: 'None' },
-  { id: 3, name: 'Muhammad Iskandar', present: 98, english: 92, math: 88, science: 95, conduct: 'Excellent', status: 'GEP', remark: 'None' },
-  { id: 4, name: 'Priya Krishnan', present: 98, english: 85, math: 91, science: 79, conduct: 'Above average', status: 'None', remark: 'None' },
-  { id: 5, name: 'Wong Kai Xuan', present: 100, english: 91, math: 79, science: 85, conduct: 'Average', status: 'None', remark: 'None' },
-  { id: 6, name: 'Siti Nurul Ain', present: 98, english: 76, math: 82, science: 88, conduct: 'Needs improvement', status: 'SEN', remark: 'None' },
-  { id: 7, name: 'Chen Jia Yi', present: 70, english: 88, math: 76, science: 82, conduct: 'Above average', status: 'None', remark: 'None' },
-  { id: 8, name: 'Rachel Ng', present: 100, english: 88, math: 76, science: 82, conduct: 'Above average', status: 'None', remark: 'None' },
-  { id: 9, name: 'Ahmad Faisal', present: 92, english: 79, math: 91, science: 85, conduct: 'Above average', status: 'None', remark: 'None' },
-  { id: 10, name: 'Nicholas Loh', present: 70, english: 92, math: 88, science: 95, conduct: 'Excellent', status: 'None', remark: 'None' },
-  { id: 11, name: 'Kavitha Raj', present: 98, english: 85, math: 91, science: 79, conduct: 'Average', status: 'None', remark: 'None' },
+  { id: 1, name: 'Alice Wong', present: 98, english: 92, math: 88, science: 90, conduct: 'Excellent', status: 'None', remark: 'None' },
+  { id: 2, name: 'Reza Halim', present: 95, english: 85, math: 82, science: 87, conduct: 'Above average', status: 'None', remark: 'None' },
+  { id: 3, name: 'Tan Wei Jie', present: 100, english: 88, math: 76, science: 82, conduct: 'Above average', status: 'GEP', remark: 'None' },
+  { id: 4, name: 'Lim Hui Ling', present: 50, english: 79, math: 85, science: 91, conduct: 'Average', status: 'SEN', remark: 'None' },
+  { id: 5, name: 'Muhammad Iskandar', present: 98, english: 92, math: 88, science: 95, conduct: 'Excellent', status: 'GEP', remark: 'None' },
+  { id: 6, name: 'Priya Krishnan', present: 98, english: 85, math: 91, science: 79, conduct: 'Above average', status: 'None', remark: 'None' },
+  { id: 7, name: 'Wong Kai Xuan', present: 100, english: 91, math: 79, science: 85, conduct: 'Average', status: 'None', remark: 'None' },
+  { id: 8, name: 'Siti Nurul Ain', present: 98, english: 76, math: 82, science: 88, conduct: 'Needs improvement', status: 'SEN', remark: 'None' },
+  { id: 9, name: 'Chen Jia Yi', present: 70, english: 88, math: 76, science: 82, conduct: 'Above average', status: 'None', remark: 'None' },
+  { id: 10, name: 'Rachel Ng', present: 100, english: 88, math: 76, science: 82, conduct: 'Above average', status: 'None', remark: 'None' },
+  { id: 11, name: 'Ahmad Faisal', present: 92, english: 79, math: 91, science: 85, conduct: 'Above average', status: 'None', remark: 'None' },
+  { id: 12, name: 'Nicholas Loh', present: 70, english: 92, math: 88, science: 95, conduct: 'Excellent', status: 'None', remark: 'None' },
+  { id: 13, name: 'Kavitha Raj', present: 98, english: 85, math: 91, science: 79, conduct: 'Average', status: 'None', remark: 'None' },
 ]
 
 // Additional Singaporean student names
@@ -82,7 +84,7 @@ const additionalStudentNames = [
 
 // Add more students to match the design (34 total)
 const additionalStudents = additionalStudentNames.map((name, i) => ({
-  id: 12 + i,
+  id: 14 + i,
   name: name,
   present: Math.floor(Math.random() * 51) + 50, // 50-100%
   english: Math.floor(Math.random() * 31) + 70, // 70-100
@@ -99,7 +101,11 @@ type SortField = 'present' | 'name' | 'english' | 'math' | 'science' | 'conduct'
 type SortOrder = 'asc' | 'desc'
 type TabType = 'overview' | 'statistics' | 'timetable'
 
-export function ClassView() {
+interface ClassViewProps {
+  onStudentClick?: (studentName: string) => void
+}
+
+export function ClassView({ onStudentClick }: ClassViewProps) {
   const [selectedStudents, setSelectedStudents] = useState<number[]>([])
   const [sortField, setSortField] = useState<SortField>('name')
   const [sortOrder, setSortOrder] = useState<SortOrder>('asc')
@@ -319,8 +325,12 @@ export function ClassView() {
                 </TableHeader>
                 <TableBody>
                   {sortedStudents.map((student) => (
-                    <TableRow key={student.id}>
-                      <TableCell>
+                    <TableRow
+                      key={student.id}
+                      className={onStudentClick ? 'cursor-pointer' : ''}
+                      onClick={() => onStudentClick?.(student.name)}
+                    >
+                      <TableCell onClick={(e) => e.stopPropagation()}>
                         <Checkbox
                           checked={selectedStudents.includes(student.id)}
                           onCheckedChange={(checked) => handleSelectStudent(student.id, checked as boolean)}
@@ -350,7 +360,7 @@ export function ClassView() {
                           <span className="text-stone-500">{student.remark}</span>
                         )}
                       </TableCell>
-                      <TableCell>
+                      <TableCell onClick={(e) => e.stopPropagation()}>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <Button variant="ghost" size="sm" className="h-8 w-8 p-0">

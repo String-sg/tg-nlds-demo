@@ -3,7 +3,10 @@
 import { useEffect, useRef, useState } from 'react'
 import { SparklesIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { cn } from '@/lib/utils'
+
+interface RoundupContentProps {
+  onPrepForMeeting?: () => void
+}
 
 interface RoundupItem {
   id: string
@@ -15,6 +18,7 @@ interface RoundupItem {
     label: string
     icon?: typeof SparklesIcon
     variant?: 'default' | 'outline'
+    onClick?: () => void
   }[]
 }
 
@@ -54,12 +58,26 @@ const mockRoundupItems: RoundupItem[] = [
   },
 ]
 
-export function RoundupContent() {
+export function RoundupContent({ onPrepForMeeting }: RoundupContentProps) {
   const [currentIndex, setCurrentIndex] = useState(0)
   const visualGap = 24
   const scaleStep = 0.035
   const containerRef = useRef<HTMLDivElement>(null)
   const isScrollingRef = useRef(false)
+
+  // Update the first roundup item's action onClick
+  const roundupItems = mockRoundupItems.map((item) => {
+    if (item.id === '1') {
+      return {
+        ...item,
+        actions: item.actions.map((action) => ({
+          ...action,
+          onClick: action.label === 'Prep for Meeting' ? onPrepForMeeting : undefined,
+        })),
+      }
+    }
+    return item
+  })
 
   useEffect(() => {
     const container = containerRef.current
@@ -146,7 +164,7 @@ export function RoundupContent() {
 
       {/* Cards stack */}
       <div className="relative flex flex-1 items-center justify-center px-8">
-        {mockRoundupItems.map((item, index) => {
+        {roundupItems.map((item, index) => {
           const style = getCardStyle(index)
 
           return (
@@ -192,6 +210,7 @@ export function RoundupContent() {
                         variant={action.variant || 'outline'}
                         size="sm"
                         className="h-9 gap-1 rounded-xl border-stone-300 px-4 py-2 text-sm font-medium text-stone-800 hover:bg-stone-50"
+                        onClick={action.onClick}
                       >
                         {Icon && <Icon className="size-4" />}
                         {action.label}
