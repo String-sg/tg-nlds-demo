@@ -215,7 +215,7 @@ export default function Home() {
   const [activeTab, setActiveTab] = useState<TabKey>('roundup')
   const [tabLimitReached, setTabLimitReached] = useState(false)
   const [assistantMode, setAssistantMode] = useState<AssistantMode>('sidebar')
-  const [isAssistantOpen, setIsAssistantOpen] = useState(true)
+  const [isAssistantOpen, setIsAssistantOpen] = useState(false)
   const [draggedTab, setDraggedTab] = useState<ClosableTabKey | null>(null)
   const [dragOverTab, setDragOverTab] = useState<ClosableTabKey | null>(null)
   const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1200)
@@ -831,23 +831,48 @@ export default function Home() {
                   </div>
                 )}
               </div>
-              {assistantMode === 'sidebar' && isAssistantOpen && (
-                <div
-                  id="assistant-panel"
-                  className="relative flex w-full max-w-sm shrink-0 flex-col border-l bg-background"
-                >
-                  <AssistantPanel
-                    mode="sidebar"
-                    isOpen={isAssistantOpen}
-                    onOpenChange={setIsAssistantOpen}
-                    onModeChange={handleAssistantModeChange}
-                    className="flex h-full w-full flex-col"
-                  />
-                </div>
-              )}
             </div>
           </div>
         </SidebarInset>
+
+        {/* Right sidebar panel for assistant in sidebar mode */}
+        {assistantMode === 'sidebar' && (
+          <div
+            className="group text-sidebar-foreground hidden md:block"
+            data-state={isAssistantOpen ? 'expanded' : 'collapsed'}
+            data-collapsible="offcanvas"
+            data-variant="inset"
+            data-side="right"
+          >
+            {/* Sidebar gap */}
+            <div
+              className={cn(
+                'relative w-[20rem] bg-transparent transition-[width] duration-200 ease-linear',
+                !isAssistantOpen && 'w-0',
+              )}
+            />
+            {/* Sidebar container */}
+            <div
+              className={cn(
+                'fixed inset-y-0 z-10 hidden h-svh w-[20rem] transition-[right,width] duration-200 ease-linear md:flex',
+                'right-0 p-2',
+                !isAssistantOpen && 'right-[calc(20rem*-1)]',
+              )}
+            >
+              <div className="bg-sidebar border-sidebar-border flex h-full w-full flex-col rounded-2xl border shadow-sm">
+                <AssistantPanel
+                  mode="sidebar"
+                  isOpen={isAssistantOpen}
+                  onOpenChange={setIsAssistantOpen}
+                  onModeChange={handleAssistantModeChange}
+                  className="flex h-full w-full flex-col"
+                />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Floating mode assistant panel */}
         {assistantMode === 'floating' && isAssistantOpen && (
           <AssistantPanel
             mode="floating"
