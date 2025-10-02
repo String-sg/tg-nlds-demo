@@ -25,6 +25,7 @@ import {
 } from '@/components/assistant-panel'
 import { Button } from '@/components/ui/button'
 import { HomeContent } from '@/components/home-content'
+import { RoundupContent } from '@/components/roundup-content'
 import {
   Sidebar,
   SidebarContent,
@@ -599,10 +600,11 @@ export default function Home() {
             </div>
           </div>
           </div>
-          <div className="flex flex-1 overflow-y-auto">
+          <div className="flex flex-1 overflow-hidden rounded-b-[15px]">
             <div
                 className={cn(
-                  'flex flex-1 flex-col px-8 py-10',
+                  'flex flex-1 flex-col overflow-y-auto',
+                  activeTab === 'roundup' ? '' : 'px-8 py-10',
                   isAssistantSidebarOpen && 'lg:pr-6',
                 )}
               >
@@ -623,6 +625,8 @@ export default function Home() {
                   </div>
                 ) : isHomeActive ? (
                   <HomeContent />
+                ) : activeTab === 'roundup' ? (
+                  <RoundupContent />
                 ) : currentState ? (
                   <div className="flex flex-1 flex-col items-center justify-center text-center">
                     <div className="bg-muted text-muted-foreground flex size-16 items-center justify-center rounded-full">
