@@ -108,8 +108,8 @@ export function HomeContent({ onNavigateToClassroom, onAssistantMessage, onStude
       </form>
 
       {/* Quick Actions - macOS Dock Style */}
-      <div className="flex justify-center">
-        <div className="inline-flex items-end gap-2 rounded-2xl border border-stone-200/60 bg-white/80 px-3 py-2 shadow-lg backdrop-blur-sm sm:gap-3 sm:px-4 sm:py-3">
+      <div className="w-full">
+        <div className="flex items-end justify-between rounded-2xl border border-stone-200/60 bg-white/80 px-20 py-2 backdrop-blur-sm sm:px-24 sm:py-3">
           {actionButtons.map((action) => {
             const Icon = action.icon
             return (
