@@ -104,6 +104,42 @@ const generateMessageId = () => {
   return `msg-${Date.now()}-${messageIdCounter}`
 }
 
+// Helper function to get badge color
+const getBadgeColor = (badge: string) => {
+  const lowerBadge = badge.toLowerCase()
+
+  // Performance grades
+  if (lowerBadge.includes('excellent') || lowerBadge.includes('top performer')) {
+    return 'bg-green-100 text-green-800'
+  }
+  if (lowerBadge.includes('above average')) {
+    return 'bg-blue-100 text-blue-800'
+  }
+  if (lowerBadge.includes('average') || lowerBadge.includes('steady')) {
+    return 'bg-stone-100 text-stone-800'
+  }
+  if (lowerBadge.includes('below average') || lowerBadge.includes('needs support')) {
+    return 'bg-red-100 text-red-800'
+  }
+
+  // Behavioral/progress tags
+  if (lowerBadge.includes('improved') || lowerBadge.includes('improving')) {
+    return 'bg-emerald-100 text-emerald-800'
+  }
+  if (lowerBadge.includes('consistent') || lowerBadge.includes('hardworking')) {
+    return 'bg-indigo-100 text-indigo-800'
+  }
+  if (lowerBadge.includes('creative')) {
+    return 'bg-purple-100 text-purple-800'
+  }
+  if (lowerBadge.includes('engaged') || lowerBadge.includes('potential')) {
+    return 'bg-cyan-100 text-cyan-800'
+  }
+
+  // Default
+  return 'bg-muted text-muted-foreground'
+}
+
 function PTMResponseContent({ onStudentClick }: { onStudentClick?: (studentName: string) => void }) {
   const [currentPage, setCurrentPage] = useState(0)
 
@@ -190,21 +226,21 @@ function PTMResponseContent({ onStudentClick }: { onStudentClick?: (studentName:
         )}
         onClick={() => onStudentClick?.('Alice Wong')}
       >
-        <div className="flex items-start gap-3">
+        <div className="flex items-center gap-3">
           <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-sm font-medium ${getAvatarColor('Alice Wong')}`}>
             {getInitials('Alice Wong')}
           </div>
           <div className="flex flex-1 flex-col gap-1.5">
             <span className="font-semibold">Alice Wong</span>
-            <div className="flex flex-wrap items-center gap-1.5">
-              <span className="inline-flex items-center rounded-md bg-muted px-2 py-0.5 text-xs font-medium">
-                Excellent
-              </span>
-              <span className="inline-flex items-center rounded-md bg-muted px-2 py-0.5 text-xs font-medium">
-                Consistent and hardworking
-              </span>
-            </div>
           </div>
+        </div>
+        <div className="flex flex-wrap items-center gap-1.5">
+          <span className="inline-flex items-center rounded-md bg-muted px-2 py-0.5 text-xs font-medium">
+            Excellent
+          </span>
+          <span className="inline-flex items-center rounded-md bg-muted px-2 py-0.5 text-xs font-medium">
+            Hardworking
+          </span>
         </div>
         <p className="text-sm text-muted-foreground">
           Alice recently scored an A in her latest assessment, a significant improvement from her consistent B grades. This positive trend demonstrates her dedication and hard work, making it a meaningful achievement to celebrate with her parents.
@@ -219,21 +255,21 @@ function PTMResponseContent({ onStudentClick }: { onStudentClick?: (studentName:
         )}
         onClick={() => onStudentClick?.('Reza Halim')}
       >
-        <div className="flex items-start gap-3">
+        <div className="flex items-center gap-3">
           <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-sm font-medium ${getAvatarColor('Reza Halim')}`}>
             {getInitials('Reza Halim')}
           </div>
           <div className="flex flex-1 flex-col gap-1.5">
             <span className="font-semibold">Reza Halim</span>
-            <div className="flex flex-wrap items-center gap-1.5">
-              <span className="inline-flex items-center rounded-md bg-muted px-2 py-0.5 text-xs font-medium">
-                Above average
-              </span>
-              <span className="inline-flex items-center rounded-md bg-muted px-2 py-0.5 text-xs font-medium">
-                Improved behavior
-              </span>
-            </div>
           </div>
+        </div>
+        <div className="flex flex-wrap items-center gap-1.5">
+          <span className="inline-flex items-center rounded-md bg-muted px-2 py-0.5 text-xs font-medium">
+            Above average
+          </span>
+          <span className="inline-flex items-center rounded-md bg-muted px-2 py-0.5 text-xs font-medium">
+            Improved behavior
+          </span>
         </div>
         <p className="text-sm text-muted-foreground">
           Reza has shown remarkable growth and improvement since his last discipline case. The Case Management team&apos;s observations reveal a clear positive trajectory in both his behavior and academic engagement, a story worth celebrating with his parents.
@@ -252,23 +288,23 @@ function PTMResponseContent({ onStudentClick }: { onStudentClick?: (studentName:
               )}
               onClick={() => onStudentClick?.(student.name)}
             >
-              <div className="flex items-start gap-3">
+              <div className="flex items-center gap-3">
                 <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-sm font-medium ${getAvatarColor(student.name)}`}>
                   {getInitials(student.name)}
                 </div>
                 <div className="flex flex-1 flex-col gap-1.5">
                   <span className="font-semibold">{student.name}</span>
-                  <div className="flex flex-wrap items-center gap-1.5">
-                    <span className="inline-flex items-center rounded-md bg-muted px-2 py-0.5 text-xs font-medium">
-                      {student.grade}
-                    </span>
-                    {student.tags.map((tag) => (
-                      <span key={tag} className="inline-flex items-center rounded-md bg-muted px-2 py-0.5 text-xs font-medium">
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
                 </div>
+              </div>
+              <div className="flex flex-wrap items-center gap-1.5">
+                <span className="inline-flex items-center rounded-md bg-muted px-2 py-0.5 text-xs font-medium">
+                  {student.grade}
+                </span>
+                {student.tags.map((tag) => (
+                  <span key={tag} className="inline-flex items-center rounded-md bg-muted px-2 py-0.5 text-xs font-medium">
+                    {tag}
+                  </span>
+                ))}
               </div>
               <p className="text-sm text-muted-foreground">
                 {student.description}
@@ -443,7 +479,7 @@ function AssistantBody({ onStudentClick, incomingMessage, onMessageProcessed }: 
 
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-4">
-      <div className="flex flex-1 flex-col gap-3 overflow-y-auto rounded-lg bg-muted/20">
+      <div className="flex flex-1 flex-col gap-3 overflow-y-auto [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:opacity-0 hover:[&::-webkit-scrollbar-thumb]:opacity-100 [&::-webkit-scrollbar-thumb]:transition-opacity">
           {messages.map((message) => (
             <div
               key={message.id}
@@ -492,24 +528,26 @@ function AssistantBody({ onStudentClick, incomingMessage, onMessageProcessed }: 
         </div>
 
       <div className="flex flex-col gap-2">
-        {/* Shortcut hints */}
-        <div className="flex items-center gap-2">
-          {promptShortcuts.map((shortcut) => (
-            <button
-              key={shortcut.command}
-              type="button"
-              onClick={() => {
-                setInput(shortcut.command)
-                setShowShortcuts(true)
-                setSelectedShortcutIndex(promptShortcuts.indexOf(shortcut))
-              }}
-              className="flex items-center gap-1.5 rounded-md bg-muted px-2.5 py-1.5 text-xs transition-colors hover:bg-accent"
-            >
-              <span className="text-muted-foreground">/</span>
-              <span>{shortcut.label}</span>
-            </button>
-          ))}
-        </div>
+        {/* Shortcut hints - only show when no messages */}
+        {messages.length === 0 && (
+          <div className="flex items-center gap-2">
+            {promptShortcuts.map((shortcut) => (
+              <button
+                key={shortcut.command}
+                type="button"
+                onClick={() => {
+                  setInput(shortcut.command)
+                  setShowShortcuts(true)
+                  setSelectedShortcutIndex(promptShortcuts.indexOf(shortcut))
+                }}
+                className="flex items-center gap-1.5 rounded-md bg-muted px-2.5 py-1.5 text-xs transition-colors hover:bg-accent"
+              >
+                <span className="text-muted-foreground">/</span>
+                <span>{shortcut.label}</span>
+              </button>
+            ))}
+          </div>
+        )}
 
         <div className="relative">
           {showShortcuts && filteredShortcuts.length > 0 && (

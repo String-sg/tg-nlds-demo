@@ -7,6 +7,7 @@ import {
   BookOpenIcon,
   MessageSquareIcon,
   ArrowRightIcon,
+  MoreHorizontalIcon,
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -17,6 +18,7 @@ const actionButtons = [
   { key: 'analyse', label: 'Analyse', icon: SparklesIcon },
   { key: 'learn', label: 'Learn', icon: BookOpenIcon },
   { key: 'communicate', label: 'Communicate', icon: MessageSquareIcon },
+  { key: 'more', label: 'More', icon: MoreHorizontalIcon },
 ]
 
 // Mock data for teacher widgets
@@ -53,9 +55,10 @@ const studentAlertsData = [
 interface HomeContentProps {
   onNavigateToClassroom?: () => void
   onAssistantMessage?: (message: string) => void
+  onStudentClick?: (studentName: string) => void
 }
 
-export function HomeContent({ onNavigateToClassroom, onAssistantMessage }: HomeContentProps = {}) {
+export function HomeContent({ onNavigateToClassroom, onAssistantMessage, onStudentClick }: HomeContentProps = {}) {
   const [assistantInput, setAssistantInput] = useState('')
 
   const handleAssistantSubmit = (e: React.FormEvent) => {
@@ -104,20 +107,24 @@ export function HomeContent({ onNavigateToClassroom, onAssistantMessage }: HomeC
         </div>
       </form>
 
-      {/* Quick Actions */}
-      <div className="grid grid-cols-2 gap-2 sm:gap-3 md:grid-cols-4">
-        {actionButtons.map((action) => {
-          const Icon = action.icon
-          return (
-            <button
-              key={action.key}
-              className="group flex h-24 flex-col items-center justify-center gap-2 rounded-lg border border-stone-200 bg-white shadow-sm transition-all hover:shadow-md sm:h-28 sm:gap-3"
-            >
-              <Icon className="size-4 text-stone-600 transition-colors group-hover:text-stone-900 sm:size-5" />
-              <span className="text-xs font-medium text-stone-900 sm:text-sm">{action.label}</span>
-            </button>
-          )
-        })}
+      {/* Quick Actions - macOS Dock Style */}
+      <div className="flex justify-center">
+        <div className="inline-flex items-end gap-2 rounded-2xl border border-stone-200/60 bg-white/80 px-3 py-2 shadow-lg backdrop-blur-sm sm:gap-3 sm:px-4 sm:py-3">
+          {actionButtons.map((action) => {
+            const Icon = action.icon
+            return (
+              <button
+                key={action.key}
+                className="group relative flex flex-col items-center justify-end gap-1 transition-all duration-200 ease-out hover:scale-150 hover:-translate-y-3 sm:gap-1.5"
+              >
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white border border-stone-200 shadow-sm transition-all group-hover:shadow-md sm:h-14 sm:w-14">
+                  <Icon className="size-5 text-stone-600 sm:size-6" />
+                </div>
+                <span className="absolute -bottom-6 whitespace-nowrap rounded-md bg-stone-900 px-2 py-1 text-xs font-medium text-white opacity-0 transition-opacity group-hover:opacity-100">{action.label}</span>
+              </button>
+            )
+          })}
+        </div>
       </div>
 
       {/* Teacher Widgets Section */}
@@ -222,6 +229,7 @@ export function HomeContent({ onNavigateToClassroom, onAssistantMessage }: HomeC
             {studentAlertsData.map((alert) => (
               <button
                 key={alert.id}
+                onClick={() => onStudentClick?.(alert.student)}
                 className="flex w-full items-start gap-2.5 rounded-lg p-1.5 text-left transition-colors hover:bg-stone-50 sm:gap-3 sm:p-2"
               >
                 <div className="relative shrink-0">

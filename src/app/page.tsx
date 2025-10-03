@@ -790,6 +790,7 @@ export default function Home() {
                   <HomeContent
                     onNavigateToClassroom={() => handleNavigate('classroom')}
                     onAssistantMessage={handleAssistantMessage}
+                    onStudentClick={handleOpenStudentProfile}
                   />
                 ) : activeTab === 'roundup' ? (
                   <RoundupContent onPrepForMeeting={() => handleNavigate('classroom')} />
