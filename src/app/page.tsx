@@ -4,21 +4,21 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react
 
 import type { LucideIcon } from 'lucide-react'
 import {
-  BotIcon,
-  CalendarDaysIcon,
-  ClipboardListIcon,
-  FilePenIcon,
-  FolderIcon,
-  HomeIcon,
-  InboxIcon,
-  MessageSquareIcon,
-  MoreHorizontalIcon,
-  PieChartIcon,
-  PlusIcon,
-  UserIcon,
-  UsersIcon,
-  XIcon,
-  ZapIcon,
+  Bot,
+  CalendarDays,
+  ClipboardList,
+  Compass,
+  FilePen,
+  Home as HomeIcon,
+  Inbox,
+  MessageSquare,
+  MoreHorizontal,
+  PieChart,
+  Plus,
+  User,
+  Users,
+  X,
+  Zap,
 } from 'lucide-react'
 
 import {
@@ -33,6 +33,7 @@ import { RoundupContent } from '@/components/roundup-content'
 import { ClassView } from '@/components/class-view'
 import { StudentProfile } from '@/components/student-profile'
 import { RecordsContent } from '@/components/records-content'
+import { ExploreContent } from '@/components/explore-content'
 import { ThemeSwitcher } from '@/components/theme-switcher'
 import {
   DropdownMenu,
@@ -51,6 +52,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarSeparator,
   SidebarTrigger,
   useSidebar,
 } from '@/components/ui/sidebar'
@@ -63,34 +65,35 @@ import {
 } from '@/components/ui/tooltip'
 
 const primaryPages = [
-  { key: 'roundup', label: 'Pulse', icon: ZapIcon, tooltip: 'Pulse' },
+  { key: 'roundup', label: 'Pulse', icon: Zap, tooltip: 'Pulse' },
   { key: 'home', label: 'Home', icon: HomeIcon, tooltip: 'Home' },
-  { key: 'classroom', label: 'Classroom', icon: UsersIcon, tooltip: 'Classroom' },
-  { key: 'records', label: 'Records', icon: ClipboardListIcon, tooltip: 'Records' },
-  { key: 'draft', label: 'Draft', icon: FilePenIcon, tooltip: 'Drafts' },
-  { key: 'calendar', label: 'Calendar', icon: CalendarDaysIcon, tooltip: 'Calendar' },
-  { key: 'analysis', label: 'Analysis', icon: PieChartIcon, tooltip: 'Analysis' },
-  { key: 'inbox', label: 'Inbox', icon: InboxIcon, tooltip: 'Inbox' },
+  { key: 'explore', label: 'Explore', icon: Compass, tooltip: 'Explore' },
+  { key: 'classroom', label: 'Classroom', icon: Users, tooltip: 'Classroom' },
+  { key: 'records', label: 'Records', icon: ClipboardList, tooltip: 'Records' },
+  { key: 'draft', label: 'Draft', icon: FilePen, tooltip: 'Drafts' },
+  { key: 'calendar', label: 'Calendar', icon: CalendarDays, tooltip: 'Calendar' },
+  { key: 'analysis', label: 'Analysis', icon: PieChart, tooltip: 'Analysis' },
+  { key: 'inbox', label: 'Inbox', icon: Inbox, tooltip: 'Inbox' },
 ] as const
 
 const newTabConfig = {
   key: 'new-tab',
   label: 'New Tab',
-  icon: PlusIcon,
+  icon: Plus,
   tooltip: 'New tab',
 } as const
 
 const profileTabConfig = {
   key: 'profile',
   label: 'Profile',
-  icon: UserIcon,
+  icon: User,
   tooltip: 'Profile',
 } as const
 
 const assistantTabConfig = {
   key: 'assistant',
   label: 'Assistant',
-  icon: BotIcon,
+  icon: Bot,
   tooltip: 'Assistant',
 } as const
 
@@ -119,14 +122,14 @@ const emptyStates: Record<TabKey, EmptyState> = {
     title: 'Create your first tab',
     description:
       'Open a page from the sidebar or start with a preselected one to jump into your workspace.',
-    icon: PlusIcon,
+    icon: Plus,
   },
   roundup: {
     heading: 'Pulse',
     title: 'No highlights yet',
     description:
       'Summaries and noteworthy updates from your team will appear here once activity picks up.',
-    icon: ZapIcon,
+    icon: Zap,
     primaryAction: 'Share an update',
   },
   home: {
@@ -138,12 +141,20 @@ const emptyStates: Record<TabKey, EmptyState> = {
     primaryAction: 'Create reminder',
     secondaryAction: 'Invite a teammate',
   },
+  explore: {
+    heading: 'Explore',
+    title: 'Discover all available apps',
+    description:
+      'Browse through all apps and find the tools you need to enhance your workflow.',
+    icon: Compass,
+    primaryAction: 'View all apps',
+  },
   classroom: {
     heading: 'Classroom',
     title: 'Your classroom view',
     description:
       'View and manage your students, track attendance, grades, and conduct.',
-    icon: UsersIcon,
+    icon: Users,
     primaryAction: 'Add student',
     secondaryAction: 'Export data',
   },
@@ -152,7 +163,7 @@ const emptyStates: Record<TabKey, EmptyState> = {
     title: 'No records yet',
     description:
       'Track attendance, results, and case management for your students.',
-    icon: ClipboardListIcon,
+    icon: ClipboardList,
     primaryAction: 'Create record',
   },
   draft: {
@@ -160,7 +171,7 @@ const emptyStates: Record<TabKey, EmptyState> = {
     title: 'No drafts on file',
     description:
       'Capture your thoughts and save them as drafts to revisit and refine later.',
-    icon: FilePenIcon,
+    icon: FilePen,
     primaryAction: 'Compose draft',
   },
   calendar: {
@@ -168,7 +179,7 @@ const emptyStates: Record<TabKey, EmptyState> = {
     title: 'Your schedule looks clear',
     description:
       'Link your calendar to review upcoming meetings and plan focus time without conflicts.',
-    icon: CalendarDaysIcon,
+    icon: CalendarDays,
     primaryAction: 'Connect calendar',
   },
   analysis: {
@@ -176,15 +187,15 @@ const emptyStates: Record<TabKey, EmptyState> = {
     title: 'No insights generated',
     description:
       'Run reports or review metrics to uncover patterns and stay ahead of upcoming work.',
-    icon: PieChartIcon,
+    icon: PieChart,
     primaryAction: 'Build report',
   },
   inbox: {
     heading: 'Inbox',
     title: 'No updates right now',
     description:
-      'When teammates mention you or share docs, they’ll show up here for quick triage.',
-    icon: InboxIcon,
+      "When teammates mention you or share docs, they'll show up here for quick triage.",
+    icon: Inbox,
     primaryAction: 'Compose a note',
   },
   profile: {
@@ -192,7 +203,7 @@ const emptyStates: Record<TabKey, EmptyState> = {
     title: 'Complete your profile details',
     description:
       'Add a bio, contact information, and personalize your presence so teammates know who you are.',
-    icon: UserIcon,
+    icon: User,
     primaryAction: 'Edit profile',
     secondaryAction: 'Upload photo',
   },
@@ -201,7 +212,7 @@ const emptyStates: Record<TabKey, EmptyState> = {
     title: 'Ask the assistant',
     description:
       'Summarize this page, ask for insights, or draft quick updates without leaving your flow.',
-    icon: BotIcon,
+    icon: Bot,
     primaryAction: 'Start a prompt',
     secondaryAction: 'Share context',
   },
@@ -221,13 +232,10 @@ const tabConfigMap: Record<TabKey, TabConfig> = {
   [assistantTabConfig.key]: assistantTabConfig,
 }
 
-const MAX_TABS = 8
-
 export default function Home() {
   const { state: sidebarState } = useSidebar()
   const [openTabs, setOpenTabs] = useState<ClosableTabKey[]>(['home'])
   const [activeTab, setActiveTab] = useState<TabKey>('home')
-  const [tabLimitReached, setTabLimitReached] = useState(false)
   const [assistantMode, setAssistantMode] = useState<AssistantMode>('sidebar')
   const [isAssistantOpen, setIsAssistantOpen] = useState(false)
   const [draggedTab, setDraggedTab] = useState<ClosableTabKey | null>(null)
@@ -250,16 +258,6 @@ export default function Home() {
     setOpenTabs((tabs) => {
       if (tabs.includes(tabKey)) {
         setActiveTab(tabKey)
-        return tabs
-      }
-
-      if (
-        tabs.length >= MAX_TABS &&
-        tabKey !== profileTabConfig.key &&
-        tabKey !== assistantTabConfig.key &&
-        !tabKey.startsWith('student-')
-      ) {
-        setTabLimitReached(true)
         return tabs
       }
 
@@ -318,12 +316,6 @@ export default function Home() {
       return filteredTabs
     })
   }, [])
-
-  useEffect(() => {
-    if (openTabs.length < MAX_TABS) {
-      setTabLimitReached(false)
-    }
-  }, [openTabs])
 
   // Measure tab container width
   useLayoutEffect(() => {
@@ -520,7 +512,27 @@ export default function Home() {
             </div>
             <SidebarGroupContent>
               <SidebarMenu>
-                {primaryPages.map((page) => {
+                {primaryPages.slice(0, 3).map((page) => {
+                  const Icon = page.icon
+
+                  return (
+                    <SidebarMenuItem key={page.key}>
+                      <SidebarMenuButton
+                        tooltip={page.tooltip}
+                        isActive={activeTab === page.key}
+                        onClick={() => handleNavigate(page.key)}
+                        type="button"
+                      >
+                        <Icon className="size-4" />
+                        <span>{page.label}</span>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  )
+                })}
+              </SidebarMenu>
+              <SidebarSeparator className="mx-0 my-2 w-full" />
+              <SidebarMenu>
+                {primaryPages.slice(3).map((page) => {
                   const Icon = page.icon
 
                   return (
@@ -607,7 +619,7 @@ export default function Home() {
                       return null
                     }
 
-                    const Icon = tab?.icon ?? UserIcon
+                    const Icon = tab?.icon ?? User
                     const label = isStudentProfile ? studentName ?? 'Student' : tab?.label ?? ''
                     const isActive = activeTab === tabKey
                     const isDragging = draggedTab === tabKey
@@ -679,7 +691,7 @@ export default function Home() {
                           )}
                           aria-label={`Close ${label}`}
                         >
-                          <XIcon className="size-3.5" />
+                          <X className="size-3.5" />
                         </div>
                       </button>
                     )
@@ -695,7 +707,7 @@ export default function Home() {
                               className="flex h-9 w-9 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
                               aria-label={`${hiddenTabs.length} more tabs`}
                             >
-                              <MoreHorizontalIcon className="size-4" />
+                              <MoreHorizontal className="size-4" />
                             </button>
                           </DropdownMenuTrigger>
                         </TooltipTrigger>
@@ -710,7 +722,7 @@ export default function Home() {
 
                           if (!tab && !isStudentProfile) return null
 
-                          const Icon = tab?.icon ?? UserIcon
+                          const Icon = tab?.icon ?? User
                           const label = isStudentProfile ? studentName ?? 'Student' : tab?.label ?? ''
                           const isActive = activeTab === tabKey
 
@@ -735,7 +747,7 @@ export default function Home() {
                                 className="ml-2 opacity-0 hover:opacity-100 focus:opacity-100 transition-opacity"
                                 aria-label={`Close ${label}`}
                               >
-                                <XIcon className="size-3" />
+                                <X className="size-3" />
                               </button>
                             </DropdownMenuItem>
                           )
@@ -750,17 +762,15 @@ export default function Home() {
                       <button
                         type="button"
                         onClick={handleNewTab}
-                        disabled={tabLimitReached}
                         className={cn(
                           'flex h-9 items-center rounded-md transition-colors',
                           isNewTabActive
                             ? 'gap-2 px-3 py-1.5 text-sm bg-background text-foreground shadow-sm ring-1 ring-border'
                             : 'w-9 justify-center text-muted-foreground hover:bg-accent hover:text-foreground',
-                          'disabled:cursor-not-allowed disabled:opacity-50',
                         )}
                         aria-label="Open new tab"
                       >
-                        <PlusIcon className="size-4" />
+                        <Plus className="size-4" />
                         {isNewTabActive && <span className="truncate">{newTabConfig.label}</span>}
                       </button>
                     </TooltipTrigger>
@@ -779,18 +789,12 @@ export default function Home() {
                       aria-expanded={isAssistantOpen}
                       aria-controls="assistant-panel"
                     >
-                      <MessageSquareIcon className="size-4" />
+                      <MessageSquare className="size-4" />
                       Assistant
                     </Button>
                   </div>
                 )}
               </div>
-              {tabLimitReached && (
-                <div className="pb-2 text-xs text-muted-foreground">
-                  You’ve reached the tab limit. Close an open page before adding a new
-                  one.
-                </div>
-              )}
             </div>
             <div className="flex h-16 items-center gap-3 border-b bg-background px-6">
               <SidebarTrigger className="md:hidden" />
@@ -840,11 +844,14 @@ export default function Home() {
                 ) : isHomeActive ? (
                   <HomeContent
                     onNavigateToClassroom={() => handleNavigate('classroom')}
+                    onNavigateToExplore={() => handleNavigate('explore')}
                     onAssistantMessage={handleAssistantMessage}
                     onStudentClick={handleOpenStudentProfile}
                   />
                 ) : activeTab === 'roundup' ? (
                   <RoundupContent onPrepForMeeting={() => handleNavigate('classroom')} />
+                ) : activeTab === 'explore' ? (
+                  <ExploreContent onAppClick={(appKey) => handleNavigate(appKey as ClosableTabKey)} />
                 ) : activeTab === 'classroom' ? (
                   <ClassView onStudentClick={handleOpenStudentProfile} />
                 ) : activeTab === 'records' ? (
@@ -860,7 +867,7 @@ export default function Home() {
                 ) : currentState ? (
                   <div className="flex flex-1 flex-col items-center justify-center text-center">
                     <div className="bg-muted text-muted-foreground flex size-16 items-center justify-center rounded-full">
-                      {ActiveIcon ? <ActiveIcon className="size-7" /> : <PlusIcon className="size-7" />}
+                      {ActiveIcon ? <ActiveIcon className="size-7" /> : <Plus className="size-7" />}
                     </div>
                     <div className="mt-6 space-y-2">
                       <h2 className="text-2xl font-semibold tracking-tight">
@@ -922,7 +929,7 @@ export default function Home() {
                 ) : (
                   <div className="flex flex-1 flex-col items-center justify-center text-center">
                     <div className="bg-muted text-muted-foreground flex size-16 items-center justify-center rounded-full">
-                      <PlusIcon className="size-7" />
+                      <Plus className="size-7" />
                     </div>
                     <div className="mt-6 space-y-2">
                       <h2 className="text-2xl font-semibold tracking-tight">

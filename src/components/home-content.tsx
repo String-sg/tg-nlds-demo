@@ -2,23 +2,23 @@
 
 import { useState } from 'react'
 import {
-  Edit2Icon,
-  SparklesIcon,
-  BookOpenIcon,
-  MessageSquareIcon,
-  ArrowRightIcon,
-  MoreHorizontalIcon,
+  Edit2,
+  Sparkles,
+  BookOpen,
+  MessageSquare,
+  ArrowRight,
+  Compass,
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 
 const actionButtons = [
-  { key: 'marking', label: 'Marking', icon: Edit2Icon },
-  { key: 'analyse', label: 'Analyse', icon: SparklesIcon },
-  { key: 'learn', label: 'Learn', icon: BookOpenIcon },
-  { key: 'communicate', label: 'Communicate', icon: MessageSquareIcon },
-  { key: 'more', label: 'More', icon: MoreHorizontalIcon },
+  { key: 'marking', label: 'Marking', icon: Edit2 },
+  { key: 'analyse', label: 'Analyse', icon: Sparkles },
+  { key: 'learn', label: 'Learn', icon: BookOpen },
+  { key: 'communicate', label: 'Communicate', icon: MessageSquare },
+  { key: 'explore', label: 'Explore', icon: Compass },
 ]
 
 // Mock data for teacher widgets
@@ -54,11 +54,12 @@ const studentAlertsData = [
 
 interface HomeContentProps {
   onNavigateToClassroom?: () => void
+  onNavigateToExplore?: () => void
   onAssistantMessage?: (message: string) => void
   onStudentClick?: (studentName: string) => void
 }
 
-export function HomeContent({ onNavigateToClassroom, onAssistantMessage, onStudentClick }: HomeContentProps = {}) {
+export function HomeContent({ onNavigateToClassroom, onNavigateToExplore, onAssistantMessage, onStudentClick }: HomeContentProps = {}) {
   const [assistantInput, setAssistantInput] = useState('')
 
   const handleAssistantSubmit = (e: React.FormEvent) => {
@@ -74,7 +75,7 @@ export function HomeContent({ onNavigateToClassroom, onAssistantMessage, onStude
       <form onSubmit={handleAssistantSubmit} className="flex flex-col gap-3 pt-4 sm:gap-4">
         <div className="relative w-full">
           <div className="absolute left-5 top-1/2 z-10 -translate-y-1/2">
-            <SparklesIcon className="size-5 text-stone-600" />
+            <Sparkles className="size-5 text-stone-600" />
           </div>
           <Input
             type="text"
@@ -115,12 +116,17 @@ export function HomeContent({ onNavigateToClassroom, onAssistantMessage, onStude
             return (
               <button
                 key={action.key}
+                onClick={() => {
+                  if (action.key === 'explore') {
+                    onNavigateToExplore?.()
+                  }
+                }}
                 className="group relative flex flex-col items-center justify-end gap-1 transition-all duration-200 ease-out hover:scale-150 hover:-translate-y-3 sm:gap-1.5"
               >
                 <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white border border-stone-200 shadow-sm transition-all group-hover:shadow-md sm:h-14 sm:w-14">
                   <Icon className="size-5 text-stone-600 sm:size-6" />
                 </div>
-                <span className="absolute -bottom-6 whitespace-nowrap rounded-md bg-stone-900 px-2 py-1 text-xs font-medium text-white opacity-0 transition-opacity group-hover:opacity-100">{action.label}</span>
+                <span className="absolute -bottom-8 whitespace-nowrap rounded-md bg-stone-900 px-2 py-1 text-xs font-medium text-white opacity-0 transition-opacity group-hover:opacity-100">{action.label}</span>
               </button>
             )
           })}
@@ -183,7 +189,7 @@ export function HomeContent({ onNavigateToClassroom, onAssistantMessage, onStude
                 className="mt-3 w-fit gap-2 text-stone-700 hover:text-stone-900"
               >
                 My Classroom
-                <ArrowRightIcon className="h-3 w-3" />
+                <ArrowRight className="h-3 w-3" />
               </Button>
             )}
           </CardContent>
