@@ -147,6 +147,14 @@ const emptyStates: Record<TabKey, EmptyState> = {
     primaryAction: 'Add student',
     secondaryAction: 'Export data',
   },
+  records: {
+    heading: 'Records',
+    title: 'No records yet',
+    description:
+      'Track attendance, results, and case management for your students.',
+    icon: ClipboardListIcon,
+    primaryAction: 'Create record',
+  },
   draft: {
     heading: 'Drafts',
     title: 'No drafts on file',
