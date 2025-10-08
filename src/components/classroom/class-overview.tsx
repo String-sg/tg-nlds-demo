@@ -2,7 +2,6 @@
 
 import { useState, useMemo } from 'react'
 import {
-  ArrowLeftIcon,
   HomeIcon,
   SearchIcon,
   ChevronDownIcon,
@@ -156,15 +155,6 @@ export function ClassOverview({ classId, onBack, onNavigateToGrades, onStudentCl
     <PageLayout
       title=""
       subtitle={titleElement}
-      backButton={
-        onBack
-          ? {
-              label: 'Back to My Classes',
-              onClick: onBack,
-              icon: ArrowLeftIcon,
-            }
-          : undefined
-      }
       contentClassName="px-6 py-6"
     >
       <TooltipProvider>

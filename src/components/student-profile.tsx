@@ -1,6 +1,6 @@
 'use client'
 
-import { ArrowLeftIcon, MailIcon, PhoneIcon } from 'lucide-react'
+import { MailIcon, PhoneIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -93,15 +93,6 @@ export function StudentProfile({ studentName, classId, onBack, activeTab, onNavi
     <PageLayout
       title={student.name}
       subtitle={`Student ID: ${student.id} • Class: ${student.class}`}
-      backButton={
-        onBack
-          ? {
-              label: 'Back',
-              onClick: onBack,
-              icon: ArrowLeftIcon,
-            }
-          : undefined
-      }
       contentClassName="px-6 py-6"
     >
       <div className="mx-auto w-full max-w-5xl space-y-6 pb-16">

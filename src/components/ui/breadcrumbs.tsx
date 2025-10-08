@@ -1,7 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import { ChevronRightIcon, HomeIcon } from 'lucide-react'
+import { ChevronRightIcon, HomeIcon, ArrowLeftIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import type { BreadcrumbItem } from '@/hooks/use-breadcrumbs'
@@ -48,8 +48,24 @@ export function Breadcrumbs({
     <ChevronRightIcon className="h-4 w-4 text-muted-foreground" />
   )
 
+  // Check if we should show a back button (for 2nd level and deeper)
+  const showBackButton = items.length > 1
+
   return (
-    <nav aria-label="Breadcrumb" className={cn('flex items-center', className)}>
+    <nav aria-label="Breadcrumb" className={cn('flex items-center gap-3', className)}>
+      {/* Back button for 2nd level and deeper pages */}
+      {showBackButton && (
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={items[items.length - 2]?.onClick}
+          className="h-8 w-8 p-0"
+          aria-label="Go back"
+        >
+          <ArrowLeftIcon className="h-4 w-4" />
+        </Button>
+      )}
+
       <ol className="flex items-center gap-2 text-sm">
         {displayItems.map((item, index) => {
           if (item === 'ellipsis') {
@@ -69,6 +85,8 @@ export function Breadcrumbs({
 
           const isHome = item.label === 'Home'
           const isLast = index === displayItems.length - 1
+          // Don't show Home icon when we have a back button
+          const shouldShowHomeIcon = isHome && showHomeIcon && !showBackButton
 
           return (
             <React.Fragment key={item.path}>
@@ -82,11 +100,11 @@ export function Breadcrumbs({
                   <span
                     className={cn(
                       'font-medium text-foreground',
-                      isHome && showHomeIcon && 'flex items-center gap-1'
+                      shouldShowHomeIcon && 'flex items-center gap-1'
                     )}
                     aria-current="page"
                   >
-                    {isHome && showHomeIcon && (
+                    {shouldShowHomeIcon && (
                       <HomeIcon className="h-4 w-4" />
                     )}
                     {item.label}
@@ -98,10 +116,10 @@ export function Breadcrumbs({
                     onClick={item.onClick}
                     className={cn(
                       'h-auto p-0 font-normal text-muted-foreground hover:text-foreground',
-                      isHome && showHomeIcon && 'flex items-center gap-1'
+                      shouldShowHomeIcon && 'flex items-center gap-1'
                     )}
                   >
-                    {isHome && showHomeIcon && (
+                    {shouldShowHomeIcon && (
                       <HomeIcon className="h-4 w-4" />
                     )}
                     {item.label}

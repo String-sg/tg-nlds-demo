@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { ArrowLeftIcon, ChevronDownIcon, MoreHorizontalIcon, SearchIcon } from 'lucide-react'
+import { ChevronDownIcon, MoreHorizontalIcon, SearchIcon } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Button } from '@/components/ui/button'
@@ -139,15 +139,6 @@ export function StudentList({ classId, onBack, onStudentClick, onNavigate, class
     <PageLayout
       title="Students"
       subtitle={`Class ${classData.class_name} · ${classData.subject}`}
-      backButton={
-        onBack
-          ? {
-              label: 'Back to Class Overview',
-              onClick: onBack,
-              icon: ArrowLeftIcon,
-            }
-          : undefined
-      }
       contentClassName="px-6 py-6"
     >
       <div className="mx-auto w-full max-w-6xl space-y-6">

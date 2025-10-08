@@ -21,7 +21,6 @@ import {
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
-  ArrowLeftIcon,
   SaveIcon,
   CheckCircle2Icon,
   AlertCircleIcon,
@@ -164,15 +163,6 @@ export function GradeEntry({ classId, onBack, onNavigate, classroomTabs }: Grade
     <PageLayout
       title="Grade Entry"
       subtitle={classInfo}
-      backButton={
-        onBack
-          ? {
-              label: 'Back to Class Overview',
-              onClick: onBack,
-              icon: ArrowLeftIcon,
-            }
-          : undefined
-      }
       contentClassName="px-6 py-6"
     >
       <div className="mx-auto w-full max-w-7xl space-y-6">
