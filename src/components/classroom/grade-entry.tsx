@@ -23,16 +23,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   ArrowLeftIcon,
   SaveIcon,
-  UploadIcon,
-  DownloadIcon,
   CheckCircle2Icon,
   AlertCircleIcon,
   CalculatorIcon,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { getStudentsByClassId } from '@/lib/mock-data/classroom-data'
-import { PageLayout, PageAction } from '@/components/layout/page-layout'
-import { useBreadcrumbs } from '@/hooks/use-breadcrumbs'
+import { PageLayout } from '@/components/layout/page-layout'
 
 interface GradeEntryProps {
   classId: string
@@ -162,37 +159,13 @@ export function GradeEntry({ classId, onBack, onNavigate, classroomTabs }: Grade
         )
       : 0
 
-  // Define page actions
-  const pageActions: PageAction[] = [
-    {
-      label: 'Import CSV',
-      icon: UploadIcon,
-      onClick: undefined, // To be implemented
-      variant: 'outline',
-    },
-    {
-      label: 'Export',
-      icon: DownloadIcon,
-      onClick: undefined, // To be implemented
-      variant: 'outline',
-    },
-  ]
-
-  // Get breadcrumbs
-  const { breadcrumbs } = useBreadcrumbs({
-    activeTab: `classroom/${classId}/grades`,
-    classroomTabs,
-    onNavigate,
-  })
 
   return (
     <PageLayout
       title="Grade Entry"
       subtitle={classInfo}
-      actions={pageActions}
-      breadcrumbs={breadcrumbs}
       backButton={
-        onBack && !breadcrumbs.length
+        onBack
           ? {
               label: 'Back to Class Overview',
               onClick: onBack,

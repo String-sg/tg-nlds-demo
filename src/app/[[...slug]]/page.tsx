@@ -8,8 +8,10 @@ import {
   Bot,
   CalendarDays,
   ClipboardList,
+  ClipboardCheck,
   Compass,
   FilePen,
+  GraduationCap,
   Home as HomeIcon,
   Inbox,
   MessageSquare,
@@ -68,6 +70,8 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
+import { useBreadcrumbs } from '@/hooks/use-breadcrumbs'
+import { Breadcrumbs } from '@/components/ui/breadcrumbs'
 
 const primaryPages = [
   { key: 'roundup', label: 'Pulse', icon: Zap, tooltip: 'Pulse' },
@@ -364,6 +368,68 @@ export default function Home() {
   const isHomeActive = activeTab === 'home'
   const isSidebarCollapsed = sidebarState === 'collapsed'
   const isAssistantSidebarOpen = assistantMode === 'sidebar' && isAssistantOpen
+
+  // Get breadcrumbs for current tab
+  const { breadcrumbs: pageBreadcrumbs } = useBreadcrumbs({
+    activeTab: activeTab as string,
+    classroomTabs,
+    studentProfileTabs,
+    onNavigate: (path, replace) => handleNavigate(path as ClosableTabKey, replace),
+  })
+
+  // Get actions for current tab
+  const getPageActions = () => {
+    let actions: any[] = []
+
+    if (typeof activeTab === 'string' && activeTab.startsWith('classroom/')) {
+      const classroomPath = classroomTabs.get(activeTab)
+      const parts = classroomPath?.split('/') ?? []
+      const classId = parts[0]
+
+      if (activeTab.includes('/students')) {
+        // Student list page actions
+        actions = []
+      } else if (activeTab.includes('/grades')) {
+        // Grade entry page actions
+        actions = []
+      } else if (activeTab.includes('/student/')) {
+        // Student profile from class actions
+        actions = []
+      } else {
+        // Class overview page actions
+        actions = [
+          {
+            label: 'Take Attendance',
+            icon: ClipboardCheck,
+            onClick: undefined,
+            disabled: true,
+            variant: 'outline',
+          },
+          {
+            label: 'Enter Grades',
+            icon: GraduationCap,
+            onClick: classId ? () => handleOpenGrades(classId) : undefined,
+            disabled: !classId,
+            variant: 'outline',
+          },
+          {
+            label: 'Message Parents',
+            icon: MessageSquare,
+            onClick: undefined,
+            disabled: true,
+            variant: 'outline',
+          },
+        ]
+      }
+    } else if (typeof activeTab === 'string' && activeTab.startsWith('student-')) {
+      // Standalone student profile actions
+      actions = []
+    }
+
+    return actions
+  }
+
+  const pageActions = getPageActions()
 
   const handleNavigate = (tabKey: ClosableTabKey, replaceParent: boolean = false) => {
     // If replaceParent is true, close the parent tab if it exists
@@ -1056,43 +1122,74 @@ export default function Home() {
                 )}
               </div>
             </div>
-            <div className="flex h-16 items-center gap-3 border-b bg-background px-6">
-              <SidebarTrigger className="md:hidden" />
-              <div className="hidden flex-1 md:flex">
-                <h1 className="text-lg font-semibold tracking-tight">
-                  {typeof activeTab === 'string' && activeTab.startsWith('student-')
-                    ? studentProfileTabs.get(activeTab) ?? 'Student Profile'
-                    : typeof activeTab === 'string' && activeTab.startsWith('classroom/')
-                      ? (() => {
-                          const classroomPath = classroomTabs.get(activeTab)
-                          if (!classroomPath) return 'Classroom'
-                          const parts = classroomPath.split('/')
-                          const classId = parts[0]
-                          // Convert class-5a -> Class 5A
-                          const className = classId.replace('class-', '').toUpperCase()
-                          if (classroomPath.includes('/student/')) {
-                            return studentProfileTabs.get(activeTab) ?? 'Student Profile'
-                          } else if (classroomPath.includes('/students')) {
-                            return 'Students'
-                          } else if (classroomPath.includes('/grades')) {
-                            return 'Grade Entry'
-                          } else {
-                            return `Class ${className}`
-                          }
-                        })()
-                    : currentState
-                      ? currentState.heading
-                      : 'New Tab'}
-                </h1>
-              </div>
-              <div className="flex items-center gap-2">
-                {isAssistantTabActive && (
-                  <AssistantModeSwitcher
-                    mode={assistantMode}
-                    onModeChange={handleAssistantModeChange}
-                    activeOption={isAssistantTabActive ? 'full' : assistantMode}
-                  />
-                )}
+            <div className="flex flex-col border-b bg-background">
+              {/* Page Header */}
+              <div className="flex h-16 items-center gap-3 px-6">
+                <SidebarTrigger className="md:hidden" />
+                <div className="hidden flex-1 md:flex flex-col gap-1">
+                  {/* Breadcrumbs */}
+                  {pageBreadcrumbs && pageBreadcrumbs.length > 0 && (
+                    <div className="mb-1">
+                      <Breadcrumbs items={pageBreadcrumbs} />
+                    </div>
+                  )}
+                  {/* Title */}
+                  <h1 className="text-lg font-semibold tracking-tight">
+                    {typeof activeTab === 'string' && activeTab.startsWith('student-')
+                      ? studentProfileTabs.get(activeTab) ?? 'Student Profile'
+                      : typeof activeTab === 'string' && activeTab.startsWith('classroom/')
+                        ? (() => {
+                            const classroomPath = classroomTabs.get(activeTab)
+                            if (!classroomPath) return 'Classroom'
+                            const parts = classroomPath.split('/')
+                            const classId = parts[0]
+                            // Convert class-5a -> Class 5A
+                            const className = classId.replace('class-', '').toUpperCase()
+                            if (classroomPath.includes('/student/')) {
+                              return studentProfileTabs.get(activeTab) ?? 'Student Profile'
+                            } else if (classroomPath.includes('/students')) {
+                              return 'Students'
+                            } else if (classroomPath.includes('/grades')) {
+                              return 'Grade Entry'
+                            } else {
+                              return `Class ${className}`
+                            }
+                          })()
+                      : currentState
+                        ? currentState.heading
+                        : 'New Tab'}
+                  </h1>
+                </div>
+                <div className="flex items-center gap-2">
+                  {/* Page Actions */}
+                  {pageActions && pageActions.length > 0 && (
+                    <>
+                      {pageActions.map((action, index) => {
+                        const Icon = action.icon
+                        return (
+                          <Button
+                            key={index}
+                            size="sm"
+                            variant={action.variant || 'outline'}
+                            disabled={action.disabled}
+                            onClick={action.onClick}
+                            className="hidden sm:flex"
+                          >
+                            <Icon className="mr-1.5 h-4 w-4" />
+                            {action.label}
+                          </Button>
+                        )
+                      })}
+                    </>
+                  )}
+                  {isAssistantTabActive && (
+                    <AssistantModeSwitcher
+                      mode={assistantMode}
+                      onModeChange={handleAssistantModeChange}
+                      activeOption={isAssistantTabActive ? 'full' : assistantMode}
+                    />
+                  )}
+                </div>
               </div>
             </div>
           </div>

@@ -7,7 +7,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { CaseManagementTable } from '@/components/case-management-table'
 import { cn, getInitials, getAvatarColor } from '@/lib/utils'
 import { PageLayout } from '@/components/layout/page-layout'
-import { useBreadcrumbs } from '@/hooks/use-breadcrumbs'
 
 interface StudentProfileProps {
   studentName: string
@@ -89,24 +88,13 @@ export function StudentProfile({ studentName, classId, onBack, activeTab, onNavi
     }
   }
 
-  // Determine the active tab path
-  const currentPath = activeTab || (classId ? `classroom/${classId}/student/${studentName.toLowerCase().replace(/\s+/g, '-')}` : `student/${studentName.toLowerCase().replace(/\s+/g, '-')}`)
-
-  // Get breadcrumbs
-  const { breadcrumbs } = useBreadcrumbs({
-    activeTab: currentPath,
-    classroomTabs,
-    studentProfileTabs,
-    onNavigate,
-  })
 
   return (
     <PageLayout
       title={student.name}
       subtitle={`Student ID: ${student.id} • Class: ${student.class}`}
-      breadcrumbs={breadcrumbs}
       backButton={
-        onBack && !breadcrumbs.length
+        onBack
           ? {
               label: 'Back',
               onClick: onBack,

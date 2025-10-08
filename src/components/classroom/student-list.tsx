@@ -23,7 +23,6 @@ import {
 import { getClassById, getStudentsByClassId } from '@/lib/mock-data/classroom-data'
 import { getInitials, getAvatarColor } from '@/lib/utils'
 import { PageLayout } from '@/components/layout/page-layout'
-import { useBreadcrumbs } from '@/hooks/use-breadcrumbs'
 
 interface StudentListProps {
   classId: string
@@ -135,20 +134,13 @@ export function StudentList({ classId, onBack, onStudentClick, onNavigate, class
     }
   }
 
-  // Get breadcrumbs
-  const { breadcrumbs } = useBreadcrumbs({
-    activeTab: `classroom/${classId}/students`,
-    classroomTabs,
-    onNavigate,
-  })
 
   return (
     <PageLayout
       title="Students"
       subtitle={`Class ${classData.class_name} · ${classData.subject}`}
-      breadcrumbs={breadcrumbs}
       backButton={
-        onBack && !breadcrumbs.length
+        onBack
           ? {
               label: 'Back to Class Overview',
               onClick: onBack,

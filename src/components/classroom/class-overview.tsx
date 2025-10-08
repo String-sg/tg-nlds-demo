@@ -4,9 +4,6 @@ import { useState, useMemo } from 'react'
 import {
   ArrowLeftIcon,
   HomeIcon,
-  ClipboardCheckIcon,
-  GraduationCapIcon,
-  MessageSquareIcon,
   SearchIcon,
   ChevronDownIcon,
   InfoIcon,
@@ -52,8 +49,7 @@ import {
 } from '@/lib/mock-data/classroom-data'
 import type { Student } from '@/types/classroom'
 import { cn, getInitials } from '@/lib/utils'
-import { PageLayout, PageAction } from '@/components/layout/page-layout'
-import { useBreadcrumbs } from '@/hooks/use-breadcrumbs'
+import { PageLayout } from '@/components/layout/page-layout'
 
 interface ClassOverviewProps {
   classId: string
@@ -130,38 +126,6 @@ export function ClassOverview({ classId, onBack, onNavigateToGrades, onStudentCl
 
   const isFormClass = classData.is_form_class && classData.class_id === currentUser.form_class_id
 
-  // Get breadcrumbs
-  const { breadcrumbs } = useBreadcrumbs({
-    activeTab: `classroom/${classId}`,
-    classroomTabs,
-    onNavigate,
-  })
-
-  // Define page actions
-  const pageActions: PageAction[] = [
-    {
-      label: 'Take Attendance',
-      icon: ClipboardCheckIcon,
-      onClick: undefined, // To be implemented
-      disabled: true,
-      variant: 'outline',
-    },
-    {
-      label: 'Enter Grades',
-      icon: GraduationCapIcon,
-      onClick: onNavigateToGrades ? () => onNavigateToGrades(classId) : undefined,
-      disabled: !onNavigateToGrades,
-      variant: 'outline',
-    },
-    {
-      label: 'Message Parents',
-      icon: MessageSquareIcon,
-      onClick: undefined, // To be implemented
-      disabled: true,
-      variant: 'outline',
-    },
-  ]
-
   // Title with badge and info button
   const titleElement = (
     <div className="flex items-center gap-3">
@@ -192,10 +156,8 @@ export function ClassOverview({ classId, onBack, onNavigateToGrades, onStudentCl
     <PageLayout
       title=""
       subtitle={titleElement}
-      actions={pageActions}
-      breadcrumbs={breadcrumbs}
       backButton={
-        onBack && !breadcrumbs.length
+        onBack
           ? {
               label: 'Back to My Classes',
               onClick: onBack,
