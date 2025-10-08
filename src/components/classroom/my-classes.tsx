@@ -1,6 +1,5 @@
 'use client'
 
-import Link from 'next/link'
 import { HomeIcon, UsersIcon, TrophyIcon, ChevronRightIcon, CalendarIcon, MapPinIcon } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -9,7 +8,11 @@ import { currentUser, mockClasses, getClassOverviewStats } from '@/lib/mock-data
 import { cn } from '@/lib/utils'
 import type { Class, ClassSchedule } from '@/types/classroom'
 
-export function MyClasses() {
+interface MyClassesProps {
+  onClassClick?: (classId: string) => void
+}
+
+export function MyClasses({ onClassClick }: MyClassesProps) {
   // Separate classes by type
   const formClass = mockClasses.find((c) => c.is_form_class && c.class_id === currentUser.form_class_id)
   const subjectClasses = mockClasses.filter((c) => !c.is_form_class)
@@ -38,6 +41,7 @@ export function MyClasses() {
           <ClassCard
             classData={formClass}
             isFormClass={true}
+            onClassClick={onClassClick}
           />
         </div>
       )}
@@ -57,6 +61,7 @@ export function MyClasses() {
               key={classData.class_id}
               classData={classData}
               isFormClass={false}
+              onClassClick={onClassClick}
             />
           ))}
         </div>
@@ -89,17 +94,20 @@ export function MyClasses() {
 interface ClassCardProps {
   classData: Class
   isFormClass: boolean
+  onClassClick?: (classId: string) => void
 }
 
-function ClassCard({ classData, isFormClass }: ClassCardProps) {
+function ClassCard({ classData, isFormClass, onClassClick }: ClassCardProps) {
   const stats = getClassOverviewStats(classData.class_id)
 
   return (
-    <Link href={`/classroom/${classData.class_id}`}>
-      <Card className={cn(
+    <Card
+      className={cn(
         "border-stone-200 hover:shadow-md transition-all cursor-pointer group",
         isFormClass && "ring-2 ring-blue-500/20 bg-blue-50/30"
-      )}>
+      )}
+      onClick={() => onClassClick?.(classData.class_id)}
+    >
         <CardHeader className="pb-3">
           <div className="flex items-start justify-between">
             <div className="flex-1">
@@ -209,6 +217,5 @@ function ClassCard({ classData, isFormClass }: ClassCardProps) {
           </div>
         </CardContent>
       </Card>
-    </Link>
   )
 }

@@ -1,6 +1,5 @@
 'use client'
 
-import Link from 'next/link'
 import {
   ArrowLeftIcon,
   HomeIcon,
@@ -27,9 +26,10 @@ import { cn } from '@/lib/utils'
 
 interface ClassOverviewProps {
   classId: string
+  onBack?: () => void
 }
 
-export function ClassOverview({ classId }: ClassOverviewProps) {
+export function ClassOverview({ classId, onBack }: ClassOverviewProps) {
   const classData = getClassById(classId)
   const stats = getClassOverviewStats(classId)
   const activities = getActivityLogByClassId(classId).slice(0, 5)
@@ -44,12 +44,10 @@ export function ClassOverview({ classId }: ClassOverviewProps) {
     <div className="mx-auto w-full max-w-6xl space-y-6">
       {/* Header */}
       <div className="flex items-center gap-4">
-        <Link href="/classroom">
-          <Button variant="ghost" size="sm" className="gap-2">
-            <ArrowLeftIcon className="h-4 w-4" />
-            Back to My Classes
-          </Button>
-        </Link>
+        <Button variant="ghost" size="sm" className="gap-2" onClick={onBack}>
+          <ArrowLeftIcon className="h-4 w-4" />
+          Back to My Classes
+        </Button>
       </div>
 
       {/* Class Info Header */}
@@ -178,42 +176,30 @@ export function ClassOverview({ classId }: ClassOverviewProps) {
       <div className="space-y-3">
         <h2 className="text-lg font-semibold text-stone-900">Quick Actions</h2>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-          <Link href={`/classroom/${classId}/attendance/take`}>
-            <Button variant="outline" className="w-full h-auto flex flex-col items-center gap-2 p-4">
-              <ClipboardCheckIcon className="h-5 w-5" />
-              <span className="text-xs">Take Attendance</span>
-            </Button>
-          </Link>
-          <Link href={`/classroom/${classId}/academic/grades`}>
-            <Button variant="outline" className="w-full h-auto flex flex-col items-center gap-2 p-4">
-              <GraduationCapIcon className="h-5 w-5" />
-              <span className="text-xs">Enter Grades</span>
-            </Button>
-          </Link>
-          <Link href={`/classroom/${classId}/communication`}>
-            <Button variant="outline" className="w-full h-auto flex flex-col items-center gap-2 p-4">
-              <MessageSquareIcon className="h-5 w-5" />
-              <span className="text-xs">Message Parents</span>
-            </Button>
-          </Link>
-          <Link href={`/classroom/${classId}/cases/new`}>
-            <Button variant="outline" className="w-full h-auto flex flex-col items-center gap-2 p-4">
-              <FileTextIcon className="h-5 w-5" />
-              <span className="text-xs">Create Record</span>
-            </Button>
-          </Link>
-          <Link href={`/classroom/${classId}/students`}>
-            <Button variant="outline" className="w-full h-auto flex flex-col items-center gap-2 p-4">
-              <UsersIcon className="h-5 w-5" />
-              <span className="text-xs">View Students</span>
-            </Button>
-          </Link>
-          <Link href={`/classroom/${classId}/alerts`}>
-            <Button variant="outline" className="w-full h-auto flex flex-col items-center gap-2 p-4">
-              <AlertCircleIcon className="h-5 w-5" />
-              <span className="text-xs">Class Alerts</span>
-            </Button>
-          </Link>
+          <Button variant="outline" className="w-full h-auto flex flex-col items-center gap-2 p-4" disabled>
+            <ClipboardCheckIcon className="h-5 w-5" />
+            <span className="text-xs">Take Attendance</span>
+          </Button>
+          <Button variant="outline" className="w-full h-auto flex flex-col items-center gap-2 p-4" disabled>
+            <GraduationCapIcon className="h-5 w-5" />
+            <span className="text-xs">Enter Grades</span>
+          </Button>
+          <Button variant="outline" className="w-full h-auto flex flex-col items-center gap-2 p-4" disabled>
+            <MessageSquareIcon className="h-5 w-5" />
+            <span className="text-xs">Message Parents</span>
+          </Button>
+          <Button variant="outline" className="w-full h-auto flex flex-col items-center gap-2 p-4" disabled>
+            <FileTextIcon className="h-5 w-5" />
+            <span className="text-xs">Create Record</span>
+          </Button>
+          <Button variant="outline" className="w-full h-auto flex flex-col items-center gap-2 p-4" disabled>
+            <UsersIcon className="h-5 w-5" />
+            <span className="text-xs">View Students</span>
+          </Button>
+          <Button variant="outline" className="w-full h-auto flex flex-col items-center gap-2 p-4" disabled>
+            <AlertCircleIcon className="h-5 w-5" />
+            <span className="text-xs">Class Alerts</span>
+          </Button>
         </div>
       </div>
 
@@ -245,11 +231,9 @@ export function ClassOverview({ classId }: ClassOverviewProps) {
                     </div>
                   </div>
                 ))}
-                <Link href={`/classroom/${classId}/activity`}>
-                  <Button variant="ghost" size="sm" className="w-full mt-2">
-                    View All Activity
-                  </Button>
-                </Link>
+                <Button variant="ghost" size="sm" className="w-full mt-2" disabled>
+                  View All Activity
+                </Button>
               </div>
             ) : (
               <p className="text-sm text-stone-600 text-center py-8">No recent activity</p>
@@ -337,11 +321,9 @@ export function ClassOverview({ classId }: ClassOverviewProps) {
               </p>
             </div>
 
-            <Link href={`/classroom/${classId}/analytics`}>
-              <Button variant="outline" className="w-full">
-                View Detailed Analytics
-              </Button>
-            </Link>
+            <Button variant="outline" className="w-full" disabled>
+              View Detailed Analytics
+            </Button>
           </CardContent>
         </Card>
       )}

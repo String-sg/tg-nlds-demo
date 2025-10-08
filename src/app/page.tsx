@@ -31,6 +31,7 @@ import { Button } from '@/components/ui/button'
 import { HomeContent } from '@/components/home-content'
 import { RoundupContent } from '@/components/roundup-content'
 import { MyClasses } from '@/components/classroom/my-classes'
+import { ClassOverview } from '@/components/classroom/class-overview'
 import { StudentProfile } from '@/components/student-profile'
 import { RecordsContent } from '@/components/records-content'
 import { ExploreContent } from '@/components/explore-content'
@@ -102,8 +103,9 @@ type PrimaryPageKey = (typeof primaryPages)[number]['key']
 type ProfileTabKey = typeof profileTabConfig['key']
 type AssistantTabKey = typeof assistantTabConfig['key']
 type StudentProfileTabKey = `student-${string}` // Dynamic student profile tabs
+type ClassroomTabKey = `classroom-${string}` // Dynamic classroom tabs
 type PageKey = PrimaryPageKey | ProfileTabKey
-type ClosableTabKey = PageKey | AssistantTabKey | StudentProfileTabKey
+type ClosableTabKey = PageKey | AssistantTabKey | StudentProfileTabKey | ClassroomTabKey
 type TabKey = typeof newTabConfig['key'] | ClosableTabKey
 type PageConfig = (typeof primaryPages)[number] | typeof profileTabConfig
 type TabConfig = PageConfig | typeof newTabConfig | typeof assistantTabConfig
@@ -243,6 +245,7 @@ export default function Home() {
   const [dragOverTab, setDragOverTab] = useState<ClosableTabKey | null>(null)
   const [containerWidth, setContainerWidth] = useState(0)
   const [studentProfileTabs, setStudentProfileTabs] = useState<Map<string, string>>(new Map()) // Map of tab key to student name
+  const [classroomTabs, setClassroomTabs] = useState<Map<string, string>>(new Map()) // Map of tab key to class ID
   const [pendingAssistantMessage, setPendingAssistantMessage] = useState<string | null>(null)
   const tabContainerRef = useRef<HTMLDivElement>(null)
 
@@ -275,6 +278,18 @@ export default function Home() {
     setStudentProfileTabs((prev) => {
       const updated = new Map(prev)
       updated.set(tabKey, studentName)
+      return updated
+    })
+
+    handleNavigate(tabKey)
+  }
+
+  const handleOpenClassroom = (classId: string) => {
+    const tabKey = `classroom-${classId}` as ClassroomTabKey
+
+    setClassroomTabs((prev) => {
+      const updated = new Map(prev)
+      updated.set(tabKey, classId)
       return updated
     })
 
@@ -615,14 +630,18 @@ export default function Home() {
                       {visibleTabs.map((tabKey, index) => {
                     const tab = tabConfigMap[tabKey as keyof typeof tabConfigMap]
                     const isStudentProfile = typeof tabKey === 'string' && tabKey.startsWith('student-')
+                    const isClassroom = typeof tabKey === 'string' && tabKey.startsWith('classroom-')
                     const studentName = isStudentProfile ? studentProfileTabs.get(tabKey) : undefined
+                    const classId = isClassroom ? classroomTabs.get(tabKey) : undefined
 
-                    if (!tab && !isStudentProfile) {
+                    if (!tab && !isStudentProfile && !isClassroom) {
                       return null
                     }
 
-                    const Icon = tab?.icon ?? User
-                    const label = isStudentProfile ? studentName ?? 'Student' : tab?.label ?? ''
+                    const Icon = tab?.icon ?? (isClassroom ? Users : User)
+                    const label = isStudentProfile ? studentName ?? 'Student' :
+                                 isClassroom ? `Class ${classId?.split('-').pop()?.toUpperCase() ?? ''}` :
+                                 tab?.label ?? ''
                     const isActive = activeTab === tabKey
                     const isDragging = draggedTab === tabKey
                     const isDragOver = dragOverTab === tabKey
@@ -720,12 +739,16 @@ export default function Home() {
                         {hiddenTabs.map((tabKey) => {
                           const tab = tabConfigMap[tabKey as keyof typeof tabConfigMap]
                           const isStudentProfile = typeof tabKey === 'string' && tabKey.startsWith('student-')
+                          const isClassroom = typeof tabKey === 'string' && tabKey.startsWith('classroom-')
                           const studentName = isStudentProfile ? studentProfileTabs.get(tabKey) : undefined
+                          const classId = isClassroom ? classroomTabs.get(tabKey) : undefined
 
-                          if (!tab && !isStudentProfile) return null
+                          if (!tab && !isStudentProfile && !isClassroom) return null
 
-                          const Icon = tab?.icon ?? User
-                          const label = isStudentProfile ? studentName ?? 'Student' : tab?.label ?? ''
+                          const Icon = tab?.icon ?? (isClassroom ? Users : User)
+                          const label = isStudentProfile ? studentName ?? 'Student' :
+                                       isClassroom ? `Class ${classId?.split('-').pop()?.toUpperCase() ?? ''}` :
+                                       tab?.label ?? ''
                           const isActive = activeTab === tabKey
 
                           return (
@@ -804,6 +827,8 @@ export default function Home() {
                 <h1 className="text-lg font-semibold tracking-tight">
                   {typeof activeTab === 'string' && activeTab.startsWith('student-')
                     ? 'Student Profile'
+                    : typeof activeTab === 'string' && activeTab.startsWith('classroom-')
+                      ? `Class ${classroomTabs.get(activeTab)?.split('-').pop()?.toUpperCase() ?? ''}`
                     : currentState
                       ? currentState.heading
                       : 'New Tab'}
@@ -855,9 +880,17 @@ export default function Home() {
                 ) : activeTab === 'explore' ? (
                   <ExploreContent onAppClick={(appKey) => handleNavigate(appKey as ClosableTabKey)} />
                 ) : activeTab === 'classroom' ? (
-                  <MyClasses />
+                  <MyClasses onClassClick={handleOpenClassroom} />
                 ) : activeTab === 'records' ? (
                   <RecordsContent />
+                ) : typeof activeTab === 'string' && activeTab.startsWith('classroom-') ? (
+                  <ClassOverview
+                    classId={classroomTabs.get(activeTab) ?? ''}
+                    onBack={() => {
+                      handleCloseTab(activeTab)
+                      handleNavigate('classroom')
+                    }}
+                  />
                 ) : typeof activeTab === 'string' && activeTab.startsWith('student-') ? (
                   <StudentProfile
                     studentName={studentProfileTabs.get(activeTab) ?? 'Unknown Student'}
