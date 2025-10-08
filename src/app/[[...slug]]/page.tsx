@@ -1126,39 +1126,11 @@ export default function Home() {
               {/* Page Header */}
               <div className="flex h-16 items-center gap-3 px-6">
                 <SidebarTrigger className="md:hidden" />
-                <div className="hidden flex-1 md:flex flex-col gap-1">
+                <div className="hidden flex-1 md:flex items-center">
                   {/* Breadcrumbs */}
                   {pageBreadcrumbs && pageBreadcrumbs.length > 0 && (
-                    <div className="mb-1">
-                      <Breadcrumbs items={pageBreadcrumbs} />
-                    </div>
+                    <Breadcrumbs items={pageBreadcrumbs} />
                   )}
-                  {/* Title */}
-                  <h1 className="text-lg font-semibold tracking-tight">
-                    {typeof activeTab === 'string' && activeTab.startsWith('student-')
-                      ? studentProfileTabs.get(activeTab) ?? 'Student Profile'
-                      : typeof activeTab === 'string' && activeTab.startsWith('classroom/')
-                        ? (() => {
-                            const classroomPath = classroomTabs.get(activeTab)
-                            if (!classroomPath) return 'Classroom'
-                            const parts = classroomPath.split('/')
-                            const classId = parts[0]
-                            // Convert class-5a -> Class 5A
-                            const className = classId.replace('class-', '').toUpperCase()
-                            if (classroomPath.includes('/student/')) {
-                              return studentProfileTabs.get(activeTab) ?? 'Student Profile'
-                            } else if (classroomPath.includes('/students')) {
-                              return 'Students'
-                            } else if (classroomPath.includes('/grades')) {
-                              return 'Grade Entry'
-                            } else {
-                              return `Class ${className}`
-                            }
-                          })()
-                      : currentState
-                        ? currentState.heading
-                        : 'New Tab'}
-                  </h1>
                 </div>
                 <div className="flex items-center gap-2">
                   {/* Page Actions */}
