@@ -50,6 +50,7 @@ import {
   getStudentsByClassId,
   currentUser,
 } from '@/lib/mock-data/classroom-data'
+import type { Student } from '@/types/classroom'
 import { cn } from '@/lib/utils'
 
 interface ClassOverviewProps {
@@ -78,10 +79,17 @@ export function ClassOverview({ classId, onBack, onNavigateToGrades, onStudentCl
     return name.substring(0, 2)
   }
 
+  // Helper function to calculate average grade
+  const getAverageGrade = (student: Student): number => {
+    const gradeValues = Object.values(student.grades).filter((g): g is number => typeof g === 'number')
+    if (gradeValues.length === 0) return 0
+    return gradeValues.reduce((sum, grade) => sum + grade, 0) / gradeValues.length
+  }
+
   // Filter and sort students - must be before early return
   const filteredStudents = useMemo(() => {
     // Filter by search
-    let filtered = students.filter(student => {
+    const filtered = students.filter(student => {
       const matchesSearch = !searchQuery.trim() ||
         student.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         student.student_id.toLowerCase().includes(searchQuery.toLowerCase())
@@ -101,7 +109,7 @@ export function ClassOverview({ classId, onBack, onNavigateToGrades, onStudentCl
           compareValue = a.attendance_rate - b.attendance_rate
           break
         case 'average_grade':
-          compareValue = a.average_grade - b.average_grade
+          compareValue = getAverageGrade(a) - getAverageGrade(b)
           break
         case 'conduct':
           compareValue = a.conduct_grade.localeCompare(b.conduct_grade)
@@ -463,23 +471,23 @@ export function ClassOverview({ classId, onBack, onNavigateToGrades, onStudentCl
                       <TableCell>
                         <span className={cn(
                           "font-medium",
-                          student.average_grade >= 75 ? "text-green-600" :
-                          student.average_grade >= 50 ? "text-amber-600" : "text-red-600"
+                          getAverageGrade(student) >= 75 ? "text-green-600" :
+                          getAverageGrade(student) >= 50 ? "text-amber-600" : "text-red-600"
                         )}>
-                          {student.average_grade}%
+                          {getAverageGrade(student).toFixed(0)}%
                         </span>
                       </TableCell>
                       <TableCell>
                         <Badge
                           variant={
-                            student.conduct === 'Excellent' || student.conduct === 'Good'
+                            student.conduct_grade === 'Excellent' || student.conduct_grade === 'Above average'
                               ? 'default'
-                              : student.conduct === 'Poor'
+                              : student.conduct_grade === 'Needs improvement'
                                 ? 'destructive'
                                 : 'secondary'
                           }
                         >
-                          {student.conduct}
+                          {student.conduct_grade}
                         </Badge>
                       </TableCell>
                       <TableCell>
