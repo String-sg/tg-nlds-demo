@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { useRouter, useParams } from 'next/navigation'
 
 import type { LucideIcon } from 'lucide-react'
 import {
@@ -33,6 +34,7 @@ import { RoundupContent } from '@/components/roundup-content'
 import { MyClasses } from '@/components/classroom/my-classes'
 import { ClassOverview } from '@/components/classroom/class-overview'
 import { StudentList } from '@/components/classroom/student-list'
+import { GradeEntry } from '@/components/classroom/grade-entry'
 import { StudentProfile } from '@/components/student-profile'
 import { RecordsContent } from '@/components/records-content'
 import { ExploreContent } from '@/components/explore-content'
@@ -237,8 +239,20 @@ const tabConfigMap: Record<TabKey, TabConfig> = {
 }
 
 export default function Home() {
+  const router = useRouter()
+  const params = useParams()
   const { state: sidebarState } = useSidebar()
-  const [openTabs, setOpenTabs] = useState<ClosableTabKey[]>(['home'])
+
+  // Initialize from sessionStorage to persist across page remounts
+  const [openTabs, setOpenTabs] = useState<ClosableTabKey[]>(() => {
+    if (typeof window !== 'undefined') {
+      const stored = sessionStorage.getItem('openTabs')
+      return stored ? JSON.parse(stored) : ['home']
+    }
+    return ['home']
+  })
+
+  const openTabsRef = useRef<ClosableTabKey[]>(openTabs) // Track current tabs in ref
   const [activeTab, setActiveTab] = useState<TabKey>('home')
   const [assistantMode, setAssistantMode] = useState<AssistantMode>('sidebar')
   const [isAssistantOpen, setIsAssistantOpen] = useState(false)
@@ -250,6 +264,57 @@ export default function Home() {
   const [pendingAssistantMessage, setPendingAssistantMessage] = useState<string | null>(null)
   const tabContainerRef = useRef<HTMLDivElement>(null)
 
+  // Helper to determine if a tab is a top-level page
+  const isTopLevelTab = (tabKey: string): boolean => {
+    const topLevelKeys = primaryPages.map((p) => p.key)
+    return topLevelKeys.includes(tabKey as PrimaryPageKey) || tabKey === profileTabConfig.key
+  }
+
+  // Helper to get parent tab of a child tab
+  const getParentTab = (tabKey: string): string | null => {
+    if (tabKey.startsWith('classroom-')) {
+      return 'classroom'
+    }
+    if (tabKey.startsWith('student-')) {
+      // Student profiles don't have a fixed parent, return null
+      return null
+    }
+    return null
+  }
+
+  // Sync URL with active tab on mount and URL changes
+  useEffect(() => {
+    const slug = params.slug as string[] | undefined
+    const tabFromUrl = !slug || slug.length === 0 ? 'home' : slug.join('/')
+
+    console.log('[URL Sync] params changed:', { slug, tabFromUrl, timestamp: Date.now() })
+
+    setActiveTab(tabFromUrl as TabKey)
+
+    // Always add tab to openTabs if not present (handles all navigation - always opens new tabs)
+    // Use ref to get the most current tab list, avoiding stale closures in Strict Mode double-render
+    const currentTabsFromRef = openTabsRef.current
+    const tabExists = currentTabsFromRef.includes(tabFromUrl as ClosableTabKey)
+
+    console.log('[URL Sync] Tab management:', {
+      tabFromUrl,
+      currentTabs: [...currentTabsFromRef],
+      tabExists,
+      willAdd: !tabExists,
+      timestamp: Date.now()
+    })
+
+    if (!tabExists) {
+      const newTabs = [...currentTabsFromRef, tabFromUrl as ClosableTabKey]
+      console.log('[URL Sync] Adding new tab. New tabs:', [...newTabs])
+      openTabsRef.current = newTabs // Update ref immediately
+      setOpenTabs(newTabs)
+      sessionStorage.setItem('openTabs', JSON.stringify(newTabs)) // Persist to sessionStorage
+    } else {
+      console.log('[URL Sync] Tab already exists, keeping:', [...currentTabsFromRef])
+    }
+  }, [params])
+
   const currentState = emptyStates[activeTab as keyof typeof emptyStates]
   const ActiveIcon = currentState?.icon
   const isNewTabActive = activeTab === newTabConfig.key
@@ -260,17 +325,9 @@ export default function Home() {
   const isAssistantSidebarOpen = assistantMode === 'sidebar' && isAssistantOpen
 
   const handleNavigate = (tabKey: ClosableTabKey) => {
-    setOpenTabs((tabs) => {
-      if (tabs.includes(tabKey)) {
-        setActiveTab(tabKey)
-        return tabs
-      }
-
-      const nextTabs = [...tabs, tabKey]
-
-      setActiveTab(tabKey)
-      return nextTabs
-    })
+    // Simply navigate to the URL - the useEffect will handle adding the tab
+    const newPath = tabKey === 'home' ? '/' : `/${tabKey}`
+    router.push(newPath, { scroll: false })
   }
 
   const handleOpenStudentProfile = (studentName: string) => {
@@ -303,6 +360,18 @@ export default function Home() {
     setClassroomTabs((prev) => {
       const updated = new Map(prev)
       updated.set(tabKey, `${classId}/students`)
+      return updated
+    })
+
+    handleNavigate(tabKey)
+  }
+
+  const handleOpenGrades = (classId: string) => {
+    const tabKey = `classroom-${classId}/grades` as ClassroomTabKey
+
+    setClassroomTabs((prev) => {
+      const updated = new Map(prev)
+      updated.set(tabKey, `${classId}/grades`)
       return updated
     })
 
@@ -342,6 +411,8 @@ export default function Home() {
         )
       })
 
+      openTabsRef.current = filteredTabs // Update ref when closing tabs
+      sessionStorage.setItem('openTabs', JSON.stringify(filteredTabs)) // Persist to sessionStorage
       return filteredTabs
     })
   }, [])
@@ -654,6 +725,7 @@ export default function Home() {
                     const Icon = tab?.icon ?? (isClassroom ? Users : User)
                     const label = isStudentProfile ? studentName ?? 'Student' :
                                  isClassroom && classId?.includes('/students') ? `${classId.split('-').pop()?.split('/')[0].toUpperCase()} Students` :
+                                 isClassroom && classId?.includes('/grades') ? `${classId.split('-').pop()?.split('/')[0].toUpperCase()} Grades` :
                                  isClassroom ? `Class ${classId?.split('-').pop()?.toUpperCase() ?? ''}` :
                                  tab?.label ?? ''
                     const isActive = activeTab === tabKey
@@ -678,7 +750,12 @@ export default function Home() {
                         onDragOver={(e) => handleDragOver(e, tabKey)}
                         onDragLeave={handleDragLeave}
                         onDrop={(e) => handleDrop(e, tabKey)}
-                        onClick={() => setActiveTab(tabKey)}
+                        onClick={() => {
+                          setActiveTab(tabKey)
+                          // Update URL to match the tab
+                          const newPath = tabKey === 'home' ? '/' : `/${tabKey}`
+                          router.push(newPath, { scroll: false })
+                        }}
                         style={{ maxWidth: maxTabWidth }}
                         className={cn(
                           'group relative flex items-center gap-2 rounded-md px-3 py-1.5 text-sm transition-all duration-200 min-w-[4rem]',
@@ -762,6 +839,7 @@ export default function Home() {
                           const Icon = tab?.icon ?? (isClassroom ? Users : User)
                           const label = isStudentProfile ? studentName ?? 'Student' :
                                        isClassroom && classId?.includes('/students') ? `${classId.split('-').pop()?.split('/')[0].toUpperCase()} Students` :
+                                       isClassroom && classId?.includes('/grades') ? `${classId.split('-').pop()?.split('/')[0].toUpperCase()} Grades` :
                                        isClassroom ? `Class ${classId?.split('-').pop()?.toUpperCase() ?? ''}` :
                                        tab?.label ?? ''
                           const isActive = activeTab === tabKey
@@ -773,7 +851,12 @@ export default function Home() {
                                 "flex items-center justify-between",
                                 isActive && "bg-accent"
                               )}
-                              onClick={() => setActiveTab(tabKey)}
+                              onClick={() => {
+                                setActiveTab(tabKey)
+                                // Update URL to match the tab
+                                const newPath = tabKey === 'home' ? '/' : `/${tabKey}`
+                                router.push(newPath, { scroll: false })
+                              }}
                             >
                               <div className="flex items-center gap-2">
                                 <Icon className="size-4" />
@@ -844,6 +927,8 @@ export default function Home() {
                     ? 'Student Profile'
                     : typeof activeTab === 'string' && activeTab.startsWith('classroom-') && classroomTabs.get(activeTab)?.includes('/students')
                       ? 'Students'
+                    : typeof activeTab === 'string' && activeTab.startsWith('classroom-') && classroomTabs.get(activeTab)?.includes('/grades')
+                      ? 'Grade Entry'
                     : typeof activeTab === 'string' && activeTab.startsWith('classroom-')
                       ? `Class ${classroomTabs.get(activeTab)?.split('-').pop()?.toUpperCase() ?? ''}`
                     : currentState
@@ -910,14 +995,24 @@ export default function Home() {
                     }}
                     onStudentClick={handleOpenStudentProfile}
                   />
+                ) : typeof activeTab === 'string' && activeTab.startsWith('classroom-') && activeTab.includes('/grades') ? (
+                  <GradeEntry
+                    classId={classroomTabs.get(activeTab)?.replace('/grades', '') ?? ''}
+                    onBack={() => {
+                      handleCloseTab(activeTab)
+                      const classId = classroomTabs.get(activeTab)?.replace('/grades', '')
+                      if (classId) handleOpenClassroom(classId)
+                    }}
+                  />
                 ) : typeof activeTab === 'string' && activeTab.startsWith('classroom-') ? (
                   <ClassOverview
-                    classId={classroomTabs.get(activeTab) ?? ''}
+                    classId={classroomTabs.get(activeTab) ?? activeTab.replace('classroom-', '')}
                     onBack={() => {
                       handleCloseTab(activeTab)
                       handleNavigate('classroom')
                     }}
-                    onNavigateToStudents={handleOpenStudentList}
+                    onNavigateToGrades={handleOpenGrades}
+                    onStudentClick={handleOpenStudentProfile}
                   />
                 ) : typeof activeTab === 'string' && activeTab.startsWith('student-') ? (
                   <StudentProfile

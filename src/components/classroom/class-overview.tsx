@@ -1,25 +1,53 @@
 'use client'
 
+import { useState, useMemo } from 'react'
 import {
   ArrowLeftIcon,
   HomeIcon,
-  UsersIcon,
-  CheckCircle2Icon,
-  AlertCircleIcon,
-  TrendingUpIcon,
-  CalendarIcon,
   ClipboardCheckIcon,
   GraduationCapIcon,
   MessageSquareIcon,
-  FileTextIcon,
+  SearchIcon,
+  ChevronDownIcon,
+  InfoIcon,
+  PencilIcon,
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import {
   getClassById,
   getClassOverviewStats,
-  getActivityLogByClassId,
+  getStudentsByClassId,
   currentUser,
 } from '@/lib/mock-data/classroom-data'
 import { cn } from '@/lib/utils'
@@ -27,13 +55,71 @@ import { cn } from '@/lib/utils'
 interface ClassOverviewProps {
   classId: string
   onBack?: () => void
-  onNavigateToStudents?: (classId: string) => void
+  onNavigateToGrades?: (classId: string) => void
+  onStudentClick?: (studentName: string) => void
 }
 
-export function ClassOverview({ classId, onBack, onNavigateToStudents }: ClassOverviewProps) {
+export function ClassOverview({ classId, onBack, onNavigateToGrades, onStudentClick }: ClassOverviewProps) {
   const classData = getClassById(classId)
   const stats = getClassOverviewStats(classId)
-  const activities = getActivityLogByClassId(classId).slice(0, 5)
+  const students = getStudentsByClassId(classId)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [showDetails, setShowDetails] = useState(false)
+  const [filterStatus, setFilterStatus] = useState<string>('all')
+  const [sortField, setSortField] = useState<'name' | 'attendance_rate' | 'average_grade' | 'conduct'>('name')
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc')
+
+  // Generate avatar initials from student name
+  const getInitials = (name: string) => {
+    const parts = name.split(' ')
+    if (parts.length >= 2) {
+      return parts[0][0] + parts[parts.length - 1][0]
+    }
+    return name.substring(0, 2)
+  }
+
+  // Filter and sort students - must be before early return
+  const filteredStudents = useMemo(() => {
+    // Filter by search
+    let filtered = students.filter(student => {
+      const matchesSearch = !searchQuery.trim() ||
+        student.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        student.student_id.toLowerCase().includes(searchQuery.toLowerCase())
+      const matchesStatus = filterStatus === 'all' || student.status === filterStatus
+      return matchesSearch && matchesStatus
+    })
+
+    // Sort
+    return [...filtered].sort((a, b) => {
+      let compareValue = 0
+
+      switch (sortField) {
+        case 'name':
+          compareValue = a.name.localeCompare(b.name)
+          break
+        case 'attendance_rate':
+          compareValue = a.attendance_rate - b.attendance_rate
+          break
+        case 'average_grade':
+          compareValue = a.average_grade - b.average_grade
+          break
+        case 'conduct':
+          compareValue = a.conduct_grade.localeCompare(b.conduct_grade)
+          break
+      }
+
+      return sortOrder === 'asc' ? compareValue : -compareValue
+    })
+  }, [students, searchQuery, filterStatus, sortField, sortOrder])
+
+  const handleSort = (field: typeof sortField) => {
+    if (sortField === field) {
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')
+    } else {
+      setSortField(field)
+      setSortOrder('asc')
+    }
+  }
 
   if (!classData) {
     return <div>Class not found</div>
@@ -42,7 +128,8 @@ export function ClassOverview({ classId, onBack, onNavigateToStudents }: ClassOv
   const isFormClass = classData.is_form_class && classData.class_id === currentUser.form_class_id
 
   return (
-    <div className="mx-auto w-full max-w-6xl space-y-6">
+    <TooltipProvider>
+      <div className="mx-auto w-full max-w-6xl space-y-6">
       {/* Header */}
       <div className="flex items-center gap-4">
         <Button variant="ghost" size="sm" className="gap-2" onClick={onBack}>
@@ -52,308 +139,384 @@ export function ClassOverview({ classId, onBack, onNavigateToStudents }: ClassOv
       </div>
 
       {/* Class Info Header */}
-      <div className="flex items-start justify-between">
-        <div className="flex items-start gap-4">
-          <div className="flex h-16 w-16 items-center justify-center rounded-xl bg-blue-100 text-2xl font-bold text-blue-700">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-blue-100 text-lg font-bold text-blue-700">
             {classData.class_name}
           </div>
-          <div>
-            <div className="flex items-center gap-2 mb-1">
-              <h1 className="text-2xl font-semibold text-stone-900">
-                Class {classData.class_name}
-              </h1>
-              {isFormClass && (
-                <Badge variant="secondary" className="bg-blue-100 text-blue-800 border-blue-300">
-                  <HomeIcon className="h-3 w-3 mr-1" />
-                  Form Class
-                </Badge>
-              )}
-            </div>
-            <div className="space-y-1">
-              <p className="text-sm text-stone-600">
-                {classData.subject} · Year {classData.year_level} · {classData.student_count} students
-              </p>
-              <p className="text-sm text-stone-600">
-                Teacher: {currentUser.name}
-                {isFormClass && ' (Form Teacher)'}
-              </p>
-              {classData.schedule.length > 0 && (
-                <p className="text-sm text-stone-600">
-                  Schedule: {classData.schedule.map((s) => s.day).join(', ')} | {classData.schedule[0].start_time} - {classData.schedule[0].end_time} | {classData.schedule[0].location}
-                </p>
-              )}
-            </div>
+          <div className="flex items-center gap-2">
+            <h1 className="text-2xl font-semibold text-stone-900">
+              Class {classData.class_name}
+            </h1>
+            {isFormClass && (
+              <Badge variant="secondary" className="bg-blue-100 text-blue-800 border-blue-300">
+                <HomeIcon className="h-3 w-3 mr-1" />
+                Form Class
+              </Badge>
+            )}
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-6 w-6 p-0"
+              onClick={() => setShowDetails(true)}
+            >
+              <InfoIcon className="h-4 w-4" />
+            </Button>
           </div>
+        </div>
+        {/* Quick Actions */}
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" className="gap-2" disabled>
+            <ClipboardCheckIcon className="h-4 w-4" />
+            Take Attendance
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-2"
+            onClick={() => onNavigateToGrades?.(classId)}
+            disabled={!onNavigateToGrades}
+          >
+            <GraduationCapIcon className="h-4 w-4" />
+            Enter Grades
+          </Button>
+          <Button variant="outline" size="sm" className="gap-2" disabled>
+            <MessageSquareIcon className="h-4 w-4" />
+            Message Parents
+          </Button>
         </div>
       </div>
 
-      {/* Today's Snapshot */}
+      {/* Class Details Modal */}
+      <Dialog open={showDetails} onOpenChange={setShowDetails}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <DialogTitle className="text-2xl font-semibold">Class Details</DialogTitle>
+                <DialogDescription>
+                  Detailed information about Class {classData.class_name}
+                </DialogDescription>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-2"
+                onClick={() => {
+                  // TODO: Implement edit class functionality
+                  console.log('Edit class clicked')
+                }}
+              >
+                <PencilIcon className="h-4 w-4" />
+                Edit Class
+              </Button>
+            </div>
+          </DialogHeader>
+          <div className="space-y-6 py-4">
+            <div>
+              <h3 className="text-sm font-medium text-stone-500 mb-2">Subject</h3>
+              <p className="text-base text-stone-900">{classData.subject}</p>
+            </div>
+            <div className="grid grid-cols-2 gap-6">
+              <div>
+                <h3 className="text-sm font-medium text-stone-500 mb-2">Year Level</h3>
+                <p className="text-base text-stone-900">Year {classData.year_level}</p>
+              </div>
+              <div>
+                <h3 className="text-sm font-medium text-stone-500 mb-2">Total Students</h3>
+                <p className="text-base text-stone-900">{classData.student_count} students</p>
+              </div>
+            </div>
+            <div>
+              <h3 className="text-sm font-medium text-stone-500 mb-2">Teacher</h3>
+              <p className="text-base text-stone-900">
+                {currentUser.name}
+                {isFormClass && ' (Form Teacher)'}
+              </p>
+            </div>
+            {classData.schedule.length > 0 && (
+              <div>
+                <h3 className="text-sm font-medium text-stone-500 mb-2">Schedule</h3>
+                <div className="space-y-2">
+                  <p className="text-base text-stone-900">
+                    <span className="font-medium">Days:</span> {classData.schedule.map((s) => s.day).join(', ')}
+                  </p>
+                  <p className="text-base text-stone-900">
+                    <span className="font-medium">Time:</span> {classData.schedule[0].start_time} - {classData.schedule[0].end_time}
+                  </p>
+                  <p className="text-base text-stone-900">
+                    <span className="font-medium">Location:</span> {classData.schedule[0].location}
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Today's Snapshot - Natural Language Summary */}
       {stats && (
         <div className="space-y-3">
           <h2 className="text-lg font-semibold text-stone-900">Today&apos;s Snapshot</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {/* Attendance */}
             <Card className="border-stone-200">
-              <CardHeader className="pb-3">
+              <CardContent className="p-4 flex flex-col justify-between min-h-[140px]">
                 <div className="flex items-center justify-between">
-                  <CardTitle className="text-sm font-medium text-stone-600">Attendance</CardTitle>
-                  <CheckCircle2Icon className={cn(
-                    "h-5 w-5",
-                    stats.attendance.rate >= 90 ? "text-green-600" : "text-amber-600"
-                  )} />
+                  <h3 className="text-xs font-medium text-stone-500 uppercase tracking-wide">Attendance</h3>
+                  <Badge
+                    variant={stats.attendance.rate >= 90 ? "default" : "secondary"}
+                    className={stats.attendance.rate >= 90 ? "bg-green-100 text-green-800 border-green-300" : "bg-amber-100 text-amber-800 border-amber-300"}
+                  >
+                    {stats.attendance.rate >= 90 ? "Good" : "Needs Attention"}
+                  </Badge>
                 </div>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                <div className="flex items-baseline gap-1">
-                  <span className="text-3xl font-bold text-stone-900">
-                    {stats.attendance.present}/{classData.student_count}
-                  </span>
-                  <span className="text-sm text-stone-600">
-                    ({stats.attendance.rate.toFixed(1)}%)
-                  </span>
-                </div>
-                <div className="space-y-1 text-xs text-stone-600">
-                  <p>Present: {stats.attendance.present}</p>
-                  <p>Absent: {stats.attendance.absent}</p>
-                  {stats.attendance.late > 0 && <p>Late: {stats.attendance.late}</p>}
-                </div>
+                <p className="text-stone-700 leading-relaxed mt-auto">
+                  <span className={stats.attendance.rate >= 90 ? 'text-green-700 font-semibold text-lg' : 'text-amber-700 font-semibold text-lg'}>
+                    {stats.attendance.present} of {classData.student_count}
+                  </span>{' '}
+                  students are present today
+                  {stats.attendance.absent > 0 && (
+                    <>
+                      {', with '}
+                      <span className="font-medium">{stats.attendance.absent} absent</span>
+                    </>
+                  )}
+                  {stats.attendance.late > 0 && (
+                    <>
+                      {' and '}
+                      <span className="font-medium">{stats.attendance.late} late</span>
+                    </>
+                  )}.
+                </p>
               </CardContent>
             </Card>
 
             {/* Academic Status */}
             <Card className="border-stone-200">
-              <CardHeader className="pb-3">
+              <CardContent className="p-4 flex flex-col justify-between min-h-[140px]">
                 <div className="flex items-center justify-between">
-                  <CardTitle className="text-sm font-medium text-stone-600">Academic Status</CardTitle>
-                  <GraduationCapIcon className="h-5 w-5 text-blue-600" />
+                  <h3 className="text-xs font-medium text-stone-500 uppercase tracking-wide">Academic Status</h3>
+                  {isFormClass && (
+                    <Badge
+                      variant={stats.academic.class_average >= 75 ? "default" : "secondary"}
+                      className={stats.academic.class_average >= 75 ? "bg-green-100 text-green-800 border-green-300" : "bg-amber-100 text-amber-800 border-amber-300"}
+                    >
+                      {stats.academic.class_average >= 75 ? "On Track" : "Needs Improvement"}
+                    </Badge>
+                  )}
                 </div>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                <div className="flex items-baseline gap-1">
-                  <span className="text-3xl font-bold text-stone-900">
-                    {stats.academic.class_average.toFixed(1)}%
-                  </span>
-                  <span className="text-sm text-stone-600">(B)</span>
-                </div>
-                <div className="space-y-1 text-xs text-stone-600">
-                  <p>Pending Grades: {stats.academic.pending_grades} assignments</p>
-                  <p>Upcoming: {stats.academic.upcoming_assessments} assessments</p>
-                </div>
+                <p className="text-stone-700 leading-relaxed mt-auto">
+                  {isFormClass ? (
+                    <>
+                      Class average is{' '}
+                      <span className="font-semibold text-lg text-stone-900">{stats.academic.class_average.toFixed(1)}%</span>.{' '}
+                    </>
+                  ) : (
+                    <>Performance tracking available for form classes only. </>
+                  )}
+                  {stats.academic.pending_grades > 0 && (
+                    <>
+                      <span className="font-medium text-blue-700">{stats.academic.pending_grades} assignments</span> pending grading.
+                    </>
+                  )}
+                </p>
               </CardContent>
             </Card>
 
             {/* Active Alerts */}
             <Card className="border-stone-200">
-              <CardHeader className="pb-3">
+              <CardContent className="p-4 flex flex-col justify-between min-h-[140px]">
                 <div className="flex items-center justify-between">
-                  <CardTitle className="text-sm font-medium text-stone-600">Active Alerts</CardTitle>
-                  <AlertCircleIcon className={cn(
-                    "h-5 w-5",
-                    stats.alerts.urgent > 0 ? "text-red-600" : "text-amber-600"
-                  )} />
+                  <h3 className="text-xs font-medium text-stone-500 uppercase tracking-wide">Alerts</h3>
+                  <Badge
+                    variant={stats.alerts.urgent > 0 ? "destructive" : stats.alerts.total > 0 ? "secondary" : "default"}
+                    className={
+                      stats.alerts.urgent > 0
+                        ? "bg-red-100 text-red-800 border-red-300"
+                        : stats.alerts.total > 0
+                        ? "bg-amber-100 text-amber-800 border-amber-300"
+                        : "bg-green-100 text-green-800 border-green-300"
+                    }
+                  >
+                    {stats.alerts.urgent > 0 ? "Urgent" : stats.alerts.total > 0 ? "Attention Needed" : "All Clear"}
+                  </Badge>
                 </div>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                <div className="flex items-baseline gap-1">
-                  <span className="text-3xl font-bold text-stone-900">{stats.alerts.total}</span>
-                  {stats.alerts.urgent > 0 && (
-                    <Badge variant="destructive" className="ml-2">
-                      {stats.alerts.urgent} urgent
-                    </Badge>
+                <p className="text-stone-700 leading-relaxed mt-auto">
+                  {stats.alerts.total > 0 ? (
+                    <>
+                      {stats.alerts.urgent > 0 ? (
+                        <>
+                          <span className="font-semibold text-lg text-red-700">{stats.alerts.urgent} urgent</span>{' '}
+                          {stats.alerts.urgent === 1 ? 'alert needs' : 'alerts need'} immediate attention
+                          {stats.alerts.high > 0 && (
+                            <>
+                              {', with '}
+                              <span className="font-medium">{stats.alerts.high} high priority</span>
+                            </>
+                          )}.
+                        </>
+                      ) : (
+                        <>
+                          <span className="font-semibold text-lg text-amber-700">{stats.alerts.total}</span>{' '}
+                          {stats.alerts.total === 1 ? 'alert' : 'alerts'} need attention.
+                        </>
+                      )}
+                    </>
+                  ) : (
+                    <>No active alerts at this time.</>
                   )}
-                </div>
-                <div className="space-y-1 text-xs text-stone-600">
-                  {stats.alerts.urgent > 0 && <p>🔴 Urgent: {stats.alerts.urgent}</p>}
-                  {stats.alerts.high > 0 && <p>🟡 High: {stats.alerts.high}</p>}
-                  {stats.alerts.medium > 0 && <p>🟢 Medium: {stats.alerts.medium}</p>}
-                </div>
+                </p>
               </CardContent>
             </Card>
           </div>
         </div>
       )}
 
-      {/* Quick Actions */}
-      <div className="space-y-3">
-        <h2 className="text-lg font-semibold text-stone-900">Quick Actions</h2>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-          <Button variant="outline" className="w-full h-auto flex flex-col items-center gap-2 p-4" disabled>
-            <ClipboardCheckIcon className="h-5 w-5" />
-            <span className="text-xs">Take Attendance</span>
-          </Button>
-          <Button variant="outline" className="w-full h-auto flex flex-col items-center gap-2 p-4" disabled>
-            <GraduationCapIcon className="h-5 w-5" />
-            <span className="text-xs">Enter Grades</span>
-          </Button>
-          <Button variant="outline" className="w-full h-auto flex flex-col items-center gap-2 p-4" disabled>
-            <MessageSquareIcon className="h-5 w-5" />
-            <span className="text-xs">Message Parents</span>
-          </Button>
-          <Button variant="outline" className="w-full h-auto flex flex-col items-center gap-2 p-4" disabled>
-            <FileTextIcon className="h-5 w-5" />
-            <span className="text-xs">Create Record</span>
-          </Button>
-          <Button
-            variant="outline"
-            className="w-full h-auto flex flex-col items-center gap-2 p-4"
-            onClick={() => onNavigateToStudents?.(classId)}
-            disabled={!onNavigateToStudents}
-          >
-            <UsersIcon className="h-5 w-5" />
-            <span className="text-xs">View Students</span>
-          </Button>
-          <Button variant="outline" className="w-full h-auto flex flex-col items-center gap-2 p-4" disabled>
-            <AlertCircleIcon className="h-5 w-5" />
-            <span className="text-xs">Class Alerts</span>
-          </Button>
-        </div>
-      </div>
-
-      {/* Recent Activity & Upcoming */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Recent Activity */}
-        <Card className="border-stone-200">
-          <CardHeader>
-            <CardTitle className="text-base font-semibold text-stone-900">Recent Activity</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {activities.length > 0 ? (
-              <div className="space-y-3">
-                {activities.map((activity) => (
-                  <div key={activity.activity_id} className="flex items-start gap-3 pb-3 border-b border-stone-100 last:border-0 last:pb-0">
-                    <div className="mt-0.5">
-                      <div className="h-2 w-2 rounded-full bg-blue-500" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm text-stone-900">{activity.description}</p>
-                      <p className="text-xs text-stone-500 mt-0.5">
-                        {new Date(activity.date).toLocaleString('en-SG', {
-                          month: 'short',
-                          day: 'numeric',
-                          hour: '2-digit',
-                          minute: '2-digit',
-                        })}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-                <Button variant="ghost" size="sm" className="w-full mt-2" disabled>
-                  View All Activity
-                </Button>
+      {/* Student List */}
+      <Card className="border-stone-200">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-base font-semibold text-stone-900">
+              Students ({filteredStudents.length})
+            </CardTitle>
+            <div className="flex items-center gap-2">
+              <div className="relative w-64">
+                <SearchIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-stone-400" />
+                <Input
+                  placeholder="Search students..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-9"
+                />
               </div>
-            ) : (
-              <p className="text-sm text-stone-600 text-center py-8">No recent activity</p>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Upcoming */}
-        <Card className="border-stone-200">
-          <CardHeader>
-            <CardTitle className="text-base font-semibold text-stone-900">Upcoming</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              <div className="flex items-start gap-3 pb-3 border-b border-stone-100">
-                <CalendarIcon className="h-4 w-4 text-stone-500 mt-0.5" />
-                <div className="flex-1">
-                  <p className="text-sm text-stone-900 font-medium">Assignment 6 due</p>
-                  <p className="text-xs text-stone-600 mt-0.5">Tomorrow · 18/30 submitted</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3 pb-3 border-b border-stone-100">
-                <CalendarIcon className="h-4 w-4 text-stone-500 mt-0.5" />
-                <div className="flex-1">
-                  <p className="text-sm text-stone-900 font-medium">Mid-term Examination</p>
-                  <p className="text-xs text-stone-600 mt-0.5">Oct 12, 2025</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3 pb-3 border-b border-stone-100">
-                <CalendarIcon className="h-4 w-4 text-stone-500 mt-0.5" />
-                <div className="flex-1">
-                  <p className="text-sm text-stone-900 font-medium">Parent-Teacher Meeting (PTM)</p>
-                  <p className="text-xs text-stone-600 mt-0.5">Oct 15, 2025</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <CalendarIcon className="h-4 w-4 text-stone-500 mt-0.5" />
-                <div className="flex-1">
-                  <p className="text-sm text-stone-900 font-medium">End of Term Assessment</p>
-                  <p className="text-xs text-stone-600 mt-0.5">Oct 20, 2025</p>
-                </div>
-              </div>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm" className="gap-1">
+                    Filter <ChevronDownIcon className="h-3 w-3" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  <DropdownMenuItem onClick={() => setFilterStatus('all')}>All</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setFilterStatus('GEP')}>GEP</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setFilterStatus('SEN')}>SEN</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setFilterStatus('None')}>None</DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm" className="gap-1">
+                    Sort <ChevronDownIcon className="h-3 w-3" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  <DropdownMenuItem onClick={() => handleSort('name')}>Name</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleSort('attendance_rate')}>Attendance</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleSort('average_grade')}>Average</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleSort('conduct')}>Conduct</DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Performance Indicators (if form class) */}
-      {isFormClass && stats && (
-        <Card className="border-stone-200">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-base font-semibold text-stone-900">Performance Indicators</CardTitle>
-              <TrendingUpIcon className="h-5 w-5 text-green-600" />
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <div className="flex items-baseline gap-2 mb-2">
-                <span className="text-2xl font-bold text-stone-900">
-                  {stats.academic.class_average.toFixed(1)}%
-                </span>
-                <span className="text-sm text-stone-600">(B)</span>
-                <Badge variant="secondary" className="ml-2 bg-green-100 text-green-800">
-                  ↑ 2.3% from last month
-                </Badge>
-              </div>
-              <p className="text-sm text-stone-600">Class Average</p>
-            </div>
-
-            <div>
-              <p className="text-sm font-medium text-stone-900 mb-3">Grade Distribution</p>
-              <div className="space-y-2">
-                <GradeBar grade="A (85-100)" count={8} total={30} color="bg-green-500" />
-                <GradeBar grade="B (70-84)" count={14} total={30} color="bg-blue-500" />
-                <GradeBar grade="C (55-69)" count={6} total={30} color="bg-yellow-500" />
-                <GradeBar grade="D (40-54)" count={2} total={30} color="bg-orange-500" />
-                <GradeBar grade="F (<40)" count={0} total={30} color="bg-red-500" />
-              </div>
-            </div>
-
-            <div>
-              <p className="text-sm text-stone-600">
-                Attendance Trend (Last 30 days): <span className="font-semibold text-stone-900">92.1%</span> average
-              </p>
-            </div>
-
-            <Button variant="outline" className="w-full" disabled>
-              View Detailed Analytics
-            </Button>
-          </CardContent>
-        </Card>
-      )}
+          </div>
+        </CardHeader>
+        <CardContent className="p-0">
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-12">#</TableHead>
+                  <TableHead>Name</TableHead>
+                  <TableHead className="w-32">Attendance</TableHead>
+                  <TableHead className="w-32">Average</TableHead>
+                  <TableHead className="w-32">Conduct</TableHead>
+                  <TableHead className="w-24">Status</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredStudents.length > 0 ? (
+                  filteredStudents.map((student, index) => (
+                    <TableRow
+                      key={student.student_id}
+                      className="cursor-pointer hover:bg-stone-50"
+                      onClick={() => onStudentClick?.(student.name)}
+                    >
+                      <TableCell className="font-medium">{index + 1}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-3">
+                          <Avatar className="h-8 w-8">
+                            <AvatarFallback className="bg-blue-100 text-blue-700 text-xs font-semibold">
+                              {getInitials(student.name)}
+                            </AvatarFallback>
+                          </Avatar>
+                          <span className="font-medium">{student.name}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <span className={cn(
+                          "font-medium",
+                          student.attendance_rate >= 90 ? "text-green-600" :
+                          student.attendance_rate >= 75 ? "text-amber-600" : "text-red-600"
+                        )}>
+                          {student.attendance_rate}%
+                        </span>
+                      </TableCell>
+                      <TableCell>
+                        <span className={cn(
+                          "font-medium",
+                          student.average_grade >= 75 ? "text-green-600" :
+                          student.average_grade >= 50 ? "text-amber-600" : "text-red-600"
+                        )}>
+                          {student.average_grade}%
+                        </span>
+                      </TableCell>
+                      <TableCell>
+                        <Badge
+                          variant={
+                            student.conduct === 'Excellent' || student.conduct === 'Good'
+                              ? 'default'
+                              : student.conduct === 'Poor'
+                                ? 'destructive'
+                                : 'secondary'
+                          }
+                        >
+                          {student.conduct}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        {student.status !== 'None' && (
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Badge variant="outline" className="text-xs cursor-help">
+                                {student.status}
+                              </Badge>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>
+                                {student.status === 'GEP'
+                                  ? 'Gifted Education Programme'
+                                  : student.status === 'SEN'
+                                  ? 'Special Educational Needs'
+                                  : student.status}
+                              </p>
+                            </TooltipContent>
+                          </Tooltip>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={6} className="text-center text-stone-500 py-8">
+                      No students found
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
     </div>
-  )
-}
-
-function GradeBar({ grade, count, total, color }: { grade: string; count: number; total: number; color: string }) {
-  const percentage = (count / total) * 100
-
-  return (
-    <div className="space-y-1">
-      <div className="flex items-center justify-between text-xs">
-        <span className="text-stone-600">{grade}</span>
-        <span className="text-stone-900 font-medium">
-          {count} students ({percentage.toFixed(0)}%)
-        </span>
-      </div>
-      <div className="h-2 bg-stone-100 rounded-full overflow-hidden">
-        <div
-          className={cn("h-full rounded-full", color)}
-          style={{ width: `${percentage}%` }}
-        />
-      </div>
-    </div>
+    </TooltipProvider>
   )
 }

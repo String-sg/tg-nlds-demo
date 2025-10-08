@@ -21,8 +21,6 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { getClassById, getStudentsByClassId } from '@/lib/mock-data/classroom-data'
-import { cn } from '@/lib/utils'
-import type { Student } from '@/types/classroom'
 
 interface StudentListProps {
   classId: string
@@ -76,35 +74,7 @@ export function StudentList({ classId, onBack, onStudentClick }: StudentListProp
   const [filterStatus, setFilterStatus] = useState<string>('all')
   const [searchQuery, setSearchQuery] = useState('')
 
-  if (!classData) {
-    return <div>Class not found</div>
-  }
-
-  const handleSelectAll = (checked: boolean) => {
-    if (checked) {
-      setSelectedStudents(students.map(s => s.student_id))
-    } else {
-      setSelectedStudents([])
-    }
-  }
-
-  const handleSelectStudent = (studentId: string, checked: boolean) => {
-    if (checked) {
-      setSelectedStudents([...selectedStudents, studentId])
-    } else {
-      setSelectedStudents(selectedStudents.filter(id => id !== studentId))
-    }
-  }
-
-  const handleSort = (field: SortField) => {
-    if (sortField === field) {
-      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')
-    } else {
-      setSortField(field)
-      setSortOrder('asc')
-    }
-  }
-
+  // Filter and sort students - must be before early return
   const filteredStudents = useMemo(() => {
     return students.filter(student => {
       const matchesSearch = student.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -137,6 +107,35 @@ export function StudentList({ classId, onBack, onStudentClick }: StudentListProp
       return sortOrder === 'asc' ? compareValue : -compareValue
     })
   }, [filteredStudents, sortField, sortOrder])
+
+  if (!classData) {
+    return <div>Class not found</div>
+  }
+
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedStudents(students.map(s => s.student_id))
+    } else {
+      setSelectedStudents([])
+    }
+  }
+
+  const handleSelectStudent = (studentId: string, checked: boolean) => {
+    if (checked) {
+      setSelectedStudents([...selectedStudents, studentId])
+    } else {
+      setSelectedStudents(selectedStudents.filter(id => id !== studentId))
+    }
+  }
+
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')
+    } else {
+      setSortField(field)
+      setSortOrder('asc')
+    }
+  }
 
   const getStatusColor = (status: string) => {
     switch (status) {
