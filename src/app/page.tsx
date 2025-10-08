@@ -30,11 +30,12 @@ import {
 import { Button } from '@/components/ui/button'
 import { HomeContent } from '@/components/home-content'
 import { RoundupContent } from '@/components/roundup-content'
-import { ClassView } from '@/components/class-view'
+import { MyClasses } from '@/components/classroom/my-classes'
 import { StudentProfile } from '@/components/student-profile'
 import { RecordsContent } from '@/components/records-content'
 import { ExploreContent } from '@/components/explore-content'
 import { ThemeSwitcher } from '@/components/theme-switcher'
+import { UserProvider } from '@/contexts/user-context'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -500,6 +501,7 @@ export default function Home() {
   }, [isAssistantTabActive, handleAssistantButtonClick, handleCloseTab])
 
   return (
+    <UserProvider>
     <div className="flex min-h-svh w-full bg-background">
       <Sidebar variant="inset" collapsible="icon">
         <SidebarContent className="gap-6">
@@ -853,7 +855,7 @@ export default function Home() {
                 ) : activeTab === 'explore' ? (
                   <ExploreContent onAppClick={(appKey) => handleNavigate(appKey as ClosableTabKey)} />
                 ) : activeTab === 'classroom' ? (
-                  <ClassView onStudentClick={handleOpenStudentProfile} />
+                  <MyClasses />
                 ) : activeTab === 'records' ? (
                   <RecordsContent />
                 ) : typeof activeTab === 'string' && activeTab.startsWith('student-') ? (
@@ -1008,5 +1010,6 @@ export default function Home() {
           />
         )}
       </div>
+    </UserProvider>
     )
   }
