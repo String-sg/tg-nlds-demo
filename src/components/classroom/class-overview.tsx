@@ -156,9 +156,10 @@ export function ClassOverview({ classId, onBack, onNavigateToGrades, onStudentCl
       title=""
       subtitle={titleElement}
       contentClassName="px-6 py-6"
+      headerClassName="border-b-0"
     >
       <TooltipProvider>
-        <div className="mx-auto w-full max-w-6xl space-y-6">
+        <div className="mx-auto w-full max-w-5xl space-y-6">
 
       {/* Class Details Modal */}
       <Dialog open={showDetails} onOpenChange={setShowDetails}>
