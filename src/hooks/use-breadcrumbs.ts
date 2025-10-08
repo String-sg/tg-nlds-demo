@@ -78,7 +78,7 @@ export function useBreadcrumbs({
       })
     } else if (currentPath === 'roundup') {
       items.push({
-        label: 'Pulse',
+        label: 'Insights',
         path: 'roundup',
         isActive: true,
       })

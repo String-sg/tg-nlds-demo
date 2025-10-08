@@ -28,8 +28,8 @@ interface App {
 
 const allApps: App[] = [
   {
-    key: 'pulse',
-    name: 'Pulse',
+    key: 'roundup',
+    name: 'Insights',
     description: 'Summaries and noteworthy updates from your team',
     icon: Zap,
     category: 'Overview',

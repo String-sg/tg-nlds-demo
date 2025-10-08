@@ -74,7 +74,7 @@ import { useBreadcrumbs } from '@/hooks/use-breadcrumbs'
 import { Breadcrumbs } from '@/components/ui/breadcrumbs'
 
 const primaryPages = [
-  { key: 'roundup', label: 'Pulse', icon: Zap, tooltip: 'Pulse' },
+  { key: 'roundup', label: 'Insights', icon: Zap, tooltip: 'Insights' },
   { key: 'home', label: 'Home', icon: HomeIcon, tooltip: 'Home' },
   { key: 'explore', label: 'Explore', icon: Compass, tooltip: 'Explore' },
   { key: 'classroom', label: 'Classroom', icon: Users, tooltip: 'Classroom' },
@@ -135,7 +135,7 @@ const emptyStates: Record<TabKey, EmptyState> = {
     icon: Plus,
   },
   roundup: {
-    heading: 'Pulse',
+    heading: 'Insights',
     title: 'No highlights yet',
     description:
       'Summaries and noteworthy updates from your team will appear here once activity picks up.',
