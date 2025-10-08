@@ -43,10 +43,11 @@ const getAvatarColor = (name: string) => {
 
 interface StudentProfileProps {
   studentName: string
+  classId?: string
   onBack?: () => void
 }
 
-export function StudentProfile({ studentName, onBack }: StudentProfileProps) {
+export function StudentProfile({ studentName, classId, onBack }: StudentProfileProps) {
   // Mock student data - in a real app, this would be fetched based on studentName
   const student = {
     name: studentName,

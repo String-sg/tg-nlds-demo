@@ -105,8 +105,8 @@ const assistantTabConfig = {
 type PrimaryPageKey = (typeof primaryPages)[number]['key']
 type ProfileTabKey = typeof profileTabConfig['key']
 type AssistantTabKey = typeof assistantTabConfig['key']
-type StudentProfileTabKey = `student-${string}` // Dynamic student profile tabs
-type ClassroomTabKey = `classroom-${string}` // Dynamic classroom tabs
+type StudentProfileTabKey = `student-${string}` // Dynamic student profile tabs (standalone)
+type ClassroomTabKey = `classroom/${string}` // Dynamic classroom tabs with forward slash
 type PageKey = PrimaryPageKey | ProfileTabKey
 type ClosableTabKey = PageKey | AssistantTabKey | StudentProfileTabKey | ClassroomTabKey
 type TabKey = typeof newTabConfig['key'] | ClosableTabKey
@@ -259,8 +259,36 @@ export default function Home() {
   const [draggedTab, setDraggedTab] = useState<ClosableTabKey | null>(null)
   const [dragOverTab, setDragOverTab] = useState<ClosableTabKey | null>(null)
   const [containerWidth, setContainerWidth] = useState(0)
-  const [studentProfileTabs, setStudentProfileTabs] = useState<Map<string, string>>(new Map()) // Map of tab key to student name
-  const [classroomTabs, setClassroomTabs] = useState<Map<string, string>>(new Map()) // Map of tab key to class ID
+  const [studentProfileTabs, setStudentProfileTabs] = useState<Map<string, string>>(() => {
+    // Initialize from sessionStorage to persist across navigation
+    if (typeof window !== 'undefined') {
+      const stored = sessionStorage.getItem('studentProfileTabs')
+      if (stored) {
+        try {
+          return new Map(JSON.parse(stored))
+        } catch (e) {
+          console.error('Failed to parse studentProfileTabs from sessionStorage:', e)
+        }
+      }
+    }
+    return new Map()
+  })
+  const [classroomTabs, setClassroomTabs] = useState<Map<string, string>>(() => {
+    // Initialize from sessionStorage to persist across navigation
+    if (typeof window !== 'undefined') {
+      const stored = sessionStorage.getItem('classroomTabs')
+      if (stored) {
+        try {
+          return new Map(JSON.parse(stored))
+        } catch (e) {
+          console.error('Failed to parse classroomTabs from sessionStorage:', e)
+        }
+      }
+    }
+    return new Map()
+  })
+  const studentProfileTabsRef = useRef<Map<string, string>>(studentProfileTabs) // Ref for immediate access
+  const classroomTabsRef = useRef<Map<string, string>>(classroomTabs) // Ref for immediate access
   const [pendingAssistantMessage, setPendingAssistantMessage] = useState<string | null>(null)
   const tabContainerRef = useRef<HTMLDivElement>(null)
 
@@ -272,7 +300,14 @@ export default function Home() {
 
   // Helper to get parent tab of a child tab
   const getParentTab = (tabKey: string): string | null => {
-    if (tabKey.startsWith('classroom-')) {
+    if (tabKey.startsWith('classroom/')) {
+      // For classroom routes, check if it's a nested route
+      const parts = tabKey.split('/')
+      if (parts.length > 2) {
+        // classroom/{classId}/... -> return classroom/{classId}
+        return `${parts[0]}/${parts[1]}`
+      }
+      // classroom/{classId} -> return classroom
       return 'classroom'
     }
     if (tabKey.startsWith('student-')) {
@@ -281,6 +316,23 @@ export default function Home() {
     }
     return null
   }
+
+  // Sync refs with state and persist to sessionStorage
+  useEffect(() => {
+    studentProfileTabsRef.current = studentProfileTabs
+    // Persist to sessionStorage
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('studentProfileTabs', JSON.stringify(Array.from(studentProfileTabs.entries())))
+    }
+  }, [studentProfileTabs])
+
+  useEffect(() => {
+    classroomTabsRef.current = classroomTabs
+    // Persist to sessionStorage
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('classroomTabs', JSON.stringify(Array.from(classroomTabs.entries())))
+    }
+  }, [classroomTabs])
 
   // Sync URL with active tab on mount and URL changes
   useEffect(() => {
@@ -305,7 +357,9 @@ export default function Home() {
     })
 
     if (!tabExists) {
-      const newTabs = [...currentTabsFromRef, tabFromUrl as ClosableTabKey]
+      // Filter out the tab first to prevent any duplicates from race conditions
+      const filteredTabs = currentTabsFromRef.filter(t => t !== (tabFromUrl as ClosableTabKey))
+      const newTabs = [...filteredTabs, tabFromUrl as ClosableTabKey]
       console.log('[URL Sync] Adding new tab. New tabs:', [...newTabs])
       openTabsRef.current = newTabs // Update ref immediately
       setOpenTabs(newTabs)
@@ -324,8 +378,41 @@ export default function Home() {
   const isSidebarCollapsed = sidebarState === 'collapsed'
   const isAssistantSidebarOpen = assistantMode === 'sidebar' && isAssistantOpen
 
-  const handleNavigate = (tabKey: ClosableTabKey) => {
-    // Simply navigate to the URL - the useEffect will handle adding the tab
+  const handleNavigate = (tabKey: ClosableTabKey, replaceParent: boolean = false) => {
+    // If replaceParent is true, close the parent tab if it exists
+    if (replaceParent) {
+      const parentTabKey = getParentTab(tabKey)
+      if (parentTabKey) {
+        setOpenTabs((tabs) => {
+          // Check if parent exists in current tabs
+          if (!tabs.includes(parentTabKey as ClosableTabKey)) {
+            return tabs // Parent doesn't exist, don't modify tabs
+          }
+
+          const parentIndex = tabs.indexOf(parentTabKey as ClosableTabKey)
+          // Remove both parent AND any existing child tab to prevent duplicates
+          const filteredTabs = tabs.filter((key) => key !== parentTabKey && key !== tabKey)
+
+          // Insert the new tab at the parent's position
+          if (parentIndex !== -1) {
+            filteredTabs.splice(parentIndex, 0, tabKey)
+          } else {
+            filteredTabs.push(tabKey)
+          }
+
+          openTabsRef.current = filteredTabs
+          sessionStorage.setItem('openTabs', JSON.stringify(filteredTabs))
+          return filteredTabs
+        })
+
+        // Navigate after updating tabs
+        const newPath = tabKey === 'home' ? '/' : `/${tabKey}`
+        router.push(newPath, { scroll: false })
+        return
+      }
+    }
+
+    // Simply navigate to the URL - the useEffect will handle adding the tab if not replaced
     const newPath = tabKey === 'home' ? '/' : `/${tabKey}`
     router.push(newPath, { scroll: false })
   }
@@ -343,7 +430,7 @@ export default function Home() {
   }
 
   const handleOpenClassroom = (classId: string) => {
-    const tabKey = `classroom-${classId}` as ClassroomTabKey
+    const tabKey = `classroom/${classId}` as ClassroomTabKey
 
     setClassroomTabs((prev) => {
       const updated = new Map(prev)
@@ -351,11 +438,11 @@ export default function Home() {
       return updated
     })
 
-    handleNavigate(tabKey)
+    handleNavigate(tabKey, true) // Replace parent tab
   }
 
   const handleOpenStudentList = (classId: string) => {
-    const tabKey = `classroom-${classId}/students` as ClassroomTabKey
+    const tabKey = `classroom/${classId}/students` as ClassroomTabKey
 
     setClassroomTabs((prev) => {
       const updated = new Map(prev)
@@ -363,11 +450,11 @@ export default function Home() {
       return updated
     })
 
-    handleNavigate(tabKey)
+    handleNavigate(tabKey, true) // Replace parent tab
   }
 
   const handleOpenGrades = (classId: string) => {
-    const tabKey = `classroom-${classId}/grades` as ClassroomTabKey
+    const tabKey = `classroom/${classId}/grades` as ClassroomTabKey
 
     setClassroomTabs((prev) => {
       const updated = new Map(prev)
@@ -375,7 +462,29 @@ export default function Home() {
       return updated
     })
 
-    handleNavigate(tabKey)
+    handleNavigate(tabKey, true) // Replace parent tab
+  }
+
+  const handleOpenStudentFromClass = (classId: string, studentName: string) => {
+    const studentSlug = studentName.toLowerCase().replace(/\s+/g, '-')
+    const tabKey = `classroom/${classId}/student/${studentSlug}` as ClassroomTabKey
+
+    console.log('[handleOpenStudentFromClass]', { classId, studentName, studentSlug, tabKey })
+
+    // Update both maps using refs to ensure immediate availability
+    const updatedClassroomTabs = new Map(classroomTabsRef.current)
+    updatedClassroomTabs.set(tabKey, `${classId}/student/${studentSlug}`)
+    classroomTabsRef.current = updatedClassroomTabs
+    setClassroomTabs(updatedClassroomTabs)
+    console.log('[handleOpenStudentFromClass] Updated classroomTabs:', Array.from(updatedClassroomTabs.entries()))
+
+    const updatedStudentProfileTabs = new Map(studentProfileTabsRef.current)
+    updatedStudentProfileTabs.set(tabKey, studentName)
+    studentProfileTabsRef.current = updatedStudentProfileTabs
+    setStudentProfileTabs(updatedStudentProfileTabs)
+    console.log('[handleOpenStudentFromClass] Updated studentProfileTabs:', Array.from(updatedStudentProfileTabs.entries()))
+
+    handleNavigate(tabKey, true) // Replace parent tab
   }
 
   const handleAssistantMessage = (message: string) => {
@@ -620,7 +729,10 @@ export default function Home() {
                     <SidebarMenuItem key={page.key}>
                       <SidebarMenuButton
                         tooltip={page.tooltip}
-                        isActive={activeTab === page.key}
+                        isActive={
+                          activeTab === page.key ||
+                          (page.key === 'classroom' && typeof activeTab === 'string' && activeTab.startsWith('classroom/'))
+                        }
                         onClick={() => handleNavigate(page.key)}
                         type="button"
                       >
@@ -640,7 +752,10 @@ export default function Home() {
                     <SidebarMenuItem key={page.key}>
                       <SidebarMenuButton
                         tooltip={page.tooltip}
-                        isActive={activeTab === page.key}
+                        isActive={
+                          activeTab === page.key ||
+                          (page.key === 'classroom' && typeof activeTab === 'string' && activeTab.startsWith('classroom/'))
+                        }
                         onClick={() => handleNavigate(page.key)}
                         type="button"
                       >
@@ -714,20 +829,41 @@ export default function Home() {
                       {visibleTabs.map((tabKey, index) => {
                     const tab = tabConfigMap[tabKey as keyof typeof tabConfigMap]
                     const isStudentProfile = typeof tabKey === 'string' && tabKey.startsWith('student-')
-                    const isClassroom = typeof tabKey === 'string' && tabKey.startsWith('classroom-')
+                    const isClassroom = typeof tabKey === 'string' && tabKey.startsWith('classroom/')
                     const studentName = isStudentProfile ? studentProfileTabs.get(tabKey) : undefined
-                    const classId = isClassroom ? classroomTabs.get(tabKey) : undefined
+                    const classroomPath = isClassroom ? classroomTabs.get(tabKey) : undefined
 
                     if (!tab && !isStudentProfile && !isClassroom) {
                       return null
                     }
 
                     const Icon = tab?.icon ?? (isClassroom ? Users : User)
-                    const label = isStudentProfile ? studentName ?? 'Student' :
-                                 isClassroom && classId?.includes('/students') ? `${classId.split('-').pop()?.split('/')[0].toUpperCase()} Students` :
-                                 isClassroom && classId?.includes('/grades') ? `${classId.split('-').pop()?.split('/')[0].toUpperCase()} Grades` :
-                                 isClassroom ? `Class ${classId?.split('-').pop()?.toUpperCase() ?? ''}` :
-                                 tab?.label ?? ''
+
+                    // Parse classroom tab labels
+                    let label = ''
+                    if (isStudentProfile) {
+                      label = studentName ?? 'Student'
+                    } else if (isClassroom && classroomPath) {
+                      const parts = classroomPath.split('/')
+                      const classId = parts[0]
+                      // Convert class-5a -> Class 5A
+                      const className = classId.replace('class-', '').toUpperCase()
+                      if (classroomPath.includes('/student/')) {
+                        // classroom/{classId}/student/{studentSlug} -> show student name
+                        label = studentProfileTabs.get(tabKey) ?? 'Student'
+                      } else if (classroomPath.includes('/students')) {
+                        // classroom/{classId}/students
+                        label = `Class ${className} Students`
+                      } else if (classroomPath.includes('/grades')) {
+                        // classroom/{classId}/grades
+                        label = `Class ${className} Grades`
+                      } else {
+                        // classroom/{classId}
+                        label = `Class ${className}`
+                      }
+                    } else {
+                      label = tab?.label ?? ''
+                    }
                     const isActive = activeTab === tabKey
                     const isDragging = draggedTab === tabKey
                     const isDragOver = dragOverTab === tabKey
@@ -830,18 +966,36 @@ export default function Home() {
                         {hiddenTabs.map((tabKey) => {
                           const tab = tabConfigMap[tabKey as keyof typeof tabConfigMap]
                           const isStudentProfile = typeof tabKey === 'string' && tabKey.startsWith('student-')
-                          const isClassroom = typeof tabKey === 'string' && tabKey.startsWith('classroom-')
+                          const isClassroom = typeof tabKey === 'string' && tabKey.startsWith('classroom/')
                           const studentName = isStudentProfile ? studentProfileTabs.get(tabKey) : undefined
-                          const classId = isClassroom ? classroomTabs.get(tabKey) : undefined
+                          const classroomPath = isClassroom ? classroomTabs.get(tabKey) : undefined
 
                           if (!tab && !isStudentProfile && !isClassroom) return null
 
                           const Icon = tab?.icon ?? (isClassroom ? Users : User)
-                          const label = isStudentProfile ? studentName ?? 'Student' :
-                                       isClassroom && classId?.includes('/students') ? `${classId.split('-').pop()?.split('/')[0].toUpperCase()} Students` :
-                                       isClassroom && classId?.includes('/grades') ? `${classId.split('-').pop()?.split('/')[0].toUpperCase()} Grades` :
-                                       isClassroom ? `Class ${classId?.split('-').pop()?.toUpperCase() ?? ''}` :
-                                       tab?.label ?? ''
+
+                          // Parse classroom tab labels
+                          let label = ''
+                          if (isStudentProfile) {
+                            label = studentName ?? 'Student'
+                          } else if (isClassroom && classroomPath) {
+                            const parts = classroomPath.split('/')
+                            const classId = parts[0]
+                            // Convert class-5a -> Class 5A
+                            const className = classId.replace('class-', '').toUpperCase()
+                            if (classroomPath.includes('/student/')) {
+                              label = studentProfileTabs.get(tabKey) ?? 'Student'
+                            } else if (classroomPath.includes('/students')) {
+                              label = `Class ${className} Students`
+                            } else if (classroomPath.includes('/grades')) {
+                              label = `Class ${className} Grades`
+                            } else {
+                              label = `Class ${className}`
+                            }
+                          } else {
+                            label = tab?.label ?? ''
+                          }
+
                           const isActive = activeTab === tabKey
 
                           return (
@@ -924,13 +1078,25 @@ export default function Home() {
               <div className="hidden flex-1 md:flex">
                 <h1 className="text-lg font-semibold tracking-tight">
                   {typeof activeTab === 'string' && activeTab.startsWith('student-')
-                    ? 'Student Profile'
-                    : typeof activeTab === 'string' && activeTab.startsWith('classroom-') && classroomTabs.get(activeTab)?.includes('/students')
-                      ? 'Students'
-                    : typeof activeTab === 'string' && activeTab.startsWith('classroom-') && classroomTabs.get(activeTab)?.includes('/grades')
-                      ? 'Grade Entry'
-                    : typeof activeTab === 'string' && activeTab.startsWith('classroom-')
-                      ? `Class ${classroomTabs.get(activeTab)?.split('-').pop()?.toUpperCase() ?? ''}`
+                    ? studentProfileTabs.get(activeTab) ?? 'Student Profile'
+                    : typeof activeTab === 'string' && activeTab.startsWith('classroom/')
+                      ? (() => {
+                          const classroomPath = classroomTabs.get(activeTab)
+                          if (!classroomPath) return 'Classroom'
+                          const parts = classroomPath.split('/')
+                          const classId = parts[0]
+                          // Convert class-5a -> Class 5A
+                          const className = classId.replace('class-', '').toUpperCase()
+                          if (classroomPath.includes('/student/')) {
+                            return studentProfileTabs.get(activeTab) ?? 'Student Profile'
+                          } else if (classroomPath.includes('/students')) {
+                            return 'Students'
+                          } else if (classroomPath.includes('/grades')) {
+                            return 'Grade Entry'
+                          } else {
+                            return `Class ${className}`
+                          }
+                        })()
                     : currentState
                       ? currentState.heading
                       : 'New Tab'}
@@ -985,35 +1151,159 @@ export default function Home() {
                   <MyClasses onClassClick={handleOpenClassroom} />
                 ) : activeTab === 'records' ? (
                   <RecordsContent />
-                ) : typeof activeTab === 'string' && activeTab.startsWith('classroom-') && activeTab.includes('/students') ? (
-                  <StudentList
-                    classId={classroomTabs.get(activeTab)?.replace('/students', '') ?? ''}
-                    onBack={() => {
-                      handleCloseTab(activeTab)
-                      const classId = classroomTabs.get(activeTab)?.replace('/students', '')
-                      if (classId) handleOpenClassroom(classId)
-                    }}
-                    onStudentClick={handleOpenStudentProfile}
-                  />
-                ) : typeof activeTab === 'string' && activeTab.startsWith('classroom-') && activeTab.includes('/grades') ? (
-                  <GradeEntry
-                    classId={classroomTabs.get(activeTab)?.replace('/grades', '') ?? ''}
-                    onBack={() => {
-                      handleCloseTab(activeTab)
-                      const classId = classroomTabs.get(activeTab)?.replace('/grades', '')
-                      if (classId) handleOpenClassroom(classId)
-                    }}
-                  />
-                ) : typeof activeTab === 'string' && activeTab.startsWith('classroom-') ? (
-                  <ClassOverview
-                    classId={classroomTabs.get(activeTab) ?? activeTab.replace('classroom-', '')}
-                    onBack={() => {
-                      handleCloseTab(activeTab)
-                      handleNavigate('classroom')
-                    }}
-                    onNavigateToGrades={handleOpenGrades}
-                    onStudentClick={handleOpenStudentProfile}
-                  />
+                ) : typeof activeTab === 'string' && activeTab.startsWith('classroom/') && activeTab.includes('/student/') ? (
+                  // classroom/{classId}/student/{studentSlug}
+                  (() => {
+                    const classroomPath = classroomTabs.get(activeTab)
+                    const parts = classroomPath?.split('/') ?? []
+                    const classId = parts[0]
+                    const studentName = studentProfileTabs.get(activeTab)
+
+                    console.log('[StudentProfile Render]', {
+                      activeTab,
+                      classroomPath,
+                      classId,
+                      studentName,
+                      allStudentProfileTabs: Array.from(studentProfileTabs.entries())
+                    })
+
+                    return (
+                      <StudentProfile
+                        studentName={studentName ?? 'Unknown Student'}
+                        classId={classId}
+                        onBack={() => {
+                          if (classId) {
+                            // Navigate back to parent class, replacing current tab
+                            const parentTabKey = `classroom/${classId}` as ClassroomTabKey
+                            setClassroomTabs((prev) => {
+                              const updated = new Map(prev)
+                              updated.set(parentTabKey, classId)
+                              return updated
+                            })
+                            setOpenTabs((tabs) => {
+                              const currentIndex = tabs.indexOf(activeTab as ClosableTabKey)
+                              // Remove both child and any existing parent to prevent duplicates
+                              const filteredTabs = tabs.filter((key) => key !== activeTab && key !== parentTabKey)
+                              if (currentIndex !== -1) {
+                                filteredTabs.splice(currentIndex, 0, parentTabKey)
+                              } else {
+                                filteredTabs.push(parentTabKey)
+                              }
+                              openTabsRef.current = filteredTabs
+                              sessionStorage.setItem('openTabs', JSON.stringify(filteredTabs))
+                              return filteredTabs
+                            })
+                            router.push(`/classroom/${classId}`, { scroll: false })
+                          }
+                        }}
+                      />
+                    )
+                  })()
+                ) : typeof activeTab === 'string' && activeTab.startsWith('classroom/') && activeTab.includes('/students') ? (
+                  // classroom/{classId}/students
+                  (() => {
+                    const classroomPath = classroomTabs.get(activeTab)
+                    const parts = classroomPath?.split('/') ?? []
+                    const classId = parts[0]
+                    return (
+                      <StudentList
+                        classId={classId}
+                        onBack={() => {
+                          if (classId) {
+                            // Navigate back to parent class, replacing current tab
+                            const parentTabKey = `classroom/${classId}` as ClassroomTabKey
+                            setClassroomTabs((prev) => {
+                              const updated = new Map(prev)
+                              updated.set(parentTabKey, classId)
+                              return updated
+                            })
+                            setOpenTabs((tabs) => {
+                              const currentIndex = tabs.indexOf(activeTab as ClosableTabKey)
+                              // Remove both child and any existing parent to prevent duplicates
+                              const filteredTabs = tabs.filter((key) => key !== activeTab && key !== parentTabKey)
+                              if (currentIndex !== -1) {
+                                filteredTabs.splice(currentIndex, 0, parentTabKey)
+                              } else {
+                                filteredTabs.push(parentTabKey)
+                              }
+                              openTabsRef.current = filteredTabs
+                              sessionStorage.setItem('openTabs', JSON.stringify(filteredTabs))
+                              return filteredTabs
+                            })
+                            router.push(`/classroom/${classId}`, { scroll: false })
+                          }
+                        }}
+                        onStudentClick={(studentName) => handleOpenStudentFromClass(classId, studentName)}
+                      />
+                    )
+                  })()
+                ) : typeof activeTab === 'string' && activeTab.startsWith('classroom/') && activeTab.includes('/grades') ? (
+                  // classroom/{classId}/grades
+                  (() => {
+                    const classroomPath = classroomTabs.get(activeTab)
+                    const parts = classroomPath?.split('/') ?? []
+                    const classId = parts[0]
+                    return (
+                      <GradeEntry
+                        classId={classId}
+                        onBack={() => {
+                          if (classId) {
+                            // Navigate back to parent class, replacing current tab
+                            const parentTabKey = `classroom/${classId}` as ClassroomTabKey
+                            setClassroomTabs((prev) => {
+                              const updated = new Map(prev)
+                              updated.set(parentTabKey, classId)
+                              return updated
+                            })
+                            setOpenTabs((tabs) => {
+                              const currentIndex = tabs.indexOf(activeTab as ClosableTabKey)
+                              // Remove both child and any existing parent to prevent duplicates
+                              const filteredTabs = tabs.filter((key) => key !== activeTab && key !== parentTabKey)
+                              if (currentIndex !== -1) {
+                                filteredTabs.splice(currentIndex, 0, parentTabKey)
+                              } else {
+                                filteredTabs.push(parentTabKey)
+                              }
+                              openTabsRef.current = filteredTabs
+                              sessionStorage.setItem('openTabs', JSON.stringify(filteredTabs))
+                              return filteredTabs
+                            })
+                            router.push(`/classroom/${classId}`, { scroll: false })
+                          }
+                        }}
+                      />
+                    )
+                  })()
+                ) : typeof activeTab === 'string' && activeTab.startsWith('classroom/') ? (
+                  // classroom/{classId}
+                  (() => {
+                    const classroomPath = classroomTabs.get(activeTab)
+                    const classId = classroomPath ?? activeTab.replace('classroom/', '')
+                    return (
+                      <ClassOverview
+                        classId={classId}
+                        onBack={() => {
+                          // Navigate back to classroom list, replacing current tab
+                          setOpenTabs((tabs) => {
+                            const currentIndex = tabs.indexOf(activeTab as ClosableTabKey)
+                            // Remove both child and any existing parent to prevent duplicates
+                            const filteredTabs = tabs.filter((key) => key !== activeTab && key !== 'classroom')
+                            if (currentIndex !== -1) {
+                              filteredTabs.splice(currentIndex, 0, 'classroom')
+                            } else {
+                              filteredTabs.push('classroom')
+                            }
+                            openTabsRef.current = filteredTabs
+                            sessionStorage.setItem('openTabs', JSON.stringify(filteredTabs))
+                            return filteredTabs
+                          })
+                          router.push('/classroom', { scroll: false })
+                        }}
+                        onNavigateToGrades={handleOpenGrades}
+                        onStudentClick={(studentName) => handleOpenStudentFromClass(classId, studentName)}
+                      />
+                    )
+                  })()
                 ) : typeof activeTab === 'string' && activeTab.startsWith('student-') ? (
                   <StudentProfile
                     studentName={studentProfileTabs.get(activeTab) ?? 'Unknown Student'}
