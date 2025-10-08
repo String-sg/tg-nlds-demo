@@ -31,10 +31,14 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { getStudentsByClassId } from '@/lib/mock-data/classroom-data'
+import { PageLayout, PageAction } from '@/components/layout/page-layout'
+import { useBreadcrumbs } from '@/hooks/use-breadcrumbs'
 
 interface GradeEntryProps {
   classId: string
   onBack?: () => void
+  onNavigate?: (path: string, replaceTab?: boolean) => void
+  classroomTabs?: Map<string, string>
 }
 
 interface GradeEntry {
@@ -54,7 +58,7 @@ const assessmentTypes = [
   { value: 'participation', label: 'Class Participation' },
 ]
 
-export function GradeEntry({ classId, onBack }: GradeEntryProps) {
+export function GradeEntry({ classId, onBack, onNavigate, classroomTabs }: GradeEntryProps) {
   const [assessmentType, setAssessmentType] = useState<string>('assignment')
   const [assessmentName, setAssessmentName] = useState<string>('')
   const [maxScore, setMaxScore] = useState<string>('100')
@@ -117,13 +121,11 @@ export function GradeEntry({ classId, onBack }: GradeEntryProps) {
   )
 
   const handleSaveDraft = () => {
-    console.log('Saving draft...', { assessmentName, assessmentType, grades })
     setIsDraft(true)
     // TODO: Implement actual save logic
   }
 
   const handlePublish = () => {
-    console.log('Publishing grades...', { assessmentName, assessmentType, grades })
     setIsDraft(false)
     // TODO: Implement actual publish logic
   }
@@ -160,32 +162,47 @@ export function GradeEntry({ classId, onBack }: GradeEntryProps) {
         )
       : 0
 
-  return (
-    <div className="mx-auto w-full max-w-7xl space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          {onBack && (
-            <Button variant="ghost" size="sm" className="gap-2" onClick={onBack}>
-              <ArrowLeftIcon className="h-4 w-4" /> Back to Class Overview
-            </Button>
-          )}
-        </div>
-        <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" className="gap-2">
-            <UploadIcon className="h-4 w-4" /> Import CSV
-          </Button>
-          <Button variant="outline" size="sm" className="gap-2">
-            <DownloadIcon className="h-4 w-4" /> Export
-          </Button>
-        </div>
-      </div>
+  // Define page actions
+  const pageActions: PageAction[] = [
+    {
+      label: 'Import CSV',
+      icon: UploadIcon,
+      onClick: undefined, // To be implemented
+      variant: 'outline',
+    },
+    {
+      label: 'Export',
+      icon: DownloadIcon,
+      onClick: undefined, // To be implemented
+      variant: 'outline',
+    },
+  ]
 
-      {/* Page Title */}
-      <div>
-        <h1 className="text-2xl font-semibold text-stone-900">Grade Entry</h1>
-        <p className="text-sm text-stone-600">{classInfo}</p>
-      </div>
+  // Get breadcrumbs
+  const { breadcrumbs } = useBreadcrumbs({
+    activeTab: `classroom/${classId}/grades`,
+    classroomTabs,
+    onNavigate,
+  })
+
+  return (
+    <PageLayout
+      title="Grade Entry"
+      subtitle={classInfo}
+      actions={pageActions}
+      breadcrumbs={breadcrumbs}
+      backButton={
+        onBack && !breadcrumbs.length
+          ? {
+              label: 'Back to Class Overview',
+              onClick: onBack,
+              icon: ArrowLeftIcon,
+            }
+          : undefined
+      }
+      contentClassName="px-6 py-6"
+    >
+      <div className="mx-auto w-full max-w-7xl space-y-6">
 
       {/* Assessment Details */}
       <Card>
@@ -416,6 +433,7 @@ export function GradeEntry({ classId, onBack }: GradeEntryProps) {
           </Button>
         </div>
       </div>
-    </div>
+      </div>
+    </PageLayout>
   )
 }

@@ -267,7 +267,7 @@ export default function Home() {
         try {
           return new Map(JSON.parse(stored))
         } catch (e) {
-          console.error('Failed to parse studentProfileTabs from sessionStorage:', e)
+          // Failed to parse studentProfileTabs from sessionStorage
         }
       }
     }
@@ -281,7 +281,7 @@ export default function Home() {
         try {
           return new Map(JSON.parse(stored))
         } catch (e) {
-          console.error('Failed to parse classroomTabs from sessionStorage:', e)
+          // Failed to parse classroomTabs from sessionStorage
         }
       }
     }
@@ -339,8 +339,6 @@ export default function Home() {
     const slug = params.slug as string[] | undefined
     const tabFromUrl = !slug || slug.length === 0 ? 'home' : slug.join('/')
 
-    console.log('[URL Sync] params changed:', { slug, tabFromUrl, timestamp: Date.now() })
-
     setActiveTab(tabFromUrl as TabKey)
 
     // Always add tab to openTabs if not present (handles all navigation - always opens new tabs)
@@ -348,24 +346,13 @@ export default function Home() {
     const currentTabsFromRef = openTabsRef.current
     const tabExists = currentTabsFromRef.includes(tabFromUrl as ClosableTabKey)
 
-    console.log('[URL Sync] Tab management:', {
-      tabFromUrl,
-      currentTabs: [...currentTabsFromRef],
-      tabExists,
-      willAdd: !tabExists,
-      timestamp: Date.now()
-    })
-
     if (!tabExists) {
       // Filter out the tab first to prevent any duplicates from race conditions
       const filteredTabs = currentTabsFromRef.filter(t => t !== (tabFromUrl as ClosableTabKey))
       const newTabs = [...filteredTabs, tabFromUrl as ClosableTabKey]
-      console.log('[URL Sync] Adding new tab. New tabs:', [...newTabs])
       openTabsRef.current = newTabs // Update ref immediately
       setOpenTabs(newTabs)
       sessionStorage.setItem('openTabs', JSON.stringify(newTabs)) // Persist to sessionStorage
-    } else {
-      console.log('[URL Sync] Tab already exists, keeping:', [...currentTabsFromRef])
     }
   }, [params])
 
@@ -469,20 +456,16 @@ export default function Home() {
     const studentSlug = studentName.toLowerCase().replace(/\s+/g, '-')
     const tabKey = `classroom/${classId}/student/${studentSlug}` as ClassroomTabKey
 
-    console.log('[handleOpenStudentFromClass]', { classId, studentName, studentSlug, tabKey })
-
     // Update both maps using refs to ensure immediate availability
     const updatedClassroomTabs = new Map(classroomTabsRef.current)
     updatedClassroomTabs.set(tabKey, `${classId}/student/${studentSlug}`)
     classroomTabsRef.current = updatedClassroomTabs
     setClassroomTabs(updatedClassroomTabs)
-    console.log('[handleOpenStudentFromClass] Updated classroomTabs:', Array.from(updatedClassroomTabs.entries()))
 
     const updatedStudentProfileTabs = new Map(studentProfileTabsRef.current)
     updatedStudentProfileTabs.set(tabKey, studentName)
     studentProfileTabsRef.current = updatedStudentProfileTabs
     setStudentProfileTabs(updatedStudentProfileTabs)
-    console.log('[handleOpenStudentFromClass] Updated studentProfileTabs:', Array.from(updatedStudentProfileTabs.entries()))
 
     handleNavigate(tabKey, true) // Replace parent tab
   }
@@ -1159,18 +1142,14 @@ export default function Home() {
                     const classId = parts[0]
                     const studentName = studentProfileTabs.get(activeTab)
 
-                    console.log('[StudentProfile Render]', {
-                      activeTab,
-                      classroomPath,
-                      classId,
-                      studentName,
-                      allStudentProfileTabs: Array.from(studentProfileTabs.entries())
-                    })
-
                     return (
                       <StudentProfile
                         studentName={studentName ?? 'Unknown Student'}
                         classId={classId}
+                        activeTab={activeTab}
+                        onNavigate={(path, replace) => handleNavigate(path as ClosableTabKey, replace)}
+                        classroomTabs={classroomTabs}
+                        studentProfileTabs={studentProfileTabs}
                         onBack={() => {
                           if (classId) {
                             // Navigate back to parent class, replacing current tab
@@ -1208,6 +1187,8 @@ export default function Home() {
                     return (
                       <StudentList
                         classId={classId}
+                        onNavigate={(path, replace) => handleNavigate(path as ClosableTabKey, replace)}
+                        classroomTabs={classroomTabs}
                         onBack={() => {
                           if (classId) {
                             // Navigate back to parent class, replacing current tab
@@ -1246,6 +1227,8 @@ export default function Home() {
                     return (
                       <GradeEntry
                         classId={classId}
+                        onNavigate={(path, replace) => handleNavigate(path as ClosableTabKey, replace)}
+                        classroomTabs={classroomTabs}
                         onBack={() => {
                           if (classId) {
                             // Navigate back to parent class, replacing current tab
@@ -1301,12 +1284,18 @@ export default function Home() {
                         }}
                         onNavigateToGrades={handleOpenGrades}
                         onStudentClick={(studentName) => handleOpenStudentFromClass(classId, studentName)}
+                        onNavigate={(path, replace) => handleNavigate(path as ClosableTabKey, replace)}
+                        classroomTabs={classroomTabs}
                       />
                     )
                   })()
                 ) : typeof activeTab === 'string' && activeTab.startsWith('student-') ? (
                   <StudentProfile
                     studentName={studentProfileTabs.get(activeTab) ?? 'Unknown Student'}
+                    activeTab={activeTab}
+                    onNavigate={(path, replace) => handleNavigate(path as ClosableTabKey, replace)}
+                    classroomTabs={classroomTabs}
+                    studentProfileTabs={studentProfileTabs}
                     onBack={() => {
                       handleCloseTab(activeTab)
                       handleNavigate('classroom')

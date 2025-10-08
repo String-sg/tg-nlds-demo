@@ -20,41 +20,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { cn } from '@/lib/utils'
-
-// Helper function to get initials from name
-const getInitials = (name: string) => {
-  return name
-    .split(' ')
-    .map(word => word[0])
-    .slice(0, 2)
-    .join('')
-    .toUpperCase()
-}
-
-// Helper function to get consistent color for avatar based on name
-const getAvatarColor = (name: string) => {
-  const colors = [
-    'bg-blue-100 text-blue-700',
-    'bg-green-100 text-green-700',
-    'bg-yellow-100 text-yellow-700',
-    'bg-purple-100 text-purple-700',
-    'bg-pink-100 text-pink-700',
-    'bg-indigo-100 text-indigo-700',
-    'bg-red-100 text-red-700',
-    'bg-orange-100 text-orange-700',
-    'bg-teal-100 text-teal-700',
-    'bg-cyan-100 text-cyan-700',
-  ]
-
-  // Generate a consistent hash from the name
-  let hash = 0
-  for (let i = 0; i < name.length; i++) {
-    hash = name.charCodeAt(i) + ((hash << 5) - hash)
-  }
-
-  return colors[Math.abs(hash) % colors.length]
-}
+import { cn, getInitials, getAvatarColor } from '@/lib/utils'
 
 interface Issue {
   type: string

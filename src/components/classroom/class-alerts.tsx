@@ -33,7 +33,6 @@ export function ClassAlerts({ classId }: ClassAlertsProps) {
 
   const handleAction = (actionUrl: string) => {
     // In production, this would navigate or perform the action
-    console.log('Action:', actionUrl)
   }
 
   const getSeverityColor = (severity: AlertSeverity) => {

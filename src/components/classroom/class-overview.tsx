@@ -51,16 +51,20 @@ import {
   currentUser,
 } from '@/lib/mock-data/classroom-data'
 import type { Student } from '@/types/classroom'
-import { cn } from '@/lib/utils'
+import { cn, getInitials } from '@/lib/utils'
+import { PageLayout, PageAction } from '@/components/layout/page-layout'
+import { useBreadcrumbs } from '@/hooks/use-breadcrumbs'
 
 interface ClassOverviewProps {
   classId: string
   onBack?: () => void
   onNavigateToGrades?: (classId: string) => void
   onStudentClick?: (studentName: string) => void
+  onNavigate?: (path: string, replaceTab?: boolean) => void
+  classroomTabs?: Map<string, string>
 }
 
-export function ClassOverview({ classId, onBack, onNavigateToGrades, onStudentClick }: ClassOverviewProps) {
+export function ClassOverview({ classId, onBack, onNavigateToGrades, onStudentClick, onNavigate, classroomTabs }: ClassOverviewProps) {
   const classData = getClassById(classId)
   const stats = getClassOverviewStats(classId)
   const students = getStudentsByClassId(classId)
@@ -69,15 +73,6 @@ export function ClassOverview({ classId, onBack, onNavigateToGrades, onStudentCl
   const [filterStatus, setFilterStatus] = useState<string>('all')
   const [sortField, setSortField] = useState<'name' | 'attendance_rate' | 'average_grade' | 'conduct'>('name')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc')
-
-  // Generate avatar initials from student name
-  const getInitials = (name: string) => {
-    const parts = name.split(' ')
-    if (parts.length >= 2) {
-      return parts[0][0] + parts[parts.length - 1][0]
-    }
-    return name.substring(0, 2)
-  }
 
   // Helper function to calculate average grade
   const getAverageGrade = (student: Student): number => {
@@ -135,65 +130,83 @@ export function ClassOverview({ classId, onBack, onNavigateToGrades, onStudentCl
 
   const isFormClass = classData.is_form_class && classData.class_id === currentUser.form_class_id
 
-  return (
-    <TooltipProvider>
-      <div className="mx-auto w-full max-w-6xl space-y-6">
-      {/* Header */}
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="sm" className="gap-2" onClick={onBack}>
-          <ArrowLeftIcon className="h-4 w-4" />
-          Back to My Classes
+  // Get breadcrumbs
+  const { breadcrumbs } = useBreadcrumbs({
+    activeTab: `classroom/${classId}`,
+    classroomTabs,
+    onNavigate,
+  })
+
+  // Define page actions
+  const pageActions: PageAction[] = [
+    {
+      label: 'Take Attendance',
+      icon: ClipboardCheckIcon,
+      onClick: undefined, // To be implemented
+      disabled: true,
+      variant: 'outline',
+    },
+    {
+      label: 'Enter Grades',
+      icon: GraduationCapIcon,
+      onClick: onNavigateToGrades ? () => onNavigateToGrades(classId) : undefined,
+      disabled: !onNavigateToGrades,
+      variant: 'outline',
+    },
+    {
+      label: 'Message Parents',
+      icon: MessageSquareIcon,
+      onClick: undefined, // To be implemented
+      disabled: true,
+      variant: 'outline',
+    },
+  ]
+
+  // Title with badge and info button
+  const titleElement = (
+    <div className="flex items-center gap-3">
+      <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-blue-100 text-lg font-bold text-blue-700">
+        {classData.class_name}
+      </div>
+      <div className="flex items-center gap-2">
+        <span className="text-2xl font-semibold">Class {classData.class_name}</span>
+        {isFormClass && (
+          <Badge variant="secondary" className="bg-blue-100 text-blue-800 border-blue-300">
+            <HomeIcon className="h-3 w-3 mr-1" />
+            Form Class
+          </Badge>
+        )}
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-6 w-6 p-0"
+          onClick={() => setShowDetails(true)}
+        >
+          <InfoIcon className="h-4 w-4" />
         </Button>
       </div>
+    </div>
+  )
 
-      {/* Class Info Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-blue-100 text-lg font-bold text-blue-700">
-            {classData.class_name}
-          </div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-semibold text-stone-900">
-              Class {classData.class_name}
-            </h1>
-            {isFormClass && (
-              <Badge variant="secondary" className="bg-blue-100 text-blue-800 border-blue-300">
-                <HomeIcon className="h-3 w-3 mr-1" />
-                Form Class
-              </Badge>
-            )}
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-6 w-6 p-0"
-              onClick={() => setShowDetails(true)}
-            >
-              <InfoIcon className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
-        {/* Quick Actions */}
-        <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" className="gap-2" disabled>
-            <ClipboardCheckIcon className="h-4 w-4" />
-            Take Attendance
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            className="gap-2"
-            onClick={() => onNavigateToGrades?.(classId)}
-            disabled={!onNavigateToGrades}
-          >
-            <GraduationCapIcon className="h-4 w-4" />
-            Enter Grades
-          </Button>
-          <Button variant="outline" size="sm" className="gap-2" disabled>
-            <MessageSquareIcon className="h-4 w-4" />
-            Message Parents
-          </Button>
-        </div>
-      </div>
+  return (
+    <PageLayout
+      title=""
+      subtitle={titleElement}
+      actions={pageActions}
+      breadcrumbs={breadcrumbs}
+      backButton={
+        onBack && !breadcrumbs.length
+          ? {
+              label: 'Back to My Classes',
+              onClick: onBack,
+              icon: ArrowLeftIcon,
+            }
+          : undefined
+      }
+      contentClassName="px-6 py-6"
+    >
+      <TooltipProvider>
+        <div className="mx-auto w-full max-w-6xl space-y-6">
 
       {/* Class Details Modal */}
       <Dialog open={showDetails} onOpenChange={setShowDetails}>
@@ -212,7 +225,6 @@ export function ClassOverview({ classId, onBack, onNavigateToGrades, onStudentCl
                 className="gap-2"
                 onClick={() => {
                   // TODO: Implement edit class functionality
-                  console.log('Edit class clicked')
                 }}
               >
                 <PencilIcon className="h-4 w-4" />
@@ -524,7 +536,8 @@ export function ClassOverview({ classId, onBack, onNavigateToGrades, onStudentCl
           </div>
         </CardContent>
       </Card>
-    </div>
-    </TooltipProvider>
+        </div>
+      </TooltipProvider>
+    </PageLayout>
   )
 }
