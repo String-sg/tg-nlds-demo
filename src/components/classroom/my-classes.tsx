@@ -1,12 +1,11 @@
 'use client'
 
-import { HomeIcon, UsersIcon, TrophyIcon, ChevronRightIcon, CalendarIcon, MapPinIcon } from 'lucide-react'
+import { HomeIcon, UsersIcon, TrophyIcon } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { currentUser, mockClasses, getClassOverviewStats } from '@/lib/mock-data/classroom-data'
+import { currentUser, mockClasses, mockCCAClasses } from '@/lib/mock-data/classroom-data'
 import { cn } from '@/lib/utils'
-import type { Class, ClassSchedule } from '@/types/classroom'
+import type { Class, CCAClass } from '@/types/classroom'
 
 interface MyClassesProps {
   onClassClick?: (classId: string) => void
@@ -16,10 +15,11 @@ export function MyClasses({ onClassClick }: MyClassesProps) {
   // Separate classes by type
   const formClass = mockClasses.find((c) => c.is_form_class && c.class_id === currentUser.form_class_id)
   const subjectClasses = mockClasses.filter((c) => !c.is_form_class)
+  const ccaClasses = mockCCAClasses.filter((c) => currentUser.cca_classes.includes(c.cca_id))
   const hasFormClass = currentUser.role === 'FormTeacher' && formClass
 
   return (
-    <div className="mx-auto w-full max-w-6xl space-y-6">
+    <div className="mx-auto w-full max-w-7xl space-y-8">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -32,59 +32,64 @@ export function MyClasses({ onClassClick }: MyClassesProps) {
 
       {/* Form Class (if applicable) */}
       {hasFormClass && formClass && (
-        <div className="space-y-3">
+        <div className="space-y-4">
           <div className="flex items-center gap-2">
             <HomeIcon className="h-5 w-5 text-stone-700" />
             <h2 className="text-lg font-semibold text-stone-900">Form Class</h2>
           </div>
 
-          <ClassCard
-            classData={formClass}
-            isFormClass={true}
-            onClassClick={onClassClick}
-          />
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            <ClassCard
+              classData={formClass}
+              isFormClass={true}
+              onClassClick={onClassClick}
+            />
+          </div>
         </div>
       )}
 
       {/* Subject Classes */}
-      <div className="space-y-3">
-        <div className="flex items-center gap-2">
-          <UsersIcon className="h-5 w-5 text-stone-700" />
-          <h2 className="text-lg font-semibold text-stone-900">
-            Subject Classes ({subjectClasses.length})
-          </h2>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {subjectClasses.map((classData) => (
-            <ClassCard
-              key={classData.class_id}
-              classData={classData}
-              isFormClass={false}
-              onClassClick={onClassClick}
-            />
-          ))}
-        </div>
-      </div>
-
-      {/* CCA Classes (placeholder) */}
-      {currentUser.cca_classes.length > 0 && (
-        <div className="space-y-3">
+      {subjectClasses.length > 0 && (
+        <div className="space-y-4">
           <div className="flex items-center gap-2">
-            <TrophyIcon className="h-5 w-5 text-stone-700" />
+            <UsersIcon className="h-5 w-5 text-stone-700" />
             <h2 className="text-lg font-semibold text-stone-900">
-              CCA Classes ({currentUser.cca_classes.length})
+              Subject Classes ({subjectClasses.length})
             </h2>
           </div>
 
-          <Card className="border-stone-200">
-            <CardContent className="flex flex-col items-center justify-center py-12">
-              <TrophyIcon className="h-12 w-12 text-stone-400 mb-3" />
-              <p className="text-sm text-stone-600 text-center max-w-sm">
-                CCA class management coming soon
-              </p>
-            </CardContent>
-          </Card>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {subjectClasses.map((classData) => (
+              <ClassCard
+                key={classData.class_id}
+                classData={classData}
+                isFormClass={false}
+                onClassClick={onClassClick}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* CCA Classes */}
+      {ccaClasses.length > 0 && (
+        <div className="space-y-4">
+          <div className="flex items-center gap-2">
+            <TrophyIcon className="h-5 w-5 text-stone-700" />
+            <h2 className="text-lg font-semibold text-stone-900">
+              CCA Classes ({ccaClasses.length})
+            </h2>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {ccaClasses.map((ccaClass) => (
+              <CCACard
+                key={ccaClass.cca_id}
+                ccaData={ccaClass}
+                onClassClick={onClassClick}
+              />
+            ))}
+          </div>
         </div>
       )}
     </div>
@@ -98,124 +103,87 @@ interface ClassCardProps {
 }
 
 function ClassCard({ classData, isFormClass, onClassClick }: ClassCardProps) {
-  const stats = getClassOverviewStats(classData.class_id)
-
   return (
     <Card
       className={cn(
-        "border-stone-200 hover:shadow-md transition-all cursor-pointer group",
+        "border-stone-200 hover:shadow-lg transition-all cursor-pointer group h-full",
+        "hover:border-stone-300",
         isFormClass && "ring-2 ring-blue-500/20 bg-blue-50/30"
       )}
       onClick={() => onClassClick?.(classData.class_id)}
     >
-        <CardHeader className="pb-3">
-          <div className="flex items-start justify-between">
-            <div className="flex-1">
-              <div className="flex items-center gap-2 mb-1">
-                <CardTitle className="text-lg font-semibold text-stone-900">
-                  Class {classData.class_name}
-                </CardTitle>
-                {isFormClass && (
-                  <Badge variant="secondary" className="bg-blue-100 text-blue-800 border-blue-300">
-                    <HomeIcon className="h-3 w-3 mr-1" />
-                    Form Class
-                  </Badge>
-                )}
-              </div>
-              <p className="text-sm text-stone-600">
-                {classData.subject} · Year {classData.year_level}
-              </p>
-            </div>
-            <ChevronRightIcon className="h-5 w-5 text-stone-400 group-hover:text-stone-600 transition-colors" />
-          </div>
-        </CardHeader>
+      <CardHeader className="pb-2">
+        <div className="flex items-start justify-between">
+          <CardTitle className="text-2xl font-bold text-stone-900">
+            {classData.class_name}
+          </CardTitle>
+          {isFormClass && (
+            <Badge variant="secondary" className="bg-blue-100 text-blue-800 border-blue-300">
+              <HomeIcon className="h-3 w-3 mr-1" />
+              Form
+            </Badge>
+          )}
+        </div>
+      </CardHeader>
 
-        <CardContent className="space-y-4">
+      <CardContent>
+        <div className="space-y-3">
+          {/* Subject */}
+          <div>
+            <p className="text-xs text-stone-500 uppercase tracking-wide">Subject</p>
+            <p className="text-sm font-medium text-stone-900">{classData.subject}</p>
+          </div>
+
           {/* Student Count */}
-          <div className="flex items-center gap-2 text-sm">
-            <UsersIcon className="h-4 w-4 text-stone-500" />
-            <span className="text-stone-900 font-medium">{classData.student_count} students</span>
+          <div>
+            <p className="text-xs text-stone-500 uppercase tracking-wide">Students</p>
+            <p className="text-2xl font-bold text-stone-900">{classData.student_count}</p>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
+// New CCA Card Component
+interface CCACardProps {
+  ccaData: CCAClass
+  onClassClick?: (classId: string) => void
+}
+
+function CCACard({ ccaData, onClassClick }: CCACardProps) {
+  return (
+    <Card
+      className={cn(
+        "border-stone-200 hover:shadow-lg transition-all cursor-pointer group h-full",
+        "hover:border-stone-300 bg-amber-50/30"
+      )}
+      onClick={() => onClassClick?.(ccaData.cca_id)}
+    >
+      <CardHeader className="pb-2">
+        <div className="flex items-start justify-between">
+          <TrophyIcon className="h-5 w-5 text-amber-600" />
+          <Badge variant="secondary" className="bg-amber-100 text-amber-800 border-amber-300">
+            CCA
+          </Badge>
+        </div>
+      </CardHeader>
+
+      <CardContent>
+        <div className="space-y-3">
+          {/* CCA Name */}
+          <div>
+            <p className="text-xs text-stone-500 uppercase tracking-wide">Activity</p>
+            <p className="text-sm font-medium text-stone-900 leading-tight">{ccaData.name}</p>
           </div>
 
-          {/* Schedule */}
-          {classData.schedule.length > 0 && (
-            <div className="space-y-1">
-              <div className="flex items-center gap-2 text-sm text-stone-600">
-                <CalendarIcon className="h-4 w-4 text-stone-500" />
-                <span>
-                  {classData.schedule.map((s: ClassSchedule) => s.day).join(', ')}
-                </span>
-              </div>
-              <div className="flex items-center gap-2 text-sm text-stone-600 pl-6">
-                <span>{classData.schedule[0].start_time} - {classData.schedule[0].end_time}</span>
-              </div>
-              <div className="flex items-center gap-2 text-sm text-stone-600 pl-6">
-                <MapPinIcon className="h-3 w-3 text-stone-500" />
-                <span>{classData.schedule[0].location}</span>
-              </div>
-            </div>
-          )}
-
-          {/* Today's Stats */}
-          {stats && (
-            <div className="pt-3 border-t border-stone-200">
-              <p className="text-xs font-medium text-stone-500 mb-2">TODAY</p>
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <p className="text-xs text-stone-600">Attendance</p>
-                  <p className="text-lg font-semibold text-stone-900">
-                    {stats.attendance.present}/{classData.student_count}
-                  </p>
-                </div>
-                {stats.alerts.total > 0 && (
-                  <div>
-                    <p className="text-xs text-stone-600">Active Alerts</p>
-                    <div className="flex items-baseline gap-1">
-                      <p className="text-lg font-semibold text-amber-600">
-                        {stats.alerts.total}
-                      </p>
-                      {stats.alerts.urgent > 0 && (
-                        <Badge variant="destructive" className="h-5 text-xs">
-                          {stats.alerts.urgent} urgent
-                        </Badge>
-                      )}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Quick Actions */}
-          <div className="pt-3 border-t border-stone-200">
-            <div className="flex gap-2">
-              <Button
-                size="sm"
-                variant="outline"
-                className="flex-1 text-xs"
-                onClick={(e) => {
-                  e.preventDefault()
-                  e.stopPropagation()
-                  // Will navigate to attendance page
-                }}
-              >
-                Take Attendance
-              </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                className="flex-1 text-xs"
-                onClick={(e) => {
-                  e.preventDefault()
-                  e.stopPropagation()
-                  // Will navigate to grades page
-                }}
-              >
-                Enter Grades
-              </Button>
-            </div>
+          {/* Member Count */}
+          <div>
+            <p className="text-xs text-stone-500 uppercase tracking-wide">Members</p>
+            <p className="text-2xl font-bold text-stone-900">{ccaData.members.length}</p>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </CardContent>
+    </Card>
   )
 }
