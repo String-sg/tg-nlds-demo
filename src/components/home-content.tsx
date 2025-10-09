@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
   Edit2,
   Sparkles,
@@ -23,7 +23,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
-import { cn } from '@/lib/utils'
+import { cn, getInitials } from '@/lib/utils'
 
 const actionButtons = [
   { key: 'marking', label: 'Marking', icon: Edit2 },
@@ -53,26 +53,14 @@ const upcomingClassesData = [
   { time: '1:00 PM', subject: 'Math 9A', room: 'Room 201' },
 ]
 
-const studentAlertsData = [
-  {
-    student: 'Tan Wei Jie',
-    initials: 'TW',
-    message: '3 absences this week',
-    priority: 'high' as const,
-  },
-  {
-    student: 'Sarah Chen',
-    initials: 'SC',
-    message: 'Missing assignment',
-    priority: 'medium' as const,
-  },
-  {
-    student: 'Marcus Wong',
-    initials: 'MW',
-    message: 'Excellent progress',
-    priority: 'info' as const,
-  },
-]
+// Student alert data from database
+interface StudentAlert {
+  name: string
+  attendanceRate: number
+  overallAverage: number
+  status: string
+  needsCounselling: boolean
+}
 
 interface HomeContentProps {
   onNavigateToClassroom?: () => void
@@ -89,6 +77,32 @@ export function HomeContent({ onNavigateToClassroom, onNavigateToExplore, onAssi
   const [isInputFocused, setIsInputFocused] = useState(false)
   const [gridRowHeight] = useState(156)
   const [widgetPadding] = useState(16)
+  const [studentAlerts, setStudentAlerts] = useState<StudentAlert[]>([])
+
+  // Fetch student alerts from database
+  useEffect(() => {
+    async function fetchStudentAlerts() {
+      try {
+        // Fetch specific students: Alice Wong, Ryan Tan, Eric Lim
+        const studentNames = ['Alice Wong', 'Ryan Tan', 'Eric Lim']
+        const alerts: StudentAlert[] = []
+
+        for (const name of studentNames) {
+          const res = await fetch(`/api/students/by-name/${encodeURIComponent(name)}`)
+          if (res.ok) {
+            const student = await res.json()
+            alerts.push(student)
+          }
+        }
+
+        setStudentAlerts(alerts)
+      } catch (error) {
+        console.error('Failed to fetch student alerts:', error)
+      }
+    }
+
+    fetchStudentAlerts()
+  }, [])
 
   const handleAssistantSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -96,6 +110,23 @@ export function HomeContent({ onNavigateToClassroom, onNavigateToExplore, onAssi
       onAssistantMessage(assistantInput.trim())
       setAssistantInput('')
     }
+  }
+
+  // Generate alert message based on student data
+  const getAlertMessage = (student: StudentAlert): string => {
+    if (student.status === 'SEN') {
+      return 'SEN - Needs support'
+    }
+    if (student.needsCounselling) {
+      return 'Counselling needed'
+    }
+    if (student.attendanceRate < 90) {
+      return `${student.attendanceRate}% attendance`
+    }
+    if (student.overallAverage < 70) {
+      return 'Academic concern'
+    }
+    return 'Monitor progress'
   }
 
   return (
@@ -186,40 +217,50 @@ export function HomeContent({ onNavigateToClassroom, onNavigateToExplore, onAssi
 
                 {/* Horizontal Student List */}
                 <div className="flex items-start gap-3">
-                  {studentAlertsData.map((alert, index) => {
-                    const gradientColors = [
-                      'from-red-400 via-pink-500 to-orange-400',
-                      'from-purple-400 via-pink-500 to-red-400',
-                      'from-blue-400 via-cyan-500 to-teal-400',
-                    ]
-                    const bgColors = [
-                      'bg-red-100',
-                      'bg-purple-100',
-                      'bg-blue-100',
-                    ]
-                    const textColors = [
-                      'text-red-900',
-                      'text-purple-900',
-                      'text-blue-900',
-                    ]
+                  {studentAlerts.length > 0 ? (
+                    studentAlerts.map((student, index) => {
+                      const gradientColors = [
+                        'from-red-400 via-pink-500 to-orange-400',
+                        'from-purple-400 via-pink-500 to-red-400',
+                        'from-blue-400 via-cyan-500 to-teal-400',
+                      ]
+                      const bgColors = [
+                        'bg-red-100',
+                        'bg-purple-100',
+                        'bg-blue-100',
+                      ]
+                      const textColors = [
+                        'text-red-900',
+                        'text-purple-900',
+                        'text-blue-900',
+                      ]
 
-                    return (
-                      <button
-                        key={index}
-                        onClick={() => onStudentClick?.(alert.student)}
-                        className="flex flex-col items-center gap-1 transition-transform hover:scale-105"
-                      >
-                        <div className={`rounded-full bg-gradient-to-br ${gradientColors[index]} p-0.5`}>
-                          <div className="rounded-full bg-white p-0.5">
-                            <div className={`flex size-12 items-center justify-center rounded-full ${bgColors[index]} text-xs font-semibold ${textColors[index]}`}>
-                              {alert.initials}
+                      return (
+                        <button
+                          key={index}
+                          onClick={() => onStudentClick?.(student.name)}
+                          className="flex flex-col items-center gap-1 transition-transform hover:scale-105"
+                        >
+                          <div className={`rounded-full bg-gradient-to-br ${gradientColors[index]} p-0.5`}>
+                            <div className="rounded-full bg-white p-0.5">
+                              <div className={`flex size-12 items-center justify-center rounded-full ${bgColors[index]} text-xs font-semibold ${textColors[index]}`}>
+                                {getInitials(student.name)}
+                              </div>
                             </div>
                           </div>
-                        </div>
-                        <p className="max-w-[60px] truncate text-[10px] text-stone-600">{alert.student.split(' ')[0]}</p>
-                      </button>
-                    )
-                  })}
+                          <p className="max-w-[60px] truncate text-[10px] text-stone-600">{student.name.split(' ')[0]}</p>
+                        </button>
+                      )
+                    })
+                  ) : (
+                    // Loading state - show 3 skeleton circles
+                    [0, 1, 2].map((index) => (
+                      <div key={index} className="flex flex-col items-center gap-1">
+                        <div className="size-12 rounded-full bg-stone-200 animate-pulse" />
+                        <div className="h-3 w-12 rounded bg-stone-200 animate-pulse" />
+                      </div>
+                    ))
+                  )}
                 </div>
               </CardContent>
             </Card>

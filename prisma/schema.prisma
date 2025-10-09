@@ -1,0 +1,759 @@
+// MOE-TG-VX Prisma Schema
+// 3-View Architecture: Attendance, Performance, Cases
+// Last Updated: 2025-10-09
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// ENUMS
+// ============================================
+
+enum UserRole {
+  TEACHER
+  FORM_TEACHER
+  HOD
+  YEAR_HEAD
+}
+
+enum StudentStatus {
+  NONE
+  GEP
+  SEN
+  IEP // Individualized Education Plan
+}
+
+enum ConductGrade {
+  EXCELLENT
+  ABOVE_AVERAGE
+  AVERAGE
+  NEEDS_IMPROVEMENT
+}
+
+enum AttendanceType {
+  DAILY
+  CCA
+  SCHOOL_EVENT
+  EARLY_DISMISSAL
+}
+
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+  LATE
+  EXCUSED
+}
+
+enum AbsenceReason {
+  SICK
+  MEDICAL_APPOINTMENT
+  FAMILY_EMERGENCY
+  SCHOOL_EVENT
+  PRE_APPROVED_LEAVE
+  TRANSPORT_ISSUES
+  OTHER
+}
+
+enum AssessmentType {
+  ASSIGNMENT
+  QUIZ
+  EXAM
+  PROJECT
+  PRACTICAL
+}
+
+enum CCEGradeEnum {
+  EXCELLENT
+  GOOD
+  FAIR
+  POOR
+}
+
+enum CaseType {
+  DISCIPLINE
+  SEN
+  COUNSELLING
+  CAREER_GUIDANCE
+}
+
+enum CaseSeverity {
+  CRITICAL
+  HIGH
+  MEDIUM
+  LOW
+}
+
+enum CaseStatus {
+  ACTIVE
+  MONITORING
+  RESOLVED
+  CLOSED
+}
+
+enum RecordVisibility {
+  PRIVATE
+  STAFF
+  PARENT
+  STUDENT
+}
+
+enum AlertSeverity {
+  URGENT
+  HIGH
+  MEDIUM
+  LOW
+}
+
+enum AlertType {
+  ACADEMIC
+  ATTENDANCE
+  BEHAVIORAL
+  WELLBEING
+  ADMINISTRATIVE
+}
+
+enum ConversationType {
+  ONE_TO_ONE
+  GROUP
+}
+
+enum MessageType {
+  TEXT
+  FILE
+  SYSTEM
+}
+
+enum ParticipantRole {
+  TEACHER
+  PARENT
+}
+
+// ============================================
+// CORE ENTITIES
+// ============================================
+
+model Teacher {
+  id              String   @id @default(cuid())
+  name            String
+  email           String   @unique
+  role            UserRole
+  department      String
+  avatar          String?
+
+  classesAssigned String
+  formClassId     String?
+  ccaClassIds     String
+
+  classes         Class[]  @relation("TeacherClasses")
+  formClasses     Class[]  @relation("FormTeacher")
+  conversations   ConversationParticipant[]
+
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([email])
+  @@index([department])
+}
+
+model Parent {
+  id             String   @id @default(cuid())
+  name           String
+  email          String   @unique
+  phone          String
+  avatar         String?
+
+  // For parent portal authentication
+  hashedPassword String?
+  lastLogin      DateTime?
+
+  // Relationships
+  children       StudentParent[]
+  conversations  ConversationParticipant[]
+
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([email])
+  @@index([phone])
+}
+
+model Class {
+  id              String   @id @default(cuid())
+  className       String
+  subject         String
+  yearLevel       Int
+  academicYear    String
+  isFormClass     Boolean  @default(false)
+
+  teacherId       String
+  teacher         Teacher  @relation("TeacherClasses", fields: [teacherId], references: [id], onDelete: Restrict)
+
+  formTeacherId   String?
+  formTeacher     Teacher? @relation("FormTeacher", fields: [formTeacherId], references: [id], onDelete: SetNull)
+
+  enrollments     ClassEnrollment[]
+  attendance      AttendanceRecord[]
+  grades          AcademicGrade[]
+  alerts          ClassAlert[]
+  schedules       ClassSchedule[]
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([yearLevel, className])
+  @@index([teacherId])
+  @@index([academicYear])
+}
+
+model ClassSchedule {
+  id        String @id @default(cuid())
+  classId   String
+  day       String
+  startTime String
+  endTime   String
+  location  String
+
+  class Class @relation(fields: [classId], references: [id], onDelete: Cascade)
+
+  @@index([classId, day])
+}
+
+model Student {
+  id              String        @id @default(cuid())
+  name            String
+  email           String?       @unique
+  yearLevel       Int
+  className       String
+  status          StudentStatus @default(NONE)
+  conductGrade    ConductGrade  @default(AVERAGE)
+  avatar          String?
+
+  // Background info
+  familyBackground    String?
+  housingFinance      String?
+  healthDeclaration   String?
+  mentalWellnessNotes String?
+  friends             String
+
+  hasMedicalConditions  Boolean @default(false)
+  needsCounselling      Boolean @default(false)
+  hasDisciplinaryIssues Boolean @default(false)
+  hasSEN                Boolean @default(false)
+
+  // Relationships
+  parents           StudentParent[]
+  enrollments       ClassEnrollment[]
+  attendanceRecords AttendanceRecord[]
+  academicGrades    AcademicGrade[]
+  ccaPerformance    CCAPerformance[]
+  physicalFitness   PhysicalFitnessRecord[]
+  cceGrades         CCEGrade[]
+
+  // Teacher recordings (building blocks for cases)
+  attendanceDataRecordings  AttendanceDataRecording[]
+  performanceDataRecordings PerformanceDataRecording[]
+  backgroundDataRecordings  BackgroundDataRecording[]
+  socialBehaviourRecordings SocialBehaviourRecording[]
+
+  cases             Case[]
+  conversations     Conversation[]
+
+  overallAverage         Float?
+  attendanceRate         Float    @default(100.0)
+  lastUpdatedPerformance DateTime?
+
+  isActive  Boolean   @default(true)
+  deletedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([name])
+  @@index([yearLevel])
+  @@index([status])
+  @@index([className])
+  @@index([overallAverage])
+  @@index([attendanceRate])
+}
+
+model ClassEnrollment {
+  id         String   @id @default(cuid())
+  studentId  String
+  classId    String
+  enrolledAt DateTime @default(now())
+
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  class   Class   @relation(fields: [classId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, classId])
+  @@index([studentId])
+  @@index([classId])
+}
+
+model StudentParent {
+  id           String   @id @default(cuid())
+  studentId    String
+  parentId     String
+  relationship String   // "Mother", "Father", "Guardian", "Grandparent", etc.
+  isPrimary    Boolean  @default(false)  // Primary contact for school communications
+
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  parent  Parent  @relation(fields: [parentId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([studentId, parentId])
+  @@index([studentId])
+  @@index([parentId])
+  @@index([isPrimary])
+}
+
+// ============================================
+// ATTENDANCE VIEW
+// ============================================
+
+model AttendanceRecord {
+  id     String           @id @default(cuid())
+  studentId String
+  classId   String?
+
+  type   AttendanceType
+  date   String
+  status AttendanceStatus
+  reason AbsenceReason?
+  notes  String?
+
+  ccaName         String?
+  eventName       String?
+  dismissalTime   String?
+  dismissalReason String?
+
+  recordedBy     String
+  recordedAt     DateTime @default(now())
+  parentNotified Boolean  @default(false)
+
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  class   Class?  @relation(fields: [classId], references: [id], onDelete: SetNull)
+
+  @@unique([studentId, type, date])
+  @@index([studentId, type, date])
+  @@index([date, status])
+  @@index([type])
+}
+
+// ============================================
+// PERFORMANCE VIEW
+// ============================================
+
+model AcademicGrade {
+  id             String         @id @default(cuid())
+  studentId      String
+  classId        String
+
+  subject        String
+  assessmentType AssessmentType
+  assessmentName String
+
+  score       Float
+  maxScore    Float
+  percentage  Float
+  letterGrade String?
+  weightage   Float   @default(1.0)
+
+  term         String?
+  academicYear String
+  published    Boolean  @default(false)
+  comments     String?
+
+  gradedDate DateTime @default(now())
+  gradedBy   String
+
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  class   Class   @relation(fields: [classId], references: [id], onDelete: Cascade)
+
+  @@index([studentId, subject, academicYear])
+  @@index([studentId, term])
+  @@index([classId, subject])
+  @@index([gradedDate])
+  @@index([published])
+}
+
+model CCAPerformance {
+  id          String @id @default(cuid())
+  studentId   String
+  ccaName     String
+  ccaType     String
+
+  attendanceRate Float?
+  participation  String?
+  achievements   String
+  skills         String
+
+  term         String
+  academicYear String
+  grade        String?
+  remarks      String?
+
+  recordedBy String
+  recordedAt DateTime @default(now())
+
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@index([studentId, academicYear])
+  @@index([ccaName])
+}
+
+model PhysicalFitnessRecord {
+  id           String @id @default(cuid())
+  studentId    String
+
+  testName     String
+  testDate     String
+  overallGrade String?
+
+  tests String
+
+  remarks    String?
+  recordedBy String
+  recordedAt DateTime @default(now())
+
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@index([studentId, testDate])
+}
+
+model CCEGrade {
+  id           String       @id @default(cuid())
+  studentId    String
+
+  area         String
+  grade        CCEGradeEnum
+  term         String
+  academicYear String
+
+  observations String?
+  recordedBy   String
+  recordedAt   DateTime @default(now())
+
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@index([studentId, term])
+  @@index([academicYear])
+}
+
+// ============================================
+// CASES VIEW
+// ============================================
+
+model Case {
+  id         String       @id @default(cuid())
+  studentId  String
+  caseNumber String       @unique
+
+  type     CaseType
+  severity CaseSeverity
+  status   CaseStatus   @default(ACTIVE)
+
+  title       String
+  description String
+
+  openedDate DateTime @default(now())
+  openedBy   String
+  closedDate DateTime?
+  closedBy   String?
+  resolution String?
+
+  caseOwner String
+  caseTeam  String
+
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  // Linked recordings (building blocks for evidence and progress tracking)
+  linkedAttendanceRecordings    AttendanceDataRecording[]
+  linkedPerformanceRecordings   PerformanceDataRecording[]
+  linkedBackgroundRecordings    BackgroundDataRecording[]
+  linkedSocialBehaviourRecordings SocialBehaviourRecording[]
+
+  // Progress tracking (simple text field for brief updates)
+  progressNotes String? // Optional: brief notes on case progress
+  interventions String? // Summary of interventions taken
+
+  nextReviewDate DateTime?
+  lastReviewDate DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([studentId, status])
+  @@index([type, status])
+  @@index([caseNumber])
+  @@index([openedDate])
+  @@index([nextReviewDate])
+}
+
+// ============================================
+// TEACHER RECORDINGS (Building blocks for Cases)
+// ============================================
+
+// Informal attendance observations (separate from official AttendanceRecord)
+model AttendanceDataRecording {
+  id          String   @id @default(cuid())
+  studentId   String
+  date        String
+
+  title       String
+  description String
+
+  // Attendance-specific fields
+  observationType String   // "frequent_absence", "late_pattern", "early_dismissal_request", etc.
+  frequency       String?  // "Daily", "Weekly", "Occasionally"
+  impact          String?  // Impact on learning
+  parentContacted Boolean  @default(false)
+
+  visibility   RecordVisibility @default(STAFF)
+  tags         String
+  linkedCaseId String?
+
+  createdBy String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  student     Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  linkedCase  Case?   @relation(fields: [linkedCaseId], references: [id], onDelete: SetNull)
+
+  @@index([studentId, date])
+  @@index([linkedCaseId])
+  @@index([createdAt])
+}
+
+// Performance observations (academic, CCA, fitness, CCE)
+model PerformanceDataRecording {
+  id          String   @id @default(cuid())
+  studentId   String
+  date        String
+
+  title       String
+  description String
+
+  // Performance-specific fields
+  performanceArea String   // "academic", "cca", "physical_fitness", "cce"
+  subject         String?  // For academic: "English", "Math", etc.
+  trend           String?  // "improving", "declining", "stable"
+  previousLevel   String?  // Baseline for comparison
+  currentLevel    String?  // Current state
+  concernLevel    String?  // "low", "medium", "high"
+
+  visibility   RecordVisibility @default(STAFF)
+  tags         String
+  linkedCaseId String?
+
+  createdBy String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  student     Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  linkedCase  Case?   @relation(fields: [linkedCaseId], references: [id], onDelete: SetNull)
+
+  @@index([studentId, date])
+  @@index([performanceArea])
+  @@index([linkedCaseId])
+  @@index([createdAt])
+}
+
+// Background observations (health, wellness, family, housing/finance)
+model BackgroundDataRecording {
+  id          String   @id @default(cuid())
+  studentId   String
+  date        String
+
+  title       String
+  description String
+
+  // Background-specific fields
+  backgroundArea String   // "health", "mental_wellness", "family", "housing_finance"
+  severity       String?  // "low", "medium", "high"
+  actionRequired Boolean  @default(false)
+  actionTaken    String?
+  referredTo     String?  // "School Counselor", "Social Worker", etc.
+
+  visibility   RecordVisibility @default(STAFF)
+  tags         String
+  linkedCaseId String?
+
+  createdBy String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  student     Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  linkedCase  Case?   @relation(fields: [linkedCaseId], references: [id], onDelete: SetNull)
+
+  @@index([studentId, date])
+  @@index([backgroundArea])
+  @@index([linkedCaseId])
+  @@index([actionRequired])
+  @@index([createdAt])
+}
+
+// Social & behavioral observations (friends, character)
+model SocialBehaviourRecording {
+  id          String   @id @default(cuid())
+  studentId   String
+  date        String
+
+  title       String
+  description String
+
+  // Social behavior-specific fields
+  behaviourArea String   // "friendship", "peer_interaction", "character_observation", "conflict"
+  context       String?  // "Classroom", "Recess", "CCA", etc.
+  peersInvolved String?  // Names of other students involved
+  isPositive    Boolean  @default(true)  // Positive or concerning behavior
+  concernLevel  String?  // "low", "medium", "high"
+
+  visibility   RecordVisibility @default(STAFF)
+  tags         String
+  linkedCaseId String?
+
+  createdBy String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  student     Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  linkedCase  Case?   @relation(fields: [linkedCaseId], references: [id], onDelete: SetNull)
+
+  @@index([studentId, date])
+  @@index([behaviourArea])
+  @@index([linkedCaseId])
+  @@index([isPositive])
+  @@index([createdAt])
+}
+
+// ============================================
+// ALERTS
+// ============================================
+
+model ClassAlert {
+  id          String        @id @default(cuid())
+  classId     String
+  studentId   String?
+  type        AlertType
+  severity    AlertSeverity
+  title       String
+  description String
+  status      String        @default("ACTIVE")
+
+  createdDate DateTime  @default(now())
+  dueDate     DateTime?
+  dismissedBy String?
+  dismissedAt DateTime?
+
+  class Class @relation(fields: [classId], references: [id], onDelete: Cascade)
+
+  @@index([classId, status])
+  @@index([severity, status])
+  @@index([createdDate])
+}
+
+// ============================================
+// MESSAGING SYSTEM
+// ============================================
+
+model Conversation {
+  id         String             @id @default(cuid())
+  type       ConversationType
+  groupName  String?
+  studentId  String
+
+  isPinned   Boolean @default(false)
+  isArchived Boolean @default(false)
+  isMuted    Boolean @default(false)
+
+  student      Student                   @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  participants ConversationParticipant[]
+  messages     Message[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([studentId])
+  @@index([type])
+  @@index([updatedAt])
+}
+
+model ConversationParticipant {
+  id             String          @id @default(cuid())
+  conversationId String
+  userType       ParticipantRole
+  unreadCount    Int             @default(0)
+  lastReadAt     DateTime?
+  joinedAt       DateTime        @default(now())
+
+  // Conditional relationship based on userType
+  teacherId      String?
+  teacher        Teacher?        @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+
+  parentId       String?
+  parent         Parent?         @relation(fields: [parentId], references: [id], onDelete: Cascade)
+
+  conversation   Conversation    @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@unique([conversationId, teacherId, parentId])
+  @@index([teacherId])
+  @@index([parentId])
+  @@index([conversationId])
+}
+
+model Message {
+  id             String          @id @default(cuid())
+  conversationId String
+  senderId       String
+  senderName     String
+  senderRole     ParticipantRole
+  type           MessageType
+  content        String
+  status         String          @default("SENT")
+
+  conversation Conversation        @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  attachments  MessageAttachment[]
+  readReceipts MessageReadReceipt[]
+
+  sentAt DateTime @default(now())
+
+  @@index([conversationId, sentAt])
+  @@index([senderId])
+}
+
+model MessageAttachment {
+  id           String  @id @default(cuid())
+  messageId    String
+  fileName     String
+  fileType     String
+  fileSize     Int
+  fileUrl      String
+  thumbnailUrl String?
+
+  message Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  @@index([messageId])
+}
+
+model MessageReadReceipt {
+  id        String   @id @default(cuid())
+  messageId String
+  userId    String
+  readAt    DateTime @default(now())
+
+  message Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  @@unique([messageId, userId])
+  @@index([messageId])
+  @@index([userId])
+}

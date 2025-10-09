@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useMemo } from 'react'
-import { ChevronDownIcon, MoreHorizontalIcon, SearchIcon } from 'lucide-react'
+import { useState, useMemo, useEffect } from 'react'
+import { ChevronDownIcon, MoreHorizontalIcon, SearchIcon, AlertCircle } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Button } from '@/components/ui/button'
@@ -20,9 +20,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { getClassById, getStudentsByClassId } from '@/lib/mock-data/classroom-data'
 import { getInitials, getAvatarColor } from '@/lib/utils'
 import { PageLayout } from '@/components/layout/page-layout'
+import { Skeleton } from '@/components/ui/skeleton'
 
 interface StudentListProps {
   classId: string
@@ -32,12 +32,43 @@ interface StudentListProps {
   classroomTabs?: Map<string, string>
 }
 
-type SortField = 'attendance_rate' | 'name' | 'english' | 'math' | 'science' | 'conduct_grade'
+type SortField = 'attendanceRate' | 'name' | 'overallAverage' | 'conductGrade'
 type SortOrder = 'asc' | 'desc'
 
+interface DbStudent {
+  id: string
+  name: string
+  yearLevel: number
+  className: string
+  status: string
+  conductGrade: string
+  attendanceRate: number
+  overallAverage: number | null
+  parents: Array<{
+    parent: {
+      name: string
+      email: string
+      phone: string
+    }
+  }>
+}
+
+interface DbClass {
+  id: string
+  className: string
+  subject: string
+  yearLevel: number
+  academicYear: string
+  teacher: {
+    name: string
+  }
+}
+
 export function StudentList({ classId, onBack, onStudentClick, onNavigate, classroomTabs }: StudentListProps) {
-  const classData = getClassById(classId)
-  const students = getStudentsByClassId(classId)
+  const [classData, setClassData] = useState<DbClass | null>(null)
+  const [students, setStudents] = useState<DbStudent[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   const [selectedStudents, setSelectedStudents] = useState<string[]>([])
   const [sortField, setSortField] = useState<SortField>('name')
@@ -45,9 +76,57 @@ export function StudentList({ classId, onBack, onStudentClick, onNavigate, class
   const [filterStatus, setFilterStatus] = useState<string>('all')
   const [searchQuery, setSearchQuery] = useState('')
 
-  // Filter and sort students - must be before early return
+  // Fetch class and student data from API
+  useEffect(() => {
+    let isMounted = true
+
+    async function fetchData() {
+      try {
+        setIsLoading(true)
+        setError(null)
+
+        // Fetch class data
+        const classResponse = await fetch(`/api/classes/${classId}`)
+        if (!classResponse.ok) {
+          if (classResponse.status === 404) {
+            throw new Error('Class not found')
+          }
+          throw new Error('Failed to fetch class data')
+        }
+        const classJson = await classResponse.json()
+
+        // Fetch students
+        const studentsResponse = await fetch(`/api/classes/${classId}/students`)
+        if (!studentsResponse.ok) {
+          throw new Error('Failed to fetch students')
+        }
+        const studentsJson = await studentsResponse.json()
+
+        if (isMounted) {
+          setClassData(classJson)
+          setStudents(studentsJson)
+        }
+      } catch (err) {
+        if (isMounted) {
+          setError(err instanceof Error ? err.message : 'An error occurred')
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoading(false)
+        }
+      }
+    }
+
+    fetchData()
+
+    return () => {
+      isMounted = false
+    }
+  }, [classId])
+
+  // Filter and sort students
   const filteredStudents = useMemo(() => {
-    return students.filter(student => {
+    return students.filter((student) => {
       const matchesSearch = student.name.toLowerCase().includes(searchQuery.toLowerCase())
       const matchesStatus = filterStatus === 'all' || student.status === filterStatus
       return matchesSearch && matchesStatus
@@ -62,16 +141,14 @@ export function StudentList({ classId, onBack, onStudentClick, onNavigate, class
         case 'name':
           compareValue = a.name.localeCompare(b.name)
           break
-        case 'attendance_rate':
-          compareValue = a.attendance_rate - b.attendance_rate
+        case 'attendanceRate':
+          compareValue = a.attendanceRate - b.attendanceRate
           break
-        case 'english':
-        case 'math':
-        case 'science':
-          compareValue = (a.grades[sortField] || 0) - (b.grades[sortField] || 0)
+        case 'overallAverage':
+          compareValue = (a.overallAverage || 0) - (b.overallAverage || 0)
           break
-        case 'conduct_grade':
-          compareValue = a.conduct_grade.localeCompare(b.conduct_grade)
+        case 'conductGrade':
+          compareValue = a.conductGrade.localeCompare(b.conductGrade)
           break
       }
 
@@ -79,13 +156,81 @@ export function StudentList({ classId, onBack, onStudentClick, onNavigate, class
     })
   }, [filteredStudents, sortField, sortOrder])
 
-  if (!classData) {
-    return <div>Class not found</div>
+  // Loading state
+  if (isLoading) {
+    return (
+      <PageLayout title="Students" subtitle="Loading..." contentClassName="px-6 py-6">
+        <div className="mx-auto w-full max-w-6xl space-y-6">
+          <Card className="border-stone-200">
+            <CardHeader className="pb-4">
+              <Skeleton className="h-6 w-32" />
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <Skeleton className="h-10 w-full" />
+                <Skeleton className="h-10 w-full" />
+                <Skeleton className="h-10 w-full" />
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </PageLayout>
+    )
+  }
+
+  // Error state
+  if (error || !classData) {
+    return (
+      <PageLayout title="Students" subtitle="Error" contentClassName="px-6 py-6">
+        <div className="mx-auto w-full max-w-6xl">
+          <Card className="border-red-200 bg-red-50">
+            <CardContent className="flex items-center gap-3 py-6">
+              <AlertCircle className="h-5 w-5 text-red-600" />
+              <div>
+                <p className="font-semibold text-red-900">
+                  {error || 'Class not found'}
+                </p>
+                <p className="text-sm text-red-700">
+                  {error === 'Class not found'
+                    ? 'The class you are looking for does not exist in the database.'
+                    : 'Please try again or contact support if the problem persists.'}
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </PageLayout>
+    )
+  }
+
+  // Empty state (no students)
+  if (students.length === 0) {
+    return (
+      <PageLayout
+        title="Students"
+        subtitle={`Class ${classData.className} · ${classData.subject}`}
+        contentClassName="px-6 py-6"
+      >
+        <div className="mx-auto w-full max-w-6xl">
+          <Card className="border-stone-200">
+            <CardContent className="flex flex-col items-center justify-center py-12 text-center">
+              <div className="rounded-full bg-stone-100 p-3">
+                <AlertCircle className="h-6 w-6 text-stone-600" />
+              </div>
+              <h3 className="mt-4 text-lg font-semibold text-stone-900">No students found</h3>
+              <p className="mt-2 text-sm text-stone-600">
+                This class does not have any enrolled students yet.
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      </PageLayout>
+    )
   }
 
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
-      setSelectedStudents(students.map(s => s.student_id))
+      setSelectedStudents(students.map((s) => s.id))
     } else {
       setSelectedStudents([])
     }
@@ -121,16 +266,31 @@ export function StudentList({ classId, onBack, onStudentClick, onNavigate, class
 
   const getConductColor = (conduct: string) => {
     switch (conduct) {
-      case 'Excellent':
+      case 'EXCELLENT':
         return 'text-green-600'
-      case 'Above average':
+      case 'ABOVE_AVERAGE':
         return 'text-stone-900'
-      case 'Average':
+      case 'AVERAGE':
         return 'text-stone-600'
-      case 'Needs improvement':
+      case 'NEEDS_IMPROVEMENT':
         return 'text-amber-600'
       default:
         return 'text-stone-600'
+    }
+  }
+
+  const formatConductGrade = (conduct: string) => {
+    switch (conduct) {
+      case 'EXCELLENT':
+        return 'Excellent'
+      case 'ABOVE_AVERAGE':
+        return 'Above Average'
+      case 'AVERAGE':
+        return 'Average'
+      case 'NEEDS_IMPROVEMENT':
+        return 'Needs Improvement'
+      default:
+        return conduct
     }
   }
 
@@ -138,7 +298,7 @@ export function StudentList({ classId, onBack, onStudentClick, onNavigate, class
   return (
     <PageLayout
       title="Students"
-      subtitle={`Class ${classData.class_name} · ${classData.subject}`}
+      subtitle={`Class ${classData.className} · ${classData.subject}`}
       contentClassName="px-6 py-6"
     >
       <div className="mx-auto w-full max-w-6xl space-y-6">
@@ -182,11 +342,13 @@ export function StudentList({ classId, onBack, onStudentClick, onNavigate, class
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
                   <DropdownMenuItem onClick={() => handleSort('name')}>Name</DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleSort('attendance_rate')}>Attendance</DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleSort('english')}>English</DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleSort('math')}>Math</DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleSort('science')}>Science</DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleSort('conduct_grade')}>Conduct</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleSort('attendanceRate')}>
+                    Attendance
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleSort('overallAverage')}>
+                    Overall Average
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleSort('conductGrade')}>Conduct</DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
@@ -198,55 +360,67 @@ export function StudentList({ classId, onBack, onStudentClick, onNavigate, class
               <TableRow className="hover:bg-transparent">
                 <TableHead className="w-12">
                   <Checkbox
-                    checked={selectedStudents.length === sortedStudents.length && sortedStudents.length > 0}
+                    checked={
+                      selectedStudents.length === sortedStudents.length && sortedStudents.length > 0
+                    }
                     onCheckedChange={handleSelectAll}
                   />
                 </TableHead>
                 <TableHead className="text-xs font-medium text-stone-500">Name</TableHead>
                 <TableHead className="text-xs font-medium text-stone-500">Attendance</TableHead>
-                <TableHead className="text-xs font-medium text-stone-500 text-center">English</TableHead>
-                <TableHead className="text-xs font-medium text-stone-500 text-center">Math</TableHead>
-                <TableHead className="text-xs font-medium text-stone-500 text-center">Science</TableHead>
-                <TableHead className="text-xs font-medium text-stone-500">Conduct grade</TableHead>
-                <TableHead className="text-xs font-medium text-stone-500">Remark</TableHead>
+                <TableHead className="text-center text-xs font-medium text-stone-500">
+                  Overall Average
+                </TableHead>
+                <TableHead className="text-xs font-medium text-stone-500">Conduct Grade</TableHead>
+                <TableHead className="text-xs font-medium text-stone-500">Status</TableHead>
                 <TableHead className="w-12"></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {sortedStudents.map((student) => (
                 <TableRow
-                  key={student.student_id}
+                  key={student.id}
                   className={onStudentClick ? 'cursor-pointer' : ''}
                   onClick={() => onStudentClick?.(student.name)}
                 >
                   <TableCell onClick={(e) => e.stopPropagation()}>
                     <Checkbox
-                      checked={selectedStudents.includes(student.student_id)}
-                      onCheckedChange={(checked) => handleSelectStudent(student.student_id, checked as boolean)}
+                      checked={selectedStudents.includes(student.id)}
+                      onCheckedChange={(checked) =>
+                        handleSelectStudent(student.id, checked as boolean)
+                      }
                     />
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-3">
-                      <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-medium ${getAvatarColor(student.name)}`}>
+                      <div
+                        className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-medium ${getAvatarColor(student.name)}`}
+                      >
                         {getInitials(student.name)}
                       </div>
                       <span className="font-medium text-stone-900">{student.name}</span>
                     </div>
                   </TableCell>
-                  <TableCell className="font-medium text-stone-900">{student.attendance_rate}%</TableCell>
-                  <TableCell className="text-center text-stone-900">{student.grades.english || '-'}</TableCell>
-                  <TableCell className="text-center text-stone-900">{student.grades.math || '-'}</TableCell>
-                  <TableCell className="text-center text-stone-900">{student.grades.science || '-'}</TableCell>
-                  <TableCell>
-                    <span className={getConductColor(student.conduct_grade)}>{student.conduct_grade}</span>
+                  <TableCell className="font-medium text-stone-900">
+                    {student.attendanceRate}%
+                  </TableCell>
+                  <TableCell className="text-center text-stone-900">
+                    {student.overallAverage?.toFixed(1) || '-'}
                   </TableCell>
                   <TableCell>
-                    {student.status !== 'None' ? (
-                      <span className={`inline-flex px-2 py-0.5 text-xs font-medium rounded-full border ${getStatusColor(student.status)}`}>
+                    <span className={getConductColor(student.conductGrade)}>
+                      {formatConductGrade(student.conductGrade)}
+                    </span>
+                  </TableCell>
+                  <TableCell>
+                    {student.status !== 'NONE' ? (
+                      <span
+                        className={`inline-flex rounded-full border px-2 py-0.5 text-xs font-medium ${getStatusColor(student.status)}`}
+                      >
                         {student.status}
                       </span>
                     ) : (
-                      <span className="text-stone-500">None</span>
+                      <span className="text-stone-500">-</span>
                     )}
                   </TableCell>
                   <TableCell onClick={(e) => e.stopPropagation()}>

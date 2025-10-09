@@ -1,12 +1,13 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import {
   HomeIcon,
   SearchIcon,
   ChevronDownIcon,
   InfoIcon,
   PencilIcon,
+  AlertCircle,
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -40,13 +41,11 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Skeleton } from '@/components/ui/skeleton'
 import {
-  getClassById,
   getClassOverviewStats,
-  getStudentsByClassId,
   currentUser,
 } from '@/lib/mock-data/classroom-data'
-import type { Student } from '@/types/classroom'
 import { cn, getInitials } from '@/lib/utils'
 import { PageLayout } from '@/components/layout/page-layout'
 
@@ -59,21 +58,91 @@ interface ClassOverviewProps {
   classroomTabs?: Map<string, string>
 }
 
+// Database types
+interface DbClass {
+  id: string
+  className: string
+  subject: string
+  yearLevel: number
+  academicYear: string
+  isFormClass: boolean
+  schedules?: Array<{
+    day: string
+    startTime: string
+    endTime: string
+    location: string
+  }>
+}
+
+interface DbStudent {
+  id: string
+  name: string
+  status: 'NONE' | 'GEP' | 'SEN' | 'IEP'
+  conductGrade: 'NONE' | 'EXCELLENT' | 'GOOD' | 'ABOVE_AVERAGE' | 'AVERAGE' | 'BELOW_AVERAGE' | 'POOR' | 'NEEDS_IMPROVEMENT'
+  attendanceRate: number
+  overallAverage: number
+}
+
 export function ClassOverview({ classId, onBack, onNavigateToGrades, onStudentClick, onNavigate, classroomTabs }: ClassOverviewProps) {
-  const classData = getClassById(classId)
   const stats = getClassOverviewStats(classId)
-  const students = getStudentsByClassId(classId)
+  const [classData, setClassData] = useState<DbClass | null>(null)
+  const [students, setStudents] = useState<DbStudent[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [showDetails, setShowDetails] = useState(false)
   const [filterStatus, setFilterStatus] = useState<string>('all')
-  const [sortField, setSortField] = useState<'name' | 'attendance_rate' | 'average_grade' | 'conduct'>('name')
+  const [sortField, setSortField] = useState<'name' | 'attendanceRate' | 'overallAverage' | 'conductGrade'>('name')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc')
 
-  // Helper function to calculate average grade
-  const getAverageGrade = (student: Student): number => {
-    const gradeValues = Object.values(student.grades).filter((g): g is number => typeof g === 'number')
-    if (gradeValues.length === 0) return 0
-    return gradeValues.reduce((sum, grade) => sum + grade, 0) / gradeValues.length
+  // Fetch class and student data from API
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        setIsLoading(true)
+        setError(null)
+
+        // Fetch class data
+        const classRes = await fetch(`/api/classes/${classId}`)
+        if (!classRes.ok) {
+          if (classRes.status === 404) {
+            throw new Error('Class not found')
+          }
+          throw new Error('Failed to fetch class data')
+        }
+        const classJson = await classRes.json()
+        setClassData(classJson)
+
+        // Fetch students
+        const studentsRes = await fetch(`/api/classes/${classId}/students`)
+        if (!studentsRes.ok) {
+          throw new Error('Failed to fetch students')
+        }
+        const studentsJson = await studentsRes.json()
+        setStudents(studentsJson)
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'An error occurred')
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchData()
+  }, [classId])
+
+  // Helper function to format conduct grade
+  const formatConductGrade = (grade: DbStudent['conductGrade']): string => {
+    const gradeMap: Record<DbStudent['conductGrade'], string> = {
+      NONE: 'None',
+      EXCELLENT: 'Excellent',
+      GOOD: 'Good',
+      ABOVE_AVERAGE: 'Above Average',
+      AVERAGE: 'Average',
+      BELOW_AVERAGE: 'Below Average',
+      POOR: 'Poor',
+      NEEDS_IMPROVEMENT: 'Needs Improvement',
+    }
+    return gradeMap[grade] || grade
   }
 
   // Filter and sort students - must be before early return
@@ -82,7 +151,7 @@ export function ClassOverview({ classId, onBack, onNavigateToGrades, onStudentCl
     const filtered = students.filter(student => {
       const matchesSearch = !searchQuery.trim() ||
         student.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        student.student_id.toLowerCase().includes(searchQuery.toLowerCase())
+        student.id.toLowerCase().includes(searchQuery.toLowerCase())
       const matchesStatus = filterStatus === 'all' || student.status === filterStatus
       return matchesSearch && matchesStatus
     })
@@ -95,14 +164,14 @@ export function ClassOverview({ classId, onBack, onNavigateToGrades, onStudentCl
         case 'name':
           compareValue = a.name.localeCompare(b.name)
           break
-        case 'attendance_rate':
-          compareValue = a.attendance_rate - b.attendance_rate
+        case 'attendanceRate':
+          compareValue = a.attendanceRate - b.attendanceRate
           break
-        case 'average_grade':
-          compareValue = getAverageGrade(a) - getAverageGrade(b)
+        case 'overallAverage':
+          compareValue = a.overallAverage - b.overallAverage
           break
-        case 'conduct':
-          compareValue = a.conduct_grade.localeCompare(b.conduct_grade)
+        case 'conductGrade':
+          compareValue = a.conductGrade.localeCompare(b.conductGrade)
           break
       }
 
@@ -119,20 +188,55 @@ export function ClassOverview({ classId, onBack, onNavigateToGrades, onStudentCl
     }
   }
 
-  if (!classData) {
-    return <div>Class not found</div>
+  // Handle loading state
+  if (isLoading) {
+    return (
+      <PageLayout title="" subtitle={<Skeleton className="h-8 w-48" />} contentClassName="px-6 py-6">
+        <div className="mx-auto w-full max-w-5xl space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Skeleton className="h-[140px]" />
+            <Skeleton className="h-[140px]" />
+            <Skeleton className="h-[140px]" />
+          </div>
+          <Skeleton className="h-[400px]" />
+        </div>
+      </PageLayout>
+    )
   }
 
-  const isFormClass = classData.is_form_class && classData.class_id === currentUser.form_class_id
+  // Handle error state
+  if (error || !classData) {
+    return (
+      <PageLayout title="" subtitle="Class Overview" contentClassName="px-6 py-6">
+        <div className="mx-auto w-full max-w-5xl">
+          <Card className="border-red-200 bg-red-50">
+            <CardContent className="flex items-center gap-3 p-6">
+              <AlertCircle className="h-5 w-5 text-red-600" />
+              <div>
+                <h3 className="font-semibold text-red-900">{error || 'Class not found'}</h3>
+                <p className="text-sm text-red-700 mt-1">
+                  {error === 'Class not found'
+                    ? 'The class you are looking for does not exist.'
+                    : 'Unable to load class data. Please try again later.'}
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </PageLayout>
+    )
+  }
+
+  const isFormClass = classData.isFormClass
 
   // Title with badge and info button
   const titleElement = (
     <div className="flex items-center gap-3">
       <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-blue-100 text-lg font-bold text-blue-700">
-        {classData.class_name}
+        {classData.className}
       </div>
       <div className="flex items-center gap-2">
-        <span className="text-2xl font-semibold">Class {classData.class_name}</span>
+        <span className="text-2xl font-semibold">Class {classData.className}</span>
         {isFormClass && (
           <Badge variant="secondary" className="bg-blue-100 text-blue-800 border-blue-300">
             <HomeIcon className="h-3 w-3 mr-1" />
@@ -169,7 +273,7 @@ export function ClassOverview({ classId, onBack, onNavigateToGrades, onStudentCl
               <div>
                 <DialogTitle className="text-2xl font-semibold">Class Details</DialogTitle>
                 <DialogDescription>
-                  Detailed information about Class {classData.class_name}
+                  Detailed information about Class {classData.className}
                 </DialogDescription>
               </div>
               <Button
@@ -193,11 +297,11 @@ export function ClassOverview({ classId, onBack, onNavigateToGrades, onStudentCl
             <div className="grid grid-cols-2 gap-6">
               <div>
                 <h3 className="text-sm font-medium text-stone-500 mb-2">Year Level</h3>
-                <p className="text-base text-stone-900">Year {classData.year_level}</p>
+                <p className="text-base text-stone-900">Year {classData.yearLevel}</p>
               </div>
               <div>
                 <h3 className="text-sm font-medium text-stone-500 mb-2">Total Students</h3>
-                <p className="text-base text-stone-900">{classData.student_count} students</p>
+                <p className="text-base text-stone-900">{students.length} students</p>
               </div>
             </div>
             <div>
@@ -207,18 +311,18 @@ export function ClassOverview({ classId, onBack, onNavigateToGrades, onStudentCl
                 {isFormClass && ' (Form Teacher)'}
               </p>
             </div>
-            {classData.schedule.length > 0 && (
+            {classData.schedules && classData.schedules.length > 0 && (
               <div>
                 <h3 className="text-sm font-medium text-stone-500 mb-2">Schedule</h3>
                 <div className="space-y-2">
                   <p className="text-base text-stone-900">
-                    <span className="font-medium">Days:</span> {classData.schedule.map((s) => s.day).join(', ')}
+                    <span className="font-medium">Days:</span> {classData.schedules.map((s) => s.day).join(', ')}
                   </p>
                   <p className="text-base text-stone-900">
-                    <span className="font-medium">Time:</span> {classData.schedule[0].start_time} - {classData.schedule[0].end_time}
+                    <span className="font-medium">Time:</span> {classData.schedules[0].startTime} - {classData.schedules[0].endTime}
                   </p>
                   <p className="text-base text-stone-900">
-                    <span className="font-medium">Location:</span> {classData.schedule[0].location}
+                    <span className="font-medium">Location:</span> {classData.schedules[0].location}
                   </p>
                 </div>
               </div>
@@ -228,6 +332,7 @@ export function ClassOverview({ classId, onBack, onNavigateToGrades, onStudentCl
       </Dialog>
 
       {/* Quick pulse - Natural Language Summary */}
+      {/* TODO: Update stats to fetch from database */}
       {stats && (
         <div className="space-y-3">
           <h2 className="text-lg font-semibold text-stone-900">Quick pulse</h2>
@@ -246,7 +351,7 @@ export function ClassOverview({ classId, onBack, onNavigateToGrades, onStudentCl
                 </div>
                 <p className="text-stone-700 leading-relaxed mt-auto">
                   <span className={stats.attendance.rate >= 90 ? 'text-green-700 font-semibold text-lg' : 'text-amber-700 font-semibold text-lg'}>
-                    {stats.attendance.present} of {classData.student_count}
+                    {stats.attendance.present} of {students.length}
                   </span>{' '}
                   students are present today
                   {stats.attendance.absent > 0 && (
@@ -384,9 +489,9 @@ export function ClassOverview({ classId, onBack, onNavigateToGrades, onStudentCl
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
                   <DropdownMenuItem onClick={() => handleSort('name')}>Name</DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleSort('attendance_rate')}>Attendance</DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleSort('average_grade')}>Average</DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleSort('conduct')}>Conduct</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleSort('attendanceRate')}>Attendance</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleSort('overallAverage')}>Average</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleSort('conductGrade')}>Conduct</DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
@@ -409,7 +514,7 @@ export function ClassOverview({ classId, onBack, onNavigateToGrades, onStudentCl
                 {filteredStudents.length > 0 ? (
                   filteredStudents.map((student, index) => (
                     <TableRow
-                      key={student.student_id}
+                      key={student.id}
                       className="cursor-pointer hover:bg-stone-50"
                       onClick={() => onStudentClick?.(student.name)}
                     >
@@ -427,36 +532,36 @@ export function ClassOverview({ classId, onBack, onNavigateToGrades, onStudentCl
                       <TableCell>
                         <span className={cn(
                           "font-medium",
-                          student.attendance_rate >= 90 ? "text-green-600" :
-                          student.attendance_rate >= 75 ? "text-amber-600" : "text-red-600"
+                          student.attendanceRate >= 90 ? "text-green-600" :
+                          student.attendanceRate >= 75 ? "text-amber-600" : "text-red-600"
                         )}>
-                          {student.attendance_rate}%
+                          {student.attendanceRate}%
                         </span>
                       </TableCell>
                       <TableCell>
                         <span className={cn(
                           "font-medium",
-                          getAverageGrade(student) >= 75 ? "text-green-600" :
-                          getAverageGrade(student) >= 50 ? "text-amber-600" : "text-red-600"
+                          student.overallAverage >= 75 ? "text-green-600" :
+                          student.overallAverage >= 50 ? "text-amber-600" : "text-red-600"
                         )}>
-                          {getAverageGrade(student).toFixed(0)}%
+                          {student.overallAverage.toFixed(1)}
                         </span>
                       </TableCell>
                       <TableCell>
                         <Badge
                           variant={
-                            student.conduct_grade === 'Excellent' || student.conduct_grade === 'Above average'
+                            student.conductGrade === 'EXCELLENT' || student.conductGrade === 'GOOD' || student.conductGrade === 'ABOVE_AVERAGE'
                               ? 'default'
-                              : student.conduct_grade === 'Needs improvement'
+                              : student.conductGrade === 'NEEDS_IMPROVEMENT' || student.conductGrade === 'POOR'
                                 ? 'destructive'
                                 : 'secondary'
                           }
                         >
-                          {student.conduct_grade}
+                          {formatConductGrade(student.conductGrade)}
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        {student.status !== 'None' && (
+                        {student.status !== 'NONE' && (
                           <Tooltip>
                             <TooltipTrigger asChild>
                               <Badge variant="outline" className="text-xs cursor-help">
@@ -469,6 +574,8 @@ export function ClassOverview({ classId, onBack, onNavigateToGrades, onStudentCl
                                   ? 'Gifted Education Programme'
                                   : student.status === 'SEN'
                                   ? 'Special Educational Needs'
+                                  : student.status === 'IEP'
+                                  ? 'Individualized Education Plan'
                                   : student.status}
                               </p>
                             </TooltipContent>
