@@ -219,7 +219,7 @@ export function StudentList({ classId, onBack, onStudentClick, onNavigate, class
               </div>
               <h3 className="mt-4 text-lg font-semibold text-stone-900">No students found</h3>
               <p className="mt-2 text-sm text-stone-600">
-                This class doesn't have any enrolled students yet.
+                This class does not have any enrolled students yet.
               </p>
             </CardContent>
           </Card>

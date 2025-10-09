@@ -93,7 +93,7 @@ export async function getStudentById(studentId: string) {
       },
       academicGrades: {
         orderBy: {
-          assessmentDate: 'desc',
+          gradedDate: 'desc',
         },
         take: 10,
       },
