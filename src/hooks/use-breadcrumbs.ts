@@ -39,9 +39,9 @@ export function useBreadcrumbs({
   // Use pathname if activeTab not provided
   const currentPath = activeTab || pathname.slice(1) || 'home'
 
-  const handleNavigate = useCallback((path: string) => {
+  const handleNavigate = useCallback((path: string, replaceTab: boolean = false) => {
     if (onNavigate) {
-      onNavigate(path)
+      onNavigate(path, replaceTab)
     } else {
       router.push(path === 'home' ? '/' : `/${path}`)
     }
@@ -52,18 +52,25 @@ export function useBreadcrumbs({
 
     // Always add Home as first item (unless we're on home page)
     if (currentPath !== 'home') {
+      // Check if current path is a child of home (e.g., roundup/pulse)
+      const isHomeChild = currentPath === 'roundup'
       items.push({
         label: 'Home',
         path: 'home',
         isActive: false,
-        onClick: () => handleNavigate('home'),
+        // Replace tab if navigating from home child back to home
+        onClick: () => handleNavigate('home', isHomeChild),
       })
     }
 
     // Parse the current path to determine breadcrumb structure
     if (currentPath === 'home') {
-      // No breadcrumbs on home page
-      return []
+      // Show "Home" as the only breadcrumb
+      items.push({
+        label: 'Home',
+        path: 'home',
+        isActive: true,
+      })
     } else if (currentPath === 'explore') {
       items.push({
         label: 'Explore',
@@ -77,6 +84,7 @@ export function useBreadcrumbs({
         isActive: true,
       })
     } else if (currentPath === 'roundup') {
+      // Roundup/Pulse is a child of Home
       items.push({
         label: 'Pulse',
         path: 'roundup',
@@ -98,7 +106,7 @@ export function useBreadcrumbs({
         label: 'Classroom',
         path: 'classroom',
         isActive: false,
-        onClick: () => handleNavigate('classroom'),
+        onClick: () => handleNavigate('classroom', true),
       })
 
       if (segments.length >= 2) {
@@ -118,7 +126,7 @@ export function useBreadcrumbs({
             label: `Class ${className}`,
             path: `classroom/${classId}`,
             isActive: false,
-            onClick: () => handleNavigate(`classroom/${classId}`),
+            onClick: () => handleNavigate(`classroom/${classId}`, true),
           })
 
           // Add student breadcrumb
@@ -133,7 +141,7 @@ export function useBreadcrumbs({
             label: `Class ${className}`,
             path: `classroom/${classId}`,
             isActive: false,
-            onClick: () => handleNavigate(`classroom/${classId}`),
+            onClick: () => handleNavigate(`classroom/${classId}`, true),
           })
 
           items.push({
@@ -147,7 +155,7 @@ export function useBreadcrumbs({
             label: `Class ${className}`,
             path: `classroom/${classId}`,
             isActive: false,
-            onClick: () => handleNavigate(`classroom/${classId}`),
+            onClick: () => handleNavigate(`classroom/${classId}`, true),
           })
 
           items.push({
@@ -161,7 +169,7 @@ export function useBreadcrumbs({
             label: `Class ${className}`,
             path: `classroom/${classId}`,
             isActive: false,
-            onClick: () => handleNavigate(`classroom/${classId}`),
+            onClick: () => handleNavigate(`classroom/${classId}`, true),
           })
 
           items.push({
@@ -189,7 +197,7 @@ export function useBreadcrumbs({
         label: 'Students',
         path: 'students',
         isActive: false,
-        onClick: () => handleNavigate('explore'), // Navigate to explore page which might have students
+        onClick: () => handleNavigate('explore', true), // Navigate to explore page which might have students
       })
 
       items.push({

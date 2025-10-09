@@ -89,63 +89,55 @@ export function StudentProfile({ studentName, classId, onBack, activeTab, onNavi
   }
 
 
+  const avatar = (
+    <div className={cn(
+      'flex h-16 w-16 shrink-0 items-center justify-center rounded-full text-xl font-medium',
+      getAvatarColor(student.name)
+    )}>
+      {getInitials(student.name)}
+    </div>
+  )
+
+  const badge = student.status !== 'None' ? (
+    <span className={cn(
+      'inline-flex px-2.5 py-1 text-xs font-medium rounded-full border',
+      getStatusColor(student.status)
+    )}>
+      {student.status}
+    </span>
+  ) : null
+
+  const statsContent = (
+    <div className="flex items-center gap-8">
+      <div className="flex flex-col items-center gap-1">
+        <span className="text-xs text-stone-500">Attendance</span>
+        <span className="text-lg font-semibold text-stone-900">{student.attendance}%</span>
+      </div>
+      <div className="flex flex-col items-center gap-1">
+        <span className="text-xs text-stone-500">English</span>
+        <span className="text-lg font-semibold text-stone-900">{student.english}</span>
+      </div>
+      <div className="flex flex-col items-center gap-1">
+        <span className="text-xs text-stone-500">Math</span>
+        <span className="text-lg font-semibold text-stone-900">{student.math}</span>
+      </div>
+      <div className="flex flex-col items-center gap-1">
+        <span className="text-xs text-stone-500">Science</span>
+        <span className="text-lg font-semibold text-stone-900">{student.science}</span>
+      </div>
+    </div>
+  )
+
   return (
     <PageLayout
       title={student.name}
       subtitle={`Student ID: ${student.id} • Class: ${student.class}`}
+      titlePrefix={avatar}
+      titleSuffix={badge}
+      headerContent={statsContent}
       contentClassName="px-6 py-6"
     >
       <div className="mx-auto w-full max-w-5xl space-y-6 pb-16">
-        {/* Student Info Header */}
-      <Card className="border-stone-200">
-        <CardContent className="pt-6">
-          <div className="flex flex-col gap-6 md:flex-row md:items-start">
-            {/* Avatar and basic info */}
-            <div className="flex items-start gap-4">
-              <div className={cn(
-                'flex h-16 w-16 shrink-0 items-center justify-center rounded-full text-xl font-medium',
-                getAvatarColor(student.name)
-              )}>
-                {getInitials(student.name)}
-              </div>
-              <div className="flex flex-col gap-2">
-                <div className="flex items-center gap-2">
-                  {student.status !== 'None' && (
-                    <span className={cn(
-                      'inline-flex px-2.5 py-1 text-xs font-medium rounded-full border',
-                      getStatusColor(student.status)
-                    )}>
-                      {student.status}
-                    </span>
-                  )}
-                </div>
-                <div className="flex flex-col gap-1 text-sm text-stone-600">
-                </div>
-              </div>
-            </div>
-
-            {/* Quick stats */}
-            <div className="ml-auto grid grid-cols-2 gap-4 md:grid-cols-4">
-              <div className="flex flex-col gap-1">
-                <span className="text-xs text-stone-500">Attendance</span>
-                <span className="text-lg font-semibold text-stone-900">{student.attendance}%</span>
-              </div>
-              <div className="flex flex-col gap-1">
-                <span className="text-xs text-stone-500">English</span>
-                <span className="text-lg font-semibold text-stone-900">{student.english}</span>
-              </div>
-              <div className="flex flex-col gap-1">
-                <span className="text-xs text-stone-500">Math</span>
-                <span className="text-lg font-semibold text-stone-900">{student.math}</span>
-              </div>
-              <div className="flex flex-col gap-1">
-                <span className="text-xs text-stone-500">Science</span>
-                <span className="text-lg font-semibold text-stone-900">{student.science}</span>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
 
       {/* Tabs Navigation */}
       <Tabs defaultValue="overview" className="w-full">

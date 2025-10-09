@@ -11,6 +11,7 @@ import {
   ClipboardCheck,
   Compass,
   FilePen,
+  FileText,
   GraduationCap,
   Home as HomeIcon,
   Inbox,
@@ -18,10 +19,19 @@ import {
   MoreHorizontal,
   PieChart,
   Plus,
+  School,
   User,
   Users,
+  Users2,
+  BookOpen,
   X,
   Zap,
+  Award,
+  UserCheck,
+  TrendingUp,
+  UserCircle,
+  Briefcase,
+  ChevronDown,
 } from 'lucide-react'
 
 import {
@@ -32,7 +42,7 @@ import {
 } from '@/components/assistant-panel'
 import { Button } from '@/components/ui/button'
 import { HomeContent } from '@/components/home-content'
-import { RoundupContent } from '@/components/roundup-content'
+import { PulseContent } from '@/components/pulse-content'
 import { MyClasses } from '@/components/classroom/my-classes'
 import { ClassOverview } from '@/components/classroom/class-overview'
 import { StudentList } from '@/components/classroom/student-list'
@@ -74,15 +84,15 @@ import { useBreadcrumbs } from '@/hooks/use-breadcrumbs'
 import { Breadcrumbs } from '@/components/ui/breadcrumbs'
 
 const primaryPages = [
-  { key: 'roundup', label: 'Pulse', icon: Zap, tooltip: 'Pulse' },
   { key: 'home', label: 'Home', icon: HomeIcon, tooltip: 'Home' },
-  { key: 'explore', label: 'Explore', icon: Compass, tooltip: 'Explore' },
-  { key: 'classroom', label: 'Classroom', icon: Users, tooltip: 'Classroom' },
-  { key: 'records', label: 'Records', icon: ClipboardList, tooltip: 'Records' },
-  { key: 'draft', label: 'Draft', icon: FilePen, tooltip: 'Drafts' },
   { key: 'calendar', label: 'Calendar', icon: CalendarDays, tooltip: 'Calendar' },
-  { key: 'analysis', label: 'Analysis', icon: PieChart, tooltip: 'Analysis' },
   { key: 'inbox', label: 'Inbox', icon: Inbox, tooltip: 'Inbox' },
+  { key: 'drafts', label: 'Drafts', icon: FileText, tooltip: 'Drafts' },
+  { key: 'classroom', label: 'Classroom', icon: Users, tooltip: 'Classroom' },
+  { key: 'myschool', label: 'School', icon: School, tooltip: 'School' },
+  { key: 'learning', label: 'Learning', icon: BookOpen, tooltip: 'Learning' },
+  { key: 'community', label: 'Community', icon: Users2, tooltip: 'Community' },
+  { key: 'explore', label: 'Explore', icon: Compass, tooltip: 'Explore' },
 ] as const
 
 const newTabConfig = {
@@ -134,7 +144,7 @@ const emptyStates: Record<TabKey, EmptyState> = {
       'Open a page from the sidebar or start with a preselected one to jump into your workspace.',
     icon: Plus,
   },
-  roundup: {
+  pulse: {
     heading: 'Pulse',
     title: 'No highlights yet',
     description:
@@ -192,14 +202,6 @@ const emptyStates: Record<TabKey, EmptyState> = {
     icon: CalendarDays,
     primaryAction: 'Connect calendar',
   },
-  analysis: {
-    heading: 'Analysis',
-    title: 'No insights generated',
-    description:
-      'Run reports or review metrics to uncover patterns and stay ahead of upcoming work.',
-    icon: PieChart,
-    primaryAction: 'Build report',
-  },
   inbox: {
     heading: 'Inbox',
     title: 'No updates right now',
@@ -207,6 +209,38 @@ const emptyStates: Record<TabKey, EmptyState> = {
       "When teammates mention you or share docs, they'll show up here for quick triage.",
     icon: Inbox,
     primaryAction: 'Compose a note',
+  },
+  recents: {
+    heading: 'Recents',
+    title: 'No recent files',
+    description:
+      'Files you open or edit will appear here for quick access.',
+    icon: FileText,
+    primaryAction: 'Browse files',
+  },
+  myschool: {
+    heading: 'My School',
+    title: 'School overview',
+    description:
+      'View and manage school-wide information, announcements, and resources.',
+    icon: School,
+    primaryAction: 'View announcements',
+  },
+  learning: {
+    heading: 'Learning',
+    title: 'Start your learning journey',
+    description:
+      'Access courses, resources, and professional development opportunities.',
+    icon: BookOpen,
+    primaryAction: 'Browse courses',
+  },
+  community: {
+    heading: 'Community',
+    title: 'Connect with colleagues',
+    description:
+      'Engage with your school community, share resources, and collaborate.',
+    icon: Users2,
+    primaryAction: 'Join discussion',
   },
   profile: {
     heading: 'Profile',
@@ -247,50 +281,27 @@ export default function Home() {
   const params = useParams()
   const { state: sidebarState } = useSidebar()
 
-  // Initialize from sessionStorage to persist across page remounts
-  const [openTabs, setOpenTabs] = useState<ClosableTabKey[]>(() => {
-    if (typeof window !== 'undefined') {
-      const stored = sessionStorage.getItem('openTabs')
-      return stored ? JSON.parse(stored) : ['home']
-    }
-    return ['home']
-  })
+  // Initialize activeTab from URL params to prevent hydration mismatch
+  const slug = params.slug as string[] | undefined
+  const initialTab = !slug || slug.length === 0 ? 'home' : slug.join('/')
 
+  // Always start with just the active tab to prevent hydration mismatch
+  // We'll restore from sessionStorage after mount
+  // Don't add 'new-tab' to openTabs since it's not a closable tab
+  const initialOpenTabs = initialTab === 'new-tab' ? [] : [initialTab as ClosableTabKey]
+  const [openTabs, setOpenTabs] = useState<ClosableTabKey[]>(initialOpenTabs)
   const openTabsRef = useRef<ClosableTabKey[]>(openTabs) // Track current tabs in ref
-  const [activeTab, setActiveTab] = useState<TabKey>('home')
+  const [activeTab, setActiveTab] = useState<TabKey>(initialTab as TabKey)
   const [assistantMode, setAssistantMode] = useState<AssistantMode>('sidebar')
   const [isAssistantOpen, setIsAssistantOpen] = useState(false)
   const [draggedTab, setDraggedTab] = useState<ClosableTabKey | null>(null)
   const [dragOverTab, setDragOverTab] = useState<ClosableTabKey | null>(null)
   const [containerWidth, setContainerWidth] = useState(0)
-  const [studentProfileTabs, setStudentProfileTabs] = useState<Map<string, string>>(() => {
-    // Initialize from sessionStorage to persist across navigation
-    if (typeof window !== 'undefined') {
-      const stored = sessionStorage.getItem('studentProfileTabs')
-      if (stored) {
-        try {
-          return new Map(JSON.parse(stored))
-        } catch (e) {
-          // Failed to parse studentProfileTabs from sessionStorage
-        }
-      }
-    }
-    return new Map()
-  })
-  const [classroomTabs, setClassroomTabs] = useState<Map<string, string>>(() => {
-    // Initialize from sessionStorage to persist across navigation
-    if (typeof window !== 'undefined') {
-      const stored = sessionStorage.getItem('classroomTabs')
-      if (stored) {
-        try {
-          return new Map(JSON.parse(stored))
-        } catch (e) {
-          // Failed to parse classroomTabs from sessionStorage
-        }
-      }
-    }
-    return new Map()
-  })
+  const [isMounted, setIsMounted] = useState(false)
+  // Initialize with empty maps to prevent hydration mismatch - restore from sessionStorage after mount
+  const [studentProfileTabs, setStudentProfileTabs] = useState<Map<string, string>>(new Map())
+  const [classroomTabs, setClassroomTabs] = useState<Map<string, string>>(new Map())
+  const closingTabRef = useRef<string | null>(null) // Track which specific tab is being closed
   const studentProfileTabsRef = useRef<Map<string, string>>(studentProfileTabs) // Ref for immediate access
   const classroomTabsRef = useRef<Map<string, string>>(classroomTabs) // Ref for immediate access
   const [pendingAssistantMessage, setPendingAssistantMessage] = useState<string | null>(null)
@@ -304,6 +315,10 @@ export default function Home() {
 
   // Helper to get parent tab of a child tab
   const getParentTab = (tabKey: string): string | null => {
+    if (tabKey === 'pulse') {
+      // Pulse is a child of Home
+      return 'home'
+    }
     if (tabKey.startsWith('classroom/')) {
       // For classroom routes, check if it's a nested route
       const parts = tabKey.split('/')
@@ -338,12 +353,75 @@ export default function Home() {
     }
   }, [classroomTabs])
 
-  // Sync URL with active tab on mount and URL changes
+  // Sync URL with active tab on URL changes
   useEffect(() => {
-    const slug = params.slug as string[] | undefined
-    const tabFromUrl = !slug || slug.length === 0 ? 'home' : slug.join('/')
+    const currentSlug = params.slug as string[] | undefined
+    const tabFromUrl = !currentSlug || currentSlug.length === 0 ? 'home' : currentSlug.join('/')
 
-    setActiveTab(tabFromUrl as TabKey)
+    // Only update activeTab if it changed
+    if (tabFromUrl !== activeTab) {
+      setActiveTab(tabFromUrl as TabKey)
+    }
+
+    // Don't add special tabs to openTabs
+    if (tabFromUrl === 'new-tab' || tabFromUrl === 'assistant') {
+      // Clear the closing tab reference if we're navigating to a special tab
+      if (closingTabRef.current) {
+        setTimeout(() => {
+          closingTabRef.current = null
+        }, 100)
+      }
+      return
+    }
+
+    // Don't re-add a tab that was just closed
+    if (closingTabRef.current && closingTabRef.current === tabFromUrl) {
+      return
+    }
+
+    // Populate classroomTabs and studentProfileTabs Maps for classroom routes
+    if (tabFromUrl.startsWith('classroom/')) {
+      const segments = tabFromUrl.split('/')
+      // Extract the path portion (everything after 'classroom/')
+      const classroomPath = segments.slice(1).join('/')
+
+      // Always update to ensure component re-renders with correct data
+      if (!classroomTabsRef.current.has(tabFromUrl) || classroomTabsRef.current.get(tabFromUrl) !== classroomPath) {
+        const updatedClassroomTabs = new Map(classroomTabsRef.current)
+        updatedClassroomTabs.set(tabFromUrl, classroomPath)
+        classroomTabsRef.current = updatedClassroomTabs
+        setClassroomTabs(updatedClassroomTabs)
+      }
+
+      // If this is a student route, also populate studentProfileTabs
+      if (segments.length >= 4 && segments[2] === 'student') {
+        const studentSlug = segments[3]
+        // Convert slug to name (e.g., 'aisha-rahman' -> 'Aisha Rahman')
+        const studentName = studentSlug.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
+
+        // Always update to ensure component re-renders with correct data
+        if (!studentProfileTabsRef.current.has(tabFromUrl) || studentProfileTabsRef.current.get(tabFromUrl) !== studentName) {
+          const updatedStudentProfileTabs = new Map(studentProfileTabsRef.current)
+          updatedStudentProfileTabs.set(tabFromUrl, studentName)
+          studentProfileTabsRef.current = updatedStudentProfileTabs
+          setStudentProfileTabs(updatedStudentProfileTabs)
+        }
+      }
+    }
+
+    // Populate studentProfileTabs for standalone student routes
+    if (tabFromUrl.startsWith('student-')) {
+      const studentSlug = tabFromUrl.replace('student-', '')
+      const studentName = studentSlug.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
+
+      // Always update to ensure component re-renders with correct data
+      if (!studentProfileTabsRef.current.has(tabFromUrl) || studentProfileTabsRef.current.get(tabFromUrl) !== studentName) {
+        const updatedStudentProfileTabs = new Map(studentProfileTabsRef.current)
+        updatedStudentProfileTabs.set(tabFromUrl, studentName)
+        studentProfileTabsRef.current = updatedStudentProfileTabs
+        setStudentProfileTabs(updatedStudentProfileTabs)
+      }
+    }
 
     // Always add tab to openTabs if not present (handles all navigation - always opens new tabs)
     // Use ref to get the most current tab list, avoiding stale closures in Strict Mode double-render
@@ -358,14 +436,21 @@ export default function Home() {
       setOpenTabs(newTabs)
       sessionStorage.setItem('openTabs', JSON.stringify(newTabs)) // Persist to sessionStorage
     }
-  }, [params])
+
+    // Clear the closing tab reference after successfully handling the new tab
+    if (closingTabRef.current && closingTabRef.current !== tabFromUrl) {
+      setTimeout(() => {
+        closingTabRef.current = null
+      }, 100)
+    }
+  }, [params, activeTab])
 
   const currentState = emptyStates[activeTab as keyof typeof emptyStates]
   const ActiveIcon = currentState?.icon
   const isNewTabActive = activeTab === newTabConfig.key
   const isProfileActive = activeTab === profileTabConfig.key
   const isAssistantTabActive = activeTab === assistantTabConfig.key
-  const isHomeActive = activeTab === 'home'
+  const isHomeActive = activeTab === 'home' || activeTab === 'pulse'
   const isSidebarCollapsed = sidebarState === 'collapsed'
   const isAssistantSidebarOpen = assistantMode === 'sidebar' && isAssistantOpen
 
@@ -381,7 +466,17 @@ export default function Home() {
   const getPageActions = () => {
     let actions: any[] = []
 
-    if (typeof activeTab === 'string' && activeTab.startsWith('classroom/')) {
+    if (activeTab === 'home') {
+      // Home page actions
+      actions = [
+        {
+          label: 'Pulse',
+          icon: Zap,
+          onClick: () => handleNavigate('pulse', true),
+          variant: 'outline',
+        },
+      ]
+    } else if (typeof activeTab === 'string' && activeTab.startsWith('classroom/')) {
       const classroomPath = classroomTabs.get(activeTab)
       const parts = classroomPath?.split('/') ?? []
       const classId = parts[0]
@@ -394,23 +489,93 @@ export default function Home() {
         actions = []
       } else if (activeTab.includes('/student/')) {
         // Student profile from class actions
-        actions = []
-      } else {
-        // Class overview page actions
         actions = [
           {
-            label: 'Take Attendance',
-            icon: ClipboardCheck,
+            label: 'New record',
+            icon: FilePen,
+            variant: 'outline',
+            isDropdown: true,
+            dropdownItems: [
+              {
+                label: 'Academic',
+                icon: Award,
+                onClick: undefined,
+                disabled: true,
+              },
+              {
+                label: 'Attendance',
+                icon: UserCheck,
+                onClick: undefined,
+                disabled: true,
+              },
+              {
+                label: 'Performance',
+                icon: TrendingUp,
+                onClick: undefined,
+                disabled: true,
+              },
+              {
+                label: 'Background',
+                icon: UserCircle,
+                onClick: undefined,
+                disabled: true,
+              },
+              {
+                label: 'Cases',
+                icon: Briefcase,
+                onClick: undefined,
+                disabled: true,
+              },
+            ],
+          },
+          {
+            label: 'Message Parents',
+            icon: MessageSquare,
             onClick: undefined,
             disabled: true,
             variant: 'outline',
           },
+        ]
+      } else {
+        // Class overview page actions
+        actions = [
           {
-            label: 'Enter Grades',
-            icon: GraduationCap,
-            onClick: classId ? () => handleOpenGrades(classId) : undefined,
-            disabled: !classId,
+            label: 'New record',
+            icon: FilePen,
             variant: 'outline',
+            isDropdown: true,
+            dropdownItems: [
+              {
+                label: 'Academic',
+                icon: Award,
+                onClick: classId ? () => handleOpenGrades(classId) : undefined,
+                disabled: !classId,
+              },
+              {
+                label: 'Attendance',
+                icon: UserCheck,
+                onClick: undefined,
+                disabled: true,
+              },
+              {
+                label: 'Performance',
+                icon: TrendingUp,
+                onClick: undefined,
+                disabled: true,
+              },
+              {
+                label: 'Background',
+                icon: UserCircle,
+                onClick: undefined,
+                disabled: true,
+              },
+              {
+                label: 'Cases',
+                icon: Briefcase,
+                onClick: undefined,
+                disabled: true,
+              },
+            ],
           },
           {
             label: 'Message Parents',
@@ -423,7 +588,53 @@ export default function Home() {
       }
     } else if (typeof activeTab === 'string' && activeTab.startsWith('student-')) {
       // Standalone student profile actions
-      actions = []
+      actions = [
+        {
+          label: 'New record',
+          icon: FilePen,
+          variant: 'outline',
+          isDropdown: true,
+          dropdownItems: [
+            {
+              label: 'Academic',
+              icon: Award,
+              onClick: undefined,
+              disabled: true,
+            },
+            {
+              label: 'Attendance',
+              icon: UserCheck,
+              onClick: undefined,
+              disabled: true,
+            },
+            {
+              label: 'Performance',
+              icon: TrendingUp,
+              onClick: undefined,
+              disabled: true,
+            },
+            {
+              label: 'Background',
+              icon: UserCircle,
+              onClick: undefined,
+              disabled: true,
+            },
+            {
+              label: 'Cases',
+              icon: Briefcase,
+              onClick: undefined,
+              disabled: true,
+            },
+          ],
+        },
+        {
+          label: 'Message Parents',
+          icon: MessageSquare,
+          onClick: undefined,
+          disabled: true,
+          variant: 'outline',
+        },
+      ]
     }
 
     return actions
@@ -432,30 +643,64 @@ export default function Home() {
   const pageActions = getPageActions()
 
   const handleNavigate = (tabKey: ClosableTabKey, replaceParent: boolean = false) => {
-    // If replaceParent is true, close the parent tab if it exists
+    // If replaceParent is true, handle parent-child tab replacement
     if (replaceParent) {
       const parentTabKey = getParentTab(tabKey)
+
       if (parentTabKey) {
+        // We're navigating to a child - replace parent with child
         setOpenTabs((tabs) => {
-          // Check if parent exists in current tabs
-          if (!tabs.includes(parentTabKey as ClosableTabKey)) {
-            return tabs // Parent doesn't exist, don't modify tabs
-          }
-
           const parentIndex = tabs.indexOf(parentTabKey as ClosableTabKey)
-          // Remove both parent AND any existing child tab to prevent duplicates
-          const filteredTabs = tabs.filter((key) => key !== parentTabKey && key !== tabKey)
 
-          // Insert the new tab at the parent's position
+          // If parent exists, replace it with child
           if (parentIndex !== -1) {
+            // Remove both parent AND any existing child tab to prevent duplicates
+            const filteredTabs = tabs.filter((key) => key !== parentTabKey && key !== tabKey)
+            // Insert the new tab at the parent's position
             filteredTabs.splice(parentIndex, 0, tabKey)
+            openTabsRef.current = filteredTabs
+            sessionStorage.setItem('openTabs', JSON.stringify(filteredTabs))
+            return filteredTabs
           } else {
-            filteredTabs.push(tabKey)
+            // Parent doesn't exist, just add the child tab if not already present
+            if (!tabs.includes(tabKey)) {
+              const newTabs = [...tabs, tabKey]
+              openTabsRef.current = newTabs
+              sessionStorage.setItem('openTabs', JSON.stringify(newTabs))
+              return newTabs
+            }
+            return tabs
           }
+        })
 
-          openTabsRef.current = filteredTabs
-          sessionStorage.setItem('openTabs', JSON.stringify(filteredTabs))
-          return filteredTabs
+        // Navigate after updating tabs
+        const newPath = tabKey === 'home' ? '/' : `/${tabKey}`
+        router.push(newPath, { scroll: false })
+        return
+      } else {
+        // We're navigating to a parent - check if we need to replace a child
+        setOpenTabs((tabs) => {
+          // Find any child tab that has tabKey as its parent
+          const childTab = tabs.find((tab) => getParentTab(tab) === tabKey)
+
+          if (childTab) {
+            // Replace child with parent
+            const childIndex = tabs.indexOf(childTab)
+            const filteredTabs = tabs.filter((key) => key !== childTab && key !== tabKey)
+            filteredTabs.splice(childIndex, 0, tabKey)
+            openTabsRef.current = filteredTabs
+            sessionStorage.setItem('openTabs', JSON.stringify(filteredTabs))
+            return filteredTabs
+          } else {
+            // No child found, just add parent if not present
+            if (!tabs.includes(tabKey)) {
+              const newTabs = [...tabs, tabKey]
+              openTabsRef.current = newTabs
+              sessionStorage.setItem('openTabs', JSON.stringify(newTabs))
+              return newTabs
+            }
+            return tabs
+          }
         })
 
         // Navigate after updating tabs
@@ -473,11 +718,11 @@ export default function Home() {
   const handleOpenStudentProfile = (studentName: string) => {
     const tabKey = `student-${studentName.toLowerCase().replace(/\s+/g, '-')}` as StudentProfileTabKey
 
-    setStudentProfileTabs((prev) => {
-      const updated = new Map(prev)
-      updated.set(tabKey, studentName)
-      return updated
-    })
+    // Update both state and ref to ensure immediate availability
+    const updatedStudentProfileTabs = new Map(studentProfileTabsRef.current)
+    updatedStudentProfileTabs.set(tabKey, studentName)
+    studentProfileTabsRef.current = updatedStudentProfileTabs
+    setStudentProfileTabs(updatedStudentProfileTabs)
 
     handleNavigate(tabKey)
   }
@@ -549,30 +794,75 @@ export default function Home() {
   }
 
   const handleCloseTab = useCallback((pageKey: TabKey) => {
-    setOpenTabs((tabs) => {
-      if (pageKey === newTabConfig.key) {
-        return tabs
+    const currentTabs = openTabsRef.current
+    const filteredTabs = currentTabs.filter((key) => key !== pageKey)
+
+    // Update ref immediately before navigation to prevent race condition
+    openTabsRef.current = filteredTabs
+    sessionStorage.setItem('openTabs', JSON.stringify(filteredTabs))
+
+    // Update state
+    setOpenTabs(filteredTabs)
+
+    // Only navigate if we're closing the currently active tab
+    if (activeTab === pageKey) {
+      // Track which tab is being closed ONLY when navigating away
+      closingTabRef.current = pageKey as string
+
+      // Determine the new active tab
+      const closingIndex = currentTabs.indexOf(pageKey as ClosableTabKey)
+      const newActiveTab =
+        filteredTabs[closingIndex - 1] ??
+        filteredTabs[closingIndex] ??
+        (filteredTabs.length > 0 ? filteredTabs[filteredTabs.length - 1] : 'home')
+
+      // Navigate to the new active tab
+      const newPath = newActiveTab === 'home' ? '/' : `/${newActiveTab}`
+      router.push(newPath, { scroll: false })
+      setActiveTab(newActiveTab)
+    }
+  }, [activeTab, router])
+
+  // Restore tabs from sessionStorage after mount to prevent hydration mismatch
+  useEffect(() => {
+    setIsMounted(true)
+
+    // Restore open tabs from sessionStorage
+    const storedTabs = sessionStorage.getItem('openTabs')
+    if (storedTabs) {
+      try {
+        const parsedTabs = JSON.parse(storedTabs) as ClosableTabKey[]
+        setOpenTabs(parsedTabs)
+        openTabsRef.current = parsedTabs
+      } catch (e) {
+        // Failed to parse openTabs from sessionStorage
       }
+    }
 
-      const filteredTabs = tabs.filter((key) => key !== pageKey)
+    // Restore student profile tabs from sessionStorage
+    const storedStudentTabs = sessionStorage.getItem('studentProfileTabs')
+    if (storedStudentTabs) {
+      try {
+        const parsedMap = new Map(JSON.parse(storedStudentTabs))
+        setStudentProfileTabs(parsedMap)
+        studentProfileTabsRef.current = parsedMap
+      } catch (e) {
+        // Failed to parse studentProfileTabs from sessionStorage
+      }
+    }
 
-      setActiveTab((currentActive) => {
-        if (currentActive !== pageKey) {
-          return currentActive
-        }
-
-        const closingIndex = tabs.indexOf(pageKey)
-        return (
-          filteredTabs[closingIndex - 1] ??
-          filteredTabs[closingIndex] ??
-          (filteredTabs.length > 0 ? filteredTabs[filteredTabs.length - 1] : newTabConfig.key)
-        )
-      })
-
-      openTabsRef.current = filteredTabs // Update ref when closing tabs
-      sessionStorage.setItem('openTabs', JSON.stringify(filteredTabs)) // Persist to sessionStorage
-      return filteredTabs
-    })
+    // Restore classroom tabs from sessionStorage
+    const storedClassroomTabs = sessionStorage.getItem('classroomTabs')
+    if (storedClassroomTabs) {
+      try {
+        const parsedMap = new Map(JSON.parse(storedClassroomTabs))
+        setClassroomTabs(parsedMap)
+        classroomTabsRef.current = parsedMap
+      } catch (e) {
+        // Failed to parse classroomTabs from sessionStorage
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   // Measure tab container width
@@ -649,6 +939,7 @@ export default function Home() {
 
   const handleNewTab = () => {
     setActiveTab(newTabConfig.key)
+    router.push('/new-tab', { scroll: false })
   }
 
   const handleAssistantButtonClick = useCallback(() => {
@@ -770,8 +1061,9 @@ export default function Home() {
               <SidebarTrigger className="size-7 shrink-0" />
             </div>
             <SidebarGroupContent>
+              {/* Main navigation items */}
               <SidebarMenu>
-                {primaryPages.slice(0, 3).map((page) => {
+                {primaryPages.slice(0, 4).map((page) => {
                   const Icon = page.icon
 
                   return (
@@ -780,7 +1072,8 @@ export default function Home() {
                         tooltip={page.tooltip}
                         isActive={
                           activeTab === page.key ||
-                          (page.key === 'classroom' && typeof activeTab === 'string' && activeTab.startsWith('classroom/'))
+                          (page.key === 'classroom' && typeof activeTab === 'string' && activeTab.startsWith('classroom/')) ||
+                          (page.key === 'home' && activeTab === 'pulse')
                         }
                         onClick={() => handleNavigate(page.key)}
                         type="button"
@@ -792,9 +1085,15 @@ export default function Home() {
                   )
                 })}
               </SidebarMenu>
+
               <SidebarSeparator className="mx-0 my-2 w-full" />
+
+              {/* School management section */}
+              <SidebarGroupLabel className="mb-2">
+                School management
+              </SidebarGroupLabel>
               <SidebarMenu>
-                {primaryPages.slice(3).map((page) => {
+                {primaryPages.slice(4, 6).map((page) => {
                   const Icon = page.icon
 
                   return (
@@ -803,7 +1102,68 @@ export default function Home() {
                         tooltip={page.tooltip}
                         isActive={
                           activeTab === page.key ||
-                          (page.key === 'classroom' && typeof activeTab === 'string' && activeTab.startsWith('classroom/'))
+                          (page.key === 'classroom' && typeof activeTab === 'string' && activeTab.startsWith('classroom/')) ||
+                          (page.key === 'home' && activeTab === 'pulse')
+                        }
+                        onClick={() => handleNavigate(page.key)}
+                        type="button"
+                      >
+                        <Icon className="size-4" />
+                        <span>{page.label}</span>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  )
+                })}
+              </SidebarMenu>
+
+              <SidebarSeparator className="mx-0 my-2 w-full" />
+
+              {/* Growth section */}
+              <SidebarGroupLabel className="mb-2">
+                Growth
+              </SidebarGroupLabel>
+              <SidebarMenu>
+                {primaryPages.slice(6, 8).map((page) => {
+                  const Icon = page.icon
+
+                  return (
+                    <SidebarMenuItem key={page.key}>
+                      <SidebarMenuButton
+                        tooltip={page.tooltip}
+                        isActive={
+                          activeTab === page.key ||
+                          (page.key === 'classroom' && typeof activeTab === 'string' && activeTab.startsWith('classroom/')) ||
+                          (page.key === 'home' && activeTab === 'pulse')
+                        }
+                        onClick={() => handleNavigate(page.key)}
+                        type="button"
+                      >
+                        <Icon className="size-4" />
+                        <span>{page.label}</span>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  )
+                })}
+              </SidebarMenu>
+
+              <SidebarSeparator className="mx-0 my-2 w-full" />
+
+              {/* More section */}
+              <SidebarGroupLabel className="mb-2">
+                More
+              </SidebarGroupLabel>
+              <SidebarMenu>
+                {primaryPages.slice(8).map((page) => {
+                  const Icon = page.icon
+
+                  return (
+                    <SidebarMenuItem key={page.key}>
+                      <SidebarMenuButton
+                        tooltip={page.tooltip}
+                        isActive={
+                          activeTab === page.key ||
+                          (page.key === 'classroom' && typeof activeTab === 'string' && activeTab.startsWith('classroom/')) ||
+                          (page.key === 'home' && activeTab === 'pulse')
                         }
                         onClick={() => handleNavigate(page.key)}
                         type="button"
@@ -872,25 +1232,33 @@ export default function Home() {
         <div className="flex flex-1 flex-col">
           <div className="sticky top-0 z-20 overflow-hidden rounded-t-2xl bg-background">
             <div className="border-b border-border/70 bg-muted/20 px-4 backdrop-blur-sm">
-              <div ref={tabContainerRef} className="flex items-center gap-2 py-2">
-                <div className="flex items-center gap-2">
+              <div ref={tabContainerRef} className="flex items-center gap-2 py-2" suppressHydrationWarning>
+                <div className="flex items-center gap-2" suppressHydrationWarning>
                 <TooltipProvider delayDuration={150}>
                       {visibleTabs.map((tabKey, index) => {
                     const tab = tabConfigMap[tabKey as keyof typeof tabConfigMap]
                     const isStudentProfile = typeof tabKey === 'string' && tabKey.startsWith('student-')
                     const isClassroom = typeof tabKey === 'string' && tabKey.startsWith('classroom/')
+                    const isHomeChild = typeof tabKey === 'string' && tabKey === 'pulse'
                     const studentName = isStudentProfile ? studentProfileTabs.get(tabKey) : undefined
-                    const classroomPath = isClassroom ? classroomTabs.get(tabKey) : undefined
+                    let classroomPath = isClassroom ? classroomTabs.get(tabKey) : undefined
+                    // Fallback: derive classroomPath from tabKey if not in map
+                    if (isClassroom && !classroomPath && typeof tabKey === 'string') {
+                      classroomPath = tabKey.replace('classroom/', '')
+                    }
 
-                    if (!tab && !isStudentProfile && !isClassroom) {
+                    if (!tab && !isStudentProfile && !isClassroom && !isHomeChild) {
                       return null
                     }
 
-                    const Icon = tab?.icon ?? (isClassroom ? Users : User)
+                    const Icon = tab?.icon ?? (isClassroom ? Users : isHomeChild ? Zap : User)
 
-                    // Parse classroom tab labels
+                    // Parse tab labels - show child page label
                     let label = ''
-                    if (isStudentProfile) {
+                    if (tabKey === 'pulse') {
+                      // Pulse is a child of Home, show "Pulse" in the tab
+                      label = 'Pulse'
+                    } else if (isStudentProfile) {
                       label = studentName ?? 'Student'
                     } else if (isClassroom && classroomPath) {
                       const parts = classroomPath.split('/')
@@ -899,7 +1267,16 @@ export default function Home() {
                       const className = classId.replace('class-', '').toUpperCase()
                       if (classroomPath.includes('/student/')) {
                         // classroom/{classId}/student/{studentSlug} -> show student name
-                        label = studentProfileTabs.get(tabKey) ?? 'Student'
+                        let studentNameFromMap = studentProfileTabs.get(tabKey)
+                        // Fallback: derive from URL if not in map
+                        if (!studentNameFromMap && typeof tabKey === 'string') {
+                          const segments = tabKey.split('/')
+                          if (segments.length >= 4 && segments[2] === 'student') {
+                            const studentSlug = segments[3]
+                            studentNameFromMap = studentSlug.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
+                          }
+                        }
+                        label = studentNameFromMap ?? 'Student'
                       } else if (classroomPath.includes('/students')) {
                         // classroom/{classId}/students
                         label = `Class ${className} Students`
@@ -920,16 +1297,19 @@ export default function Home() {
                     const showIndicatorLeft = isDragOver && draggedIndex > index
                     const showIndicatorRight = isDragOver && draggedIndex < index
                     
-                    // Calculate dynamic tab width based on available space
+                    // Use stable tab width to avoid hydration mismatch
+                    // Default to 9rem during SSR/initial render
                     const tabCount = visibleTabs.length
-                    const maxTabWidth = tabCount <= 2 ? '12rem' : tabCount <= 4 ? '9rem' : tabCount <= 6 ? '7.5rem' : '6.5rem'
+                    const maxTabWidth = isMounted
+                      ? (tabCount <= 2 ? '12rem' : tabCount <= 4 ? '9rem' : tabCount <= 6 ? '7.5rem' : '6.5rem')
+                      : '9rem'
 
                     return (
                       <button
                         key={tabKey}
                         type="button"
-                        data-tab-item
-                        draggable
+                        data-tab-item={true}
+                        draggable={true}
                         onDragStart={(e) => handleDragStart(e, tabKey)}
                         onDragEnd={handleDragEnd}
                         onDragOver={(e) => handleDragOver(e, tabKey)}
@@ -1089,15 +1469,39 @@ export default function Home() {
                         type="button"
                         onClick={handleNewTab}
                         className={cn(
-                          'flex h-9 items-center rounded-md transition-colors',
+                          'group relative flex h-9 items-center rounded-md transition-colors',
                           isNewTabActive
-                            ? 'gap-2 px-3 py-1.5 text-sm bg-background text-foreground shadow-sm ring-1 ring-border'
+                            ? 'gap-2 px-3 py-1.5 text-sm bg-background text-foreground shadow-sm ring-1 ring-border min-w-[4rem]'
                             : 'w-9 justify-center text-muted-foreground hover:bg-accent hover:text-foreground',
                         )}
                         aria-label="Open new tab"
                       >
                         <Plus className="size-4" />
-                        {isNewTabActive && <span className="truncate">{newTabConfig.label}</span>}
+                        {isNewTabActive && <span className="truncate flex-1 min-w-0">{newTabConfig.label}</span>}
+                        {isNewTabActive && (
+                          <div
+                            role="button"
+                            tabIndex={0}
+                            onClick={(event) => {
+                              event.stopPropagation()
+                              handleCloseTab(newTabConfig.key)
+                            }}
+                            onKeyDown={(event) => {
+                              if (event.key === 'Enter' || event.key === ' ') {
+                                event.preventDefault()
+                                event.stopPropagation()
+                                handleCloseTab(newTabConfig.key)
+                              }
+                            }}
+                            className={cn(
+                              "absolute right-1 flex size-6 items-center justify-center rounded opacity-0 transition-opacity group-hover:opacity-100 z-10",
+                              "text-muted-foreground/80 hover:text-foreground focus-visible:text-foreground bg-background/95 rounded-md"
+                            )}
+                            aria-label="Close New Tab"
+                          >
+                            <X className="size-3.5" />
+                          </div>
+                        )}
                       </button>
                     </TooltipTrigger>
                     <TooltipContent side="bottom">New Tab</TooltipContent>
@@ -1124,7 +1528,7 @@ export default function Home() {
             </div>
             <div className="flex flex-col border-b bg-background">
               {/* Page Header */}
-              <div className="flex h-16 items-center gap-3 px-6">
+              <div className="flex h-16 items-center gap-3 px-4">
                 <SidebarTrigger className="md:hidden" />
                 <div className="hidden flex-1 md:flex items-center">
                   {/* Breadcrumbs */}
@@ -1138,6 +1542,42 @@ export default function Home() {
                     <>
                       {pageActions.map((action, index) => {
                         const Icon = action.icon
+
+                        // Render dropdown if action has dropdown items
+                        if (action.isDropdown && action.dropdownItems) {
+                          return (
+                            <DropdownMenu key={index}>
+                              <DropdownMenuTrigger asChild>
+                                <Button
+                                  size="sm"
+                                  variant={action.variant || 'outline'}
+                                  className="hidden sm:flex"
+                                >
+                                  <Icon className="mr-1.5 h-4 w-4" />
+                                  {action.label}
+                                  <ChevronDown className="ml-1.5 h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                {action.dropdownItems.map((item, itemIndex) => {
+                                  const ItemIcon = item.icon
+                                  return (
+                                    <DropdownMenuItem
+                                      key={itemIndex}
+                                      onClick={item.onClick}
+                                      disabled={item.disabled}
+                                    >
+                                      {ItemIcon && <ItemIcon className="mr-2 h-4 w-4" />}
+                                      {item.label}
+                                    </DropdownMenuItem>
+                                  )
+                                })}
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          )
+                        }
+
+                        // Regular button
                         return (
                           <Button
                             key={index}
@@ -1169,7 +1609,7 @@ export default function Home() {
             <div
                 className={cn(
                   'flex flex-1 flex-col overflow-y-auto',
-                  activeTab === 'roundup' ? '' : 'px-8 py-10',
+                  activeTab === 'pulse' || activeTab === 'home' ? '' : 'px-8 py-10',
                 )}
               >
                 {isAssistantTabActive ? (
@@ -1188,15 +1628,16 @@ export default function Home() {
                       <AssistantBody showHeading={false} onStudentClick={handleOpenStudentProfile} />
                     )}
                   </div>
+                ) : activeTab === 'pulse' ? (
+                  <PulseContent onPrepForMeeting={() => handleNavigate('classroom')} />
                 ) : isHomeActive ? (
                   <HomeContent
                     onNavigateToClassroom={() => handleNavigate('classroom')}
                     onNavigateToExplore={() => handleNavigate('explore')}
+                    onNavigateToPulse={() => handleNavigate('pulse', true)}
                     onAssistantMessage={handleAssistantMessage}
                     onStudentClick={handleOpenStudentProfile}
                   />
-                ) : activeTab === 'roundup' ? (
-                  <RoundupContent onPrepForMeeting={() => handleNavigate('classroom')} />
                 ) : activeTab === 'explore' ? (
                   <ExploreContent onAppClick={(appKey) => handleNavigate(appKey as ClosableTabKey)} />
                 ) : activeTab === 'classroom' ? (
@@ -1209,7 +1650,16 @@ export default function Home() {
                     const classroomPath = classroomTabs.get(activeTab)
                     const parts = classroomPath?.split('/') ?? []
                     const classId = parts[0]
-                    const studentName = studentProfileTabs.get(activeTab)
+                    let studentName = studentProfileTabs.get(activeTab)
+
+                    // Fallback: derive student name from URL if not in map yet
+                    if (!studentName && typeof activeTab === 'string') {
+                      const segments = activeTab.split('/')
+                      if (segments.length >= 4 && segments[2] === 'student') {
+                        const studentSlug = segments[3]
+                        studentName = studentSlug.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
+                      }
+                    }
 
                     return (
                       <StudentProfile
@@ -1450,7 +1900,7 @@ export default function Home() {
                       <Button size="sm" onClick={() => handleNavigate('home')}>
                         Go Home
                       </Button>
-                      <Button size="sm" variant="outline" onClick={() => handleNavigate('roundup')}>
+                      <Button size="sm" variant="outline" onClick={() => handleNavigate('pulse')}>
                         Open Round-up
                       </Button>
                     </div>

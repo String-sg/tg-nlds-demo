@@ -16,6 +16,9 @@ export interface PageAction {
 interface PageLayoutProps {
   title: string
   subtitle?: React.ReactNode
+  titlePrefix?: React.ReactNode
+  titleSuffix?: React.ReactNode
+  headerContent?: React.ReactNode
   children: React.ReactNode
   className?: string
   headerClassName?: string
@@ -25,6 +28,9 @@ interface PageLayoutProps {
 export function PageLayout({
   title,
   subtitle,
+  titlePrefix,
+  titleSuffix,
+  headerContent,
   children,
   className,
   headerClassName,
@@ -38,13 +44,26 @@ export function PageLayout({
           <div className="px-6 py-4">
             <div className="mx-auto w-full max-w-5xl">
               <div className="flex items-center justify-between">
-                <div className="flex flex-col gap-1">
+                <div className="flex items-center gap-4">
+                  {/* Title Prefix (e.g., avatar) */}
+                  {titlePrefix}
+
                   {/* Title and Subtitle */}
-                  <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>
-                  {subtitle && (
-                    <div className="text-sm text-muted-foreground">{subtitle}</div>
-                  )}
+                  <div className="flex flex-col gap-1">
+                    <div className="flex items-center gap-2">
+                      <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>
+                      {/* Title Suffix (e.g., badge) */}
+                      {titleSuffix}
+                    </div>
+                    {subtitle && (
+                      <div className="text-sm text-muted-foreground">{subtitle}</div>
+                    )}
+                  </div>
                 </div>
+                {/* Additional Header Content */}
+                {headerContent && (
+                  <div>{headerContent}</div>
+                )}
               </div>
             </div>
           </div>
