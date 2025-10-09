@@ -16,6 +16,7 @@
 /playwright-report/
 playwright/.cache/
 test-fixes.js
+.playwright-mcp
 
 # next.js
 /.next/

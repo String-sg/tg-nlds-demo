@@ -1,53 +1,24 @@
 'use client'
 
-import { ArrowLeftIcon, MailIcon, PhoneIcon } from 'lucide-react'
+import { MailIcon, PhoneIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { CaseManagementTable } from '@/components/case-management-table'
-import { cn } from '@/lib/utils'
-
-// Helper function to get initials from name
-const getInitials = (name: string) => {
-  return name
-    .split(' ')
-    .map(word => word[0])
-    .slice(0, 2)
-    .join('')
-    .toUpperCase()
-}
-
-// Helper function to get consistent color for avatar based on name
-const getAvatarColor = (name: string) => {
-  const colors = [
-    'bg-blue-100 text-blue-700',
-    'bg-green-100 text-green-700',
-    'bg-yellow-100 text-yellow-700',
-    'bg-purple-100 text-purple-700',
-    'bg-pink-100 text-pink-700',
-    'bg-indigo-100 text-indigo-700',
-    'bg-red-100 text-red-700',
-    'bg-orange-100 text-orange-700',
-    'bg-teal-100 text-teal-700',
-    'bg-cyan-100 text-cyan-700',
-  ]
-
-  // Generate a consistent hash from the name
-  let hash = 0
-  for (let i = 0; i < name.length; i++) {
-    hash = name.charCodeAt(i) + ((hash << 5) - hash)
-  }
-
-  return colors[Math.abs(hash) % colors.length]
-}
+import { cn, getInitials, getAvatarColor } from '@/lib/utils'
+import { PageLayout } from '@/components/layout/page-layout'
 
 interface StudentProfileProps {
   studentName: string
   classId?: string
   onBack?: () => void
+  activeTab?: string
+  onNavigate?: (path: string, replaceTab?: boolean) => void
+  classroomTabs?: Map<string, string>
+  studentProfileTabs?: Map<string, string>
 }
 
-export function StudentProfile({ studentName, classId, onBack }: StudentProfileProps) {
+export function StudentProfile({ studentName, classId, onBack, activeTab, onNavigate, classroomTabs, studentProfileTabs }: StudentProfileProps) {
   // Mock student data - in a real app, this would be fetched based on studentName
   const student = {
     name: studentName,
@@ -117,71 +88,56 @@ export function StudentProfile({ studentName, classId, onBack }: StudentProfileP
     }
   }
 
-  return (
-    <div className="mx-auto w-full max-w-5xl space-y-6 pb-16">
-      {/* Header with back button */}
-      <div className="flex items-center gap-4 pt-4">
-        {onBack && (
-          <Button variant="ghost" size="sm" onClick={onBack} className="gap-2">
-            <ArrowLeftIcon className="h-4 w-4" />
-            Back
-          </Button>
-        )}
+
+  const avatar = (
+    <div className={cn(
+      'flex h-16 w-16 shrink-0 items-center justify-center rounded-full text-xl font-medium',
+      getAvatarColor(student.name)
+    )}>
+      {getInitials(student.name)}
+    </div>
+  )
+
+  const badge = student.status !== 'None' ? (
+    <span className={cn(
+      'inline-flex px-2.5 py-1 text-xs font-medium rounded-full border',
+      getStatusColor(student.status)
+    )}>
+      {student.status}
+    </span>
+  ) : null
+
+  const statsContent = (
+    <div className="flex items-center gap-8">
+      <div className="flex flex-col items-center gap-1">
+        <span className="text-xs text-stone-500">Attendance</span>
+        <span className="text-lg font-semibold text-stone-900">{student.attendance}%</span>
       </div>
+      <div className="flex flex-col items-center gap-1">
+        <span className="text-xs text-stone-500">English</span>
+        <span className="text-lg font-semibold text-stone-900">{student.english}</span>
+      </div>
+      <div className="flex flex-col items-center gap-1">
+        <span className="text-xs text-stone-500">Math</span>
+        <span className="text-lg font-semibold text-stone-900">{student.math}</span>
+      </div>
+      <div className="flex flex-col items-center gap-1">
+        <span className="text-xs text-stone-500">Science</span>
+        <span className="text-lg font-semibold text-stone-900">{student.science}</span>
+      </div>
+    </div>
+  )
 
-      {/* Student Info Header */}
-      <Card className="border-stone-200">
-        <CardContent className="pt-6">
-          <div className="flex flex-col gap-6 md:flex-row md:items-start">
-            {/* Avatar and basic info */}
-            <div className="flex items-start gap-4">
-              <div className={cn(
-                'flex h-20 w-20 shrink-0 items-center justify-center rounded-full text-2xl font-medium',
-                getAvatarColor(student.name)
-              )}>
-                {getInitials(student.name)}
-              </div>
-              <div className="flex flex-col gap-2">
-                <div className="flex items-center gap-2">
-                  <h1 className="text-2xl font-semibold text-stone-900">{student.name}</h1>
-                  {student.status !== 'None' && (
-                    <span className={cn(
-                      'inline-flex px-2.5 py-1 text-xs font-medium rounded-full border',
-                      getStatusColor(student.status)
-                    )}>
-                      {student.status}
-                    </span>
-                  )}
-                </div>
-                <div className="flex flex-col gap-1 text-sm text-stone-600">
-                  <p>Student ID: {student.id}</p>
-                  <p>Class: {student.class}</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Quick stats */}
-            <div className="ml-auto grid grid-cols-2 gap-4 md:grid-cols-4">
-              <div className="flex flex-col gap-1">
-                <span className="text-xs text-stone-500">Attendance</span>
-                <span className="text-lg font-semibold text-stone-900">{student.attendance}%</span>
-              </div>
-              <div className="flex flex-col gap-1">
-                <span className="text-xs text-stone-500">English</span>
-                <span className="text-lg font-semibold text-stone-900">{student.english}</span>
-              </div>
-              <div className="flex flex-col gap-1">
-                <span className="text-xs text-stone-500">Math</span>
-                <span className="text-lg font-semibold text-stone-900">{student.math}</span>
-              </div>
-              <div className="flex flex-col gap-1">
-                <span className="text-xs text-stone-500">Science</span>
-                <span className="text-lg font-semibold text-stone-900">{student.science}</span>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+  return (
+    <PageLayout
+      title={student.name}
+      subtitle={`Student ID: ${student.id} • Class: ${student.class}`}
+      titlePrefix={avatar}
+      titleSuffix={badge}
+      headerContent={statsContent}
+      contentClassName="px-6 py-6"
+    >
+      <div className="mx-auto w-full max-w-5xl space-y-6 pb-16">
 
       {/* Tabs Navigation */}
       <Tabs defaultValue="overview" className="w-full">
@@ -424,6 +380,7 @@ export function StudentProfile({ studentName, classId, onBack }: StudentProfileP
           <CaseManagementTable studentFilter={student.name} />
         </TabsContent>
       </Tabs>
-    </div>
+      </div>
+    </PageLayout>
   )
 }

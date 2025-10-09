@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { ArrowLeftIcon, ChevronDownIcon, MoreHorizontalIcon, SearchIcon } from 'lucide-react'
+import { ChevronDownIcon, MoreHorizontalIcon, SearchIcon } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Button } from '@/components/ui/button'
@@ -21,50 +21,21 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { getClassById, getStudentsByClassId } from '@/lib/mock-data/classroom-data'
+import { getInitials, getAvatarColor } from '@/lib/utils'
+import { PageLayout } from '@/components/layout/page-layout'
 
 interface StudentListProps {
   classId: string
   onBack?: () => void
   onStudentClick?: (studentName: string) => void
-}
-
-// Helper function to get initials from name
-const getInitials = (name: string) => {
-  return name
-    .split(' ')
-    .map(word => word[0])
-    .slice(0, 2)
-    .join('')
-    .toUpperCase()
-}
-
-// Helper function to get consistent color for avatar based on name
-const getAvatarColor = (name: string) => {
-  const colors = [
-    'bg-blue-100 text-blue-700',
-    'bg-green-100 text-green-700',
-    'bg-yellow-100 text-yellow-700',
-    'bg-purple-100 text-purple-700',
-    'bg-pink-100 text-pink-700',
-    'bg-indigo-100 text-indigo-700',
-    'bg-red-100 text-red-700',
-    'bg-orange-100 text-orange-700',
-    'bg-teal-100 text-teal-700',
-    'bg-cyan-100 text-cyan-700',
-  ]
-
-  let hash = 0
-  for (let i = 0; i < name.length; i++) {
-    hash = name.charCodeAt(i) + ((hash << 5) - hash)
-  }
-
-  return colors[Math.abs(hash) % colors.length]
+  onNavigate?: (path: string, replaceTab?: boolean) => void
+  classroomTabs?: Map<string, string>
 }
 
 type SortField = 'attendance_rate' | 'name' | 'english' | 'math' | 'science' | 'conduct_grade'
 type SortOrder = 'asc' | 'desc'
 
-export function StudentList({ classId, onBack, onStudentClick }: StudentListProps) {
+export function StudentList({ classId, onBack, onStudentClick, onNavigate, classroomTabs }: StudentListProps) {
   const classData = getClassById(classId)
   const students = getStudentsByClassId(classId)
 
@@ -163,24 +134,14 @@ export function StudentList({ classId, onBack, onStudentClick }: StudentListProp
     }
   }
 
-  return (
-    <div className="mx-auto w-full max-w-6xl space-y-6">
-      {/* Header */}
-      {onBack && (
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="sm" className="gap-2" onClick={onBack}>
-            <ArrowLeftIcon className="h-4 w-4" />
-            Back to Class Overview
-          </Button>
-        </div>
-      )}
 
-      <div>
-        <h1 className="text-2xl font-semibold text-stone-900">Students</h1>
-        <p className="text-sm text-stone-600 mt-1">
-          Class {classData.class_name} · {classData.subject}
-        </p>
-      </div>
+  return (
+    <PageLayout
+      title="Students"
+      subtitle={`Class ${classData.class_name} · ${classData.subject}`}
+      contentClassName="px-6 py-6"
+    >
+      <div className="mx-auto w-full max-w-6xl space-y-6">
 
       {/* Students Table */}
       <Card className="border-stone-200">
@@ -310,6 +271,7 @@ export function StudentList({ classId, onBack, onStudentClick }: StudentListProp
           </Table>
         </CardContent>
       </Card>
-    </div>
+      </div>
+    </PageLayout>
   )
 }

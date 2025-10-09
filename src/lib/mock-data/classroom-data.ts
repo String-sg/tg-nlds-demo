@@ -2,6 +2,7 @@
 import type {
   User,
   Class,
+  CCAClass,
   Student,
   AttendanceRecord,
   ClassAlert,
@@ -18,7 +19,7 @@ export const currentUser: User = {
   department: 'Mathematics',
   classes_assigned: ['class-5a', 'class-6b', 'class-7a'],
   form_class_id: 'class-5a',
-  cca_classes: ['cca-math-club'],
+  cca_classes: ['cca-math-club', 'cca-robotics'],
   avatar: 'DT',
 }
 
@@ -73,6 +74,34 @@ export const mockClasses: Class[] = [
     academic_year: '2025',
     is_form_class: false,
     student_count: 30,
+  },
+]
+
+// Mock CCA Classes
+export const mockCCAClasses: CCAClass[] = [
+  {
+    cca_id: 'cca-math-club',
+    name: 'Math Olympiad Club',
+    type: 'Clubs',
+    teacher_in_charge: 'teacher-001',
+    members: ['student-001', 'student-003', 'student-005', 'student-007', 'student-009',
+              'student-011', 'student-013', 'student-015', 'student-017', 'student-019',
+              'student-021', 'student-023'],
+    schedule: [
+      { day: 'Thursday', start_time: '15:00', end_time: '17:00', location: 'Math Lab' },
+    ],
+  },
+  {
+    cca_id: 'cca-robotics',
+    name: 'Robotics Club',
+    type: 'Clubs',
+    teacher_in_charge: 'teacher-001',
+    members: ['student-002', 'student-004', 'student-006', 'student-008', 'student-010',
+              'student-012', 'student-014', 'student-016', 'student-018', 'student-020'],
+    schedule: [
+      { day: 'Tuesday', start_time: '15:00', end_time: '17:00', location: 'Computer Lab 2' },
+      { day: 'Friday', start_time: '14:00', end_time: '16:00', location: 'Computer Lab 2' },
+    ],
   },
 ]
 

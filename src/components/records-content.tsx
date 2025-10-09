@@ -42,7 +42,7 @@ export function RecordsContent() {
       </div>
 
       {/* Tab Content */}
-      <div className="mx-auto w-full max-w-6xl space-y-6 pb-16 pt-6">
+      <div className="mx-auto w-full max-w-5xl space-y-6 pb-16 pt-6">
         {activeTab === 'attendance' && (
           <div className="rounded-lg border border-stone-200 bg-white p-8 text-center">
             <p className="text-stone-500">Attendance records coming soon</p>

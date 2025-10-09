@@ -4,11 +4,11 @@ import { useEffect, useRef, useState } from 'react'
 import { SparklesIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
-interface RoundupContentProps {
+interface PulseContentProps {
   onPrepForMeeting?: () => void
 }
 
-interface RoundupItem {
+interface PulseItem {
   id: string
   badge: string
   title: string
@@ -22,7 +22,7 @@ interface RoundupItem {
   }[]
 }
 
-const mockRoundupItems: RoundupItem[] = [
+const mockPulseItems: PulseItem[] = [
   {
     id: '1',
     badge: 'Parents Engagement',
@@ -58,7 +58,7 @@ const mockRoundupItems: RoundupItem[] = [
   },
 ]
 
-export function RoundupContent({ onPrepForMeeting }: RoundupContentProps) {
+export function PulseContent({ onPrepForMeeting }: PulseContentProps) {
   const [currentIndex, setCurrentIndex] = useState(0)
   const visualGap = 24
   const scaleStep = 0.035
@@ -66,7 +66,7 @@ export function RoundupContent({ onPrepForMeeting }: RoundupContentProps) {
   const isScrollingRef = useRef(false)
 
   // Update the first roundup item's action onClick
-  const roundupItems = mockRoundupItems.map((item) => {
+  const roundupItems = mockPulseItems.map((item) => {
     if (item.id === '1') {
       return {
         ...item,
@@ -91,7 +91,7 @@ export function RoundupContent({ onPrepForMeeting }: RoundupContentProps) {
       // Detect scroll direction
       if (e.deltaY > 0) {
         // Scroll down - next card
-        if (currentIndex < mockRoundupItems.length - 1) {
+        if (currentIndex < mockPulseItems.length - 1) {
           isScrollingRef.current = true
           setCurrentIndex((prev) => prev + 1)
           setTimeout(() => {
@@ -157,7 +157,7 @@ export function RoundupContent({ onPrepForMeeting }: RoundupContentProps) {
       <div className="absolute left-1/2 top-8 z-50 -translate-x-1/2">
         <div className="rounded-md bg-stone-100 px-2.5 py-0.5">
           <span className="text-xs font-semibold text-stone-900">
-            {mockRoundupItems.length - currentIndex} left
+            {mockPulseItems.length - currentIndex} left
           </span>
         </div>
       </div>
@@ -231,7 +231,7 @@ export function RoundupContent({ onPrepForMeeting }: RoundupContentProps) {
           size="sm"
           className="h-9 rounded-xl border-stone-300 px-4 py-2 text-sm font-medium text-stone-800"
           onClick={() => {
-            if (currentIndex < mockRoundupItems.length - 1) {
+            if (currentIndex < mockPulseItems.length - 1) {
               setCurrentIndex((prev) => prev + 1)
             }
           }}
@@ -243,7 +243,7 @@ export function RoundupContent({ onPrepForMeeting }: RoundupContentProps) {
           size="sm"
           className="h-9 rounded-xl bg-zinc-900 px-4 py-2 text-sm font-medium text-neutral-50 hover:bg-zinc-800"
           onClick={() => {
-            if (currentIndex < mockRoundupItems.length - 1) {
+            if (currentIndex < mockPulseItems.length - 1) {
               setCurrentIndex((prev) => prev + 1)
             }
           }}
