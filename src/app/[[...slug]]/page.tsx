@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useLayoutEffect, useRef, useState, useMemo, memo, lazy, Suspense } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 
 import type { LucideIcon } from 'lucide-react'
@@ -296,6 +296,374 @@ const tabConfigMap: Partial<Record<TabKey, TabConfig>> = {
   [assistantTabConfig.key]: assistantTabConfig,
 }
 
+// Memoized tab content component to prevent unnecessary re-renders
+const TabContent = memo(function TabContent({
+  activeTab,
+  slug,
+  isAssistantTabActive,
+  assistantMode,
+  isAssistantOpen,
+  isHomeActive,
+  currentState,
+  ActiveIcon,
+  isProfileActive,
+  classroomTabs,
+  studentProfileTabs,
+  handleNavigate,
+  handleOpenStudentProfile,
+  handleOpenClassroom,
+  handleOpenConversation,
+  handleCloseTab,
+  handleAssistantMessage,
+  handleOpenStudentFromClass,
+  handleOpenGrades,
+  setIsAssistantOpen,
+  handleAssistantModeChange,
+  setClassroomTabs,
+  setOpenTabs,
+  openTabsRef,
+  router: routerProp,
+}: {
+  activeTab: TabKey
+  slug?: string[] | undefined
+  isAssistantTabActive: boolean
+  assistantMode: AssistantMode
+  isAssistantOpen: boolean
+  isHomeActive: boolean
+  currentState: EmptyState | undefined
+  ActiveIcon: LucideIcon | undefined
+  isProfileActive: boolean
+  classroomTabs: Map<string, string>
+  studentProfileTabs: Map<string, string>
+  handleNavigate: (tab: ClosableTabKey, replaceParent?: boolean) => void
+  handleOpenStudentProfile: (studentName: string) => void
+  handleOpenClassroom: (classId: string) => void
+  handleOpenConversation: (conversationId: string) => void
+  handleCloseTab: (tab: TabKey) => void
+  handleAssistantMessage: (message: string) => void
+  handleOpenStudentFromClass: (classId: string, studentName: string) => void
+  handleOpenGrades: (classId: string) => void
+  setIsAssistantOpen: (open: boolean) => void
+  handleAssistantModeChange: (mode: AssistantMode | 'full') => void
+  setClassroomTabs: React.Dispatch<React.SetStateAction<Map<string, string>>>
+  setOpenTabs: React.Dispatch<React.SetStateAction<ClosableTabKey[]>>
+  openTabsRef: React.MutableRefObject<ClosableTabKey[]>
+  router: ReturnType<typeof useRouter>
+}) {
+  // Only render content for the active tab
+  if (isAssistantTabActive) {
+    return (
+      <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-6">
+        {assistantMode === 'sidebar' ? (
+          <AssistantPanel
+            mode="sidebar"
+            isOpen
+            onOpenChange={setIsAssistantOpen}
+            onModeChange={handleAssistantModeChange}
+            showBodyHeading={false}
+            showHeaderControls={false}
+            onStudentClick={handleOpenStudentProfile}
+          />
+        ) : (
+          <AssistantBody showHeading={false} onStudentClick={handleOpenStudentProfile} />
+        )}
+      </div>
+    )
+  }
+
+  if (activeTab === 'pulse') {
+    return <PulseContent onPrepForMeeting={() => handleNavigate('classroom')} />
+  }
+
+  if (isHomeActive) {
+    return (
+      <HomeContent
+        onNavigateToClassroom={() => handleNavigate('classroom')}
+        onNavigateToExplore={() => handleNavigate('explore')}
+        onNavigateToPulse={() => handleNavigate('pulse', true)}
+        onAssistantMessage={handleAssistantMessage}
+        onStudentClick={handleOpenStudentProfile}
+      />
+    )
+  }
+
+  if (activeTab === 'explore') {
+    return <ExploreContent onAppClick={(appKey) => handleNavigate(appKey as ClosableTabKey)} />
+  }
+
+  if (activeTab === 'classroom') {
+    return <MyClasses onClassClick={handleOpenClassroom} />
+  }
+
+  if (activeTab === 'records') {
+    return <RecordsContent />
+  }
+
+  if (activeTab === 'inbox') {
+    const conversationId = slug && slug.length > 1 && slug[0] === 'inbox' ? slug[1] : undefined
+    return (
+      <InboxContent
+        conversationId={conversationId}
+        onConversationClick={handleOpenConversation}
+      />
+    )
+  }
+
+  if (typeof activeTab === 'string' && activeTab.startsWith('classroom/') && activeTab.includes('/student/')) {
+    const classroomPath = classroomTabs.get(activeTab)
+    const parts = classroomPath?.split('/') ?? []
+    const classId = parts[0]
+    let studentName = studentProfileTabs.get(activeTab)
+
+    if (!studentName && typeof activeTab === 'string') {
+      const segments = activeTab.split('/')
+      if (segments.length >= 4 && segments[2] === 'student') {
+        const studentSlug = segments[3]
+        studentName = studentSlug.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
+      }
+    }
+
+    return (
+      <StudentProfile
+        studentName={studentName ?? 'Unknown Student'}
+        classId={classId}
+        activeTab={activeTab}
+        onNavigate={(path, replace) => handleNavigate(path as ClosableTabKey, replace)}
+        classroomTabs={classroomTabs}
+        studentProfileTabs={studentProfileTabs}
+        onBack={() => {
+          if (classId) {
+            const parentTabKey = `classroom/${classId}` as ClassroomTabKey
+            setClassroomTabs((prev) => {
+              const updated = new Map(prev)
+              updated.set(parentTabKey, classId)
+              return updated
+            })
+            setOpenTabs((tabs) => {
+              const currentIndex = tabs.indexOf(activeTab as ClosableTabKey)
+              const filteredTabs = tabs.filter((key) => key !== activeTab && key !== parentTabKey)
+              if (currentIndex !== -1) {
+                filteredTabs.splice(currentIndex, 0, parentTabKey)
+              } else {
+                filteredTabs.push(parentTabKey)
+              }
+              openTabsRef.current = filteredTabs
+              return filteredTabs
+            })
+            routerProp.push(`/classroom/${classId}`, { scroll: false })
+          }
+        }}
+      />
+    )
+  }
+
+  if (typeof activeTab === 'string' && activeTab.startsWith('classroom/') && activeTab.includes('/students')) {
+    const classroomPath = classroomTabs.get(activeTab)
+    const parts = classroomPath?.split('/') ?? []
+    const classId = parts[0]
+    return (
+      <StudentList
+        classId={classId}
+        onNavigate={(path, replace) => handleNavigate(path as ClosableTabKey, replace)}
+        classroomTabs={classroomTabs}
+        onBack={() => {
+          if (classId) {
+            const parentTabKey = `classroom/${classId}` as ClassroomTabKey
+            setClassroomTabs((prev) => {
+              const updated = new Map(prev)
+              updated.set(parentTabKey, classId)
+              return updated
+            })
+            setOpenTabs((tabs) => {
+              const currentIndex = tabs.indexOf(activeTab as ClosableTabKey)
+              const filteredTabs = tabs.filter((key) => key !== activeTab && key !== parentTabKey)
+              if (currentIndex !== -1) {
+                filteredTabs.splice(currentIndex, 0, parentTabKey)
+              } else {
+                filteredTabs.push(parentTabKey)
+              }
+              openTabsRef.current = filteredTabs
+              return filteredTabs
+            })
+            routerProp.push(`/classroom/${classId}`, { scroll: false })
+          }
+        }}
+        onStudentClick={(studentName) => handleOpenStudentFromClass(classId, studentName)}
+      />
+    )
+  }
+
+  if (typeof activeTab === 'string' && activeTab.startsWith('classroom/') && activeTab.includes('/grades')) {
+    const classroomPath = classroomTabs.get(activeTab)
+    const parts = classroomPath?.split('/') ?? []
+    const classId = parts[0]
+    return (
+      <GradeEntry
+        classId={classId}
+        onNavigate={(path, replace) => handleNavigate(path as ClosableTabKey, replace)}
+        classroomTabs={classroomTabs}
+        onBack={() => {
+          if (classId) {
+            const parentTabKey = `classroom/${classId}` as ClassroomTabKey
+            setClassroomTabs((prev) => {
+              const updated = new Map(prev)
+              updated.set(parentTabKey, classId)
+              return updated
+            })
+            setOpenTabs((tabs) => {
+              const currentIndex = tabs.indexOf(activeTab as ClosableTabKey)
+              const filteredTabs = tabs.filter((key) => key !== activeTab && key !== parentTabKey)
+              if (currentIndex !== -1) {
+                filteredTabs.splice(currentIndex, 0, parentTabKey)
+              } else {
+                filteredTabs.push(parentTabKey)
+              }
+              openTabsRef.current = filteredTabs
+              return filteredTabs
+            })
+            routerProp.push(`/classroom/${classId}`, { scroll: false })
+          }
+        }}
+      />
+    )
+  }
+
+  if (typeof activeTab === 'string' && activeTab.startsWith('classroom/')) {
+    const classroomPath = classroomTabs.get(activeTab)
+    const classId = classroomPath ?? activeTab.replace('classroom/', '')
+    return (
+      <ClassOverview
+        classId={classId}
+        onBack={() => {
+          setOpenTabs((tabs) => {
+            const currentIndex = tabs.indexOf(activeTab as ClosableTabKey)
+            const filteredTabs = tabs.filter((key) => key !== activeTab && key !== 'classroom')
+            if (currentIndex !== -1) {
+              filteredTabs.splice(currentIndex, 0, 'classroom')
+            } else {
+              filteredTabs.push('classroom')
+            }
+            openTabsRef.current = filteredTabs
+            return filteredTabs
+          })
+          routerProp.push('/classroom', { scroll: false })
+        }}
+        onNavigateToGrades={handleOpenGrades}
+        onStudentClick={(studentName) => handleOpenStudentFromClass(classId, studentName)}
+        onNavigate={(path, replace) => handleNavigate(path as ClosableTabKey, replace)}
+        classroomTabs={classroomTabs}
+      />
+    )
+  }
+
+  if (typeof activeTab === 'string' && activeTab.startsWith('student-')) {
+    return (
+      <StudentProfile
+        studentName={studentProfileTabs.get(activeTab) ?? 'Unknown Student'}
+        activeTab={activeTab}
+        onNavigate={(path, replace) => handleNavigate(path as ClosableTabKey, replace)}
+        classroomTabs={classroomTabs}
+        studentProfileTabs={studentProfileTabs}
+        onBack={() => {
+          handleCloseTab(activeTab)
+          handleNavigate('classroom')
+        }}
+      />
+    )
+  }
+
+  if (currentState) {
+    return (
+      <div className="flex flex-1 flex-col items-center justify-center text-center">
+        <div className="bg-muted text-muted-foreground flex size-16 items-center justify-center rounded-full">
+          {ActiveIcon ? <ActiveIcon className="size-7" /> : <Plus className="size-7" />}
+        </div>
+        <div className="mt-6 space-y-2">
+          <h2 className="text-2xl font-semibold tracking-tight">
+            {currentState.title}
+          </h2>
+          <p className="text-muted-foreground text-sm leading-relaxed">
+            {currentState.description}
+          </p>
+        </div>
+        {(currentState.primaryAction || currentState.secondaryAction) && (
+          <div className="mt-6 flex flex-wrap justify-center gap-2">
+            {currentState.primaryAction && (
+              <Button size="sm">{currentState.primaryAction}</Button>
+            )}
+            {currentState.secondaryAction && (
+              <Button size="sm" variant="outline">
+                {currentState.secondaryAction}
+              </Button>
+            )}
+          </div>
+        )}
+        {isProfileActive && (
+          <div className="mt-10 w-full max-w-md text-left">
+            <div className="group relative overflow-hidden rounded-2xl border bg-card p-6 transition-all duration-200 hover:-translate-y-1 hover:bg-accent hover:shadow-lg">
+              <div className="flex items-center gap-4">
+                <div className="flex size-14 items-center justify-center rounded-full bg-primary/10 text-lg font-semibold text-primary transition-colors group-hover:bg-primary/20">
+                  DT
+                </div>
+                <div className="flex flex-1 flex-col">
+                  <h3 className="text-base font-semibold">Daniel Tan</h3>
+                  <p className="text-muted-foreground text-sm">
+                    Math Teacher · Ready to collaborate
+                  </p>
+                </div>
+              </div>
+              <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
+                <div className="rounded-lg border border-dashed border-border/60 bg-background/80 p-3 transition group-hover:border-border">
+                  <p className="text-muted-foreground text-xs uppercase tracking-wide">Bio</p>
+                  <p className="mt-1 font-medium">Tell your story here…</p>
+                </div>
+                <div className="rounded-lg border border-dashed border-border/60 bg-background/80 p-3 transition group-hover:border-border">
+                  <p className="text-muted-foreground text-xs uppercase tracking-wide">Availability</p>
+                  <p className="mt-1 font-medium">Set your schedule</p>
+                </div>
+              </div>
+              <div className="mt-6 flex flex-wrap items-center gap-2">
+                <Button size="sm">Preview profile</Button>
+                <Button size="sm" variant="ghost">
+                  Share profile link
+                </Button>
+                <div className="ml-auto">
+                  <ThemeSwitcher />
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    )
+  }
+
+  return (
+    <div className="flex flex-1 flex-col items-center justify-center text-center">
+      <div className="bg-muted text-muted-foreground flex size-16 items-center justify-center rounded-full">
+        <Plus className="size-7" />
+      </div>
+      <div className="mt-6 space-y-2">
+        <h2 className="text-2xl font-semibold tracking-tight">
+          Create your first tab
+        </h2>
+        <p className="text-muted-foreground text-sm leading-relaxed">
+          Open a page from the sidebar or start with a preselected one
+          to jump into your workspace.
+        </p>
+      </div>
+      <div className="mt-6 flex flex-wrap justify-center gap-2">
+        <Button size="sm" onClick={() => handleNavigate('home')}>
+          Go Home
+        </Button>
+        <Button size="sm" variant="outline" onClick={() => handleNavigate('pulse')}>
+          Open Round-up
+        </Button>
+      </div>
+    </div>
+  )
+})
+
 export default function Home() {
   const router = useRouter()
   const params = useParams()
@@ -355,23 +723,33 @@ export default function Home() {
   }
 
   // Debounced sessionStorage persistence - only run after mount
+  // Use longer debounce and requestIdleCallback for better performance
   useEffect(() => {
     if (!isMounted) return
 
     const timeoutId = setTimeout(() => {
-      try {
-        sessionStorage.setItem('openTabs', JSON.stringify(openTabs))
-        sessionStorage.setItem('studentProfileTabs', JSON.stringify(Array.from(studentProfileTabs.entries())))
-        sessionStorage.setItem('classroomTabs', JSON.stringify(Array.from(classroomTabs.entries())))
+      const persist = () => {
+        try {
+          sessionStorage.setItem('openTabs', JSON.stringify(openTabs))
+          sessionStorage.setItem('studentProfileTabs', JSON.stringify(Array.from(studentProfileTabs.entries())))
+          sessionStorage.setItem('classroomTabs', JSON.stringify(Array.from(classroomTabs.entries())))
 
-        // Sync refs
-        openTabsRef.current = openTabs
-        studentProfileTabsRef.current = studentProfileTabs
-        classroomTabsRef.current = classroomTabs
-      } catch (error) {
-        console.error('Failed to persist tabs to sessionStorage:', error)
+          // Sync refs
+          openTabsRef.current = openTabs
+          studentProfileTabsRef.current = studentProfileTabs
+          classroomTabsRef.current = classroomTabs
+        } catch (error) {
+          console.error('Failed to persist tabs to sessionStorage:', error)
+        }
       }
-    }, 300) // Debounce 300ms to avoid excessive writes
+
+      // Use requestIdleCallback for non-critical persistence
+      if ('requestIdleCallback' in window) {
+        requestIdleCallback(persist, { timeout: 2000 })
+      } else {
+        persist()
+      }
+    }, 1000) // Increased debounce to 1s for better performance
 
     return () => clearTimeout(timeoutId)
   }, [openTabs, studentProfileTabs, classroomTabs, isMounted])
@@ -458,7 +836,8 @@ export default function Home() {
     }
   }, [params, activeTab, isMounted, closingTabs])
 
-  const currentState = emptyStates[activeTab as keyof typeof emptyStates]
+  // Memoize computed values to prevent unnecessary recalculations
+  const currentState = React.useMemo(() => emptyStates[activeTab as keyof typeof emptyStates], [activeTab])
   const ActiveIcon = currentState?.icon
   const isNewTabActive = activeTab === newTabConfig.key
   const isProfileActive = activeTab === profileTabConfig.key
@@ -467,16 +846,20 @@ export default function Home() {
   const isSidebarCollapsed = sidebarState === 'collapsed'
   const isAssistantSidebarOpen = assistantMode === 'sidebar' && isAssistantOpen
 
-  // Get breadcrumbs for current tab
+  // Get breadcrumbs for current tab - declare after handlers are defined
   const { breadcrumbs: pageBreadcrumbs } = useBreadcrumbs({
     activeTab: activeTab as string,
     classroomTabs,
     studentProfileTabs,
-    onNavigate: (path, replace) => handleNavigate(path as ClosableTabKey, replace),
+    // Use inline function to avoid hoisting issues
+    onNavigate: useCallback((path: string, replace?: boolean) => {
+      const newPath = path === 'home' ? '/' : `/${path}`
+      router.push(newPath, { scroll: false })
+    }, [router]),
   })
 
-  // Get actions for current tab
-  const getPageActions = (): PageAction[] => {
+  // Memoize page actions - declare after all handlers
+  const pageActions = React.useMemo((): PageAction[] => {
     let actions: PageAction[] = []
 
     if (activeTab === 'home') {
@@ -639,9 +1022,8 @@ export default function Home() {
     }
 
     return actions
-  }
-
-  const pageActions = getPageActions()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab, classroomTabs])
 
   const handleNavigate = (tabKey: ClosableTabKey, replaceParent: boolean = false) => {
     // If replaceParent is true, handle parent-child tab replacement
@@ -716,6 +1098,18 @@ export default function Home() {
     router.push(newPath, { scroll: false })
   }
 
+  const handleOpenGrades = useCallback((classId: string) => {
+    const tabKey = `classroom/${classId}/grades` as ClassroomTabKey
+
+    setClassroomTabs((prev) => {
+      const updated = new Map(prev)
+      updated.set(tabKey, `${classId}/grades`)
+      return updated
+    })
+
+    handleNavigate(tabKey, true) // Replace parent tab
+  }, [setClassroomTabs])
+
   const handleOpenStudentProfile = (studentName: string) => {
     const tabKey = `student-${studentName.toLowerCase().replace(/\s+/g, '-')}` as StudentProfileTabKey
 
@@ -746,18 +1140,6 @@ export default function Home() {
     setClassroomTabs((prev) => {
       const updated = new Map(prev)
       updated.set(tabKey, `${classId}/students`)
-      return updated
-    })
-
-    handleNavigate(tabKey, true) // Replace parent tab
-  }
-
-  const handleOpenGrades = (classId: string) => {
-    const tabKey = `classroom/${classId}/grades` as ClassroomTabKey
-
-    setClassroomTabs((prev) => {
-      const updated = new Map(prev)
-      updated.set(tabKey, `${classId}/grades`)
       return updated
     })
 
@@ -897,62 +1279,66 @@ export default function Home() {
     return () => resizeObserver.disconnect()
   }, [])
 
-  // Calculate visible tab count based on actual available space
-  const getVisibleTabCount = () => {
-    if (containerWidth === 0) return openTabs.length // Show all by default until measured
+  // Memoize visible tab calculation for better performance
+  const { visibleTabs, hiddenTabs, visibleTabCount } = React.useMemo(() => {
+    const getVisibleTabCount = () => {
+      if (containerWidth === 0) return openTabs.length // Show all by default until measured
 
-    // Constants for UI elements (measuring actual widths from DOM)
-    const GAP = 8 // gap-2 (0.5rem = 8px)
-    const NEW_TAB_BUTTON_WIDTH = isNewTabActive ? 100 : 36
-    const MORE_DROPDOWN_WIDTH = 36 // Only add when we know we'll have overflow
-    const ASSISTANT_BUTTON_WIDTH = (!isAssistantTabActive && !isAssistantSidebarOpen) ? 120 : 0
+      // Constants for UI elements (measuring actual widths from DOM)
+      const GAP = 8 // gap-2 (0.5rem = 8px)
+      const NEW_TAB_BUTTON_WIDTH = isNewTabActive ? 100 : 36
+      const MORE_DROPDOWN_WIDTH = 36 // Only add when we know we'll have overflow
+      const ASSISTANT_BUTTON_WIDTH = (!isAssistantTabActive && !isAssistantSidebarOpen) ? 120 : 0
 
-    // Average tab width based on current calculation
-    const getTabWidth = (count: number) => {
-      if (count <= 2) return 192 // 12rem = 192px
-      if (count <= 4) return 144 // 9rem = 144px
-      if (count <= 6) return 120 // 7.5rem = 120px
-      return 104 // 6.5rem = 104px
-    }
-
-    // Start with all tabs and work backwards
-    let testCount = openTabs.length
-
-    while (testCount > 0) {
-      const tabWidth = getTabWidth(testCount)
-      const tabsSpace = testCount * tabWidth + (testCount - 1) * GAP
-      const extraSpace = MORE_DROPDOWN_WIDTH + (testCount < openTabs.length ? 0 : -MORE_DROPDOWN_WIDTH)
-      const totalRequired = tabsSpace + NEW_TAB_BUTTON_WIDTH + ASSISTANT_BUTTON_WIDTH + extraSpace + (GAP * 3)
-
-      if (totalRequired <= containerWidth) {
-        return testCount
+      // Average tab width based on current calculation
+      const getTabWidth = (count: number) => {
+        if (count <= 2) return 192 // 12rem = 192px
+        if (count <= 4) return 144 // 9rem = 144px
+        if (count <= 6) return 120 // 7.5rem = 120px
+        return 104 // 6.5rem = 104px
       }
 
-      testCount--
+      // Start with all tabs and work backwards
+      let testCount = openTabs.length
+
+      while (testCount > 0) {
+        const tabWidth = getTabWidth(testCount)
+        const tabsSpace = testCount * tabWidth + (testCount - 1) * GAP
+        const extraSpace = MORE_DROPDOWN_WIDTH + (testCount < openTabs.length ? 0 : -MORE_DROPDOWN_WIDTH)
+        const totalRequired = tabsSpace + NEW_TAB_BUTTON_WIDTH + ASSISTANT_BUTTON_WIDTH + extraSpace + (GAP * 3)
+
+        if (totalRequired <= containerWidth) {
+          return testCount
+        }
+
+        testCount--
+      }
+
+      return Math.max(1, openTabs.length) // Always show at least 1 tab
     }
 
-    return Math.max(1, openTabs.length) // Always show at least 1 tab
-  }
+    const count = getVisibleTabCount()
 
-  const visibleTabCount = getVisibleTabCount()
+    // Ensure active tab is always visible
+    let visible = [...openTabs]
+    let hidden: ClosableTabKey[] = []
 
-  // Ensure active tab is always visible
-  let visibleTabs = [...openTabs]
-  let hiddenTabs: ClosableTabKey[] = []
+    if (openTabs.length > count) {
+      const activeIndex = openTabs.indexOf(activeTab as ClosableTabKey)
 
-  if (openTabs.length > visibleTabCount) {
-    const activeIndex = openTabs.indexOf(activeTab as ClosableTabKey)
+      if (activeIndex >= count) {
+        // If active tab is hidden, swap it with the last visible tab
+        visible = [...openTabs]
+        ;[visible[count - 1], visible[activeIndex]] =
+          [visible[activeIndex], visible[count - 1]]
+      }
 
-    if (activeIndex >= visibleTabCount) {
-      // If active tab is hidden, swap it with the last visible tab
-      visibleTabs = [...openTabs]
-      ;[visibleTabs[visibleTabCount - 1], visibleTabs[activeIndex]] =
-        [visibleTabs[activeIndex], visibleTabs[visibleTabCount - 1]]
+      hidden = visible.slice(count)
+      visible = visible.slice(0, count)
     }
 
-    hiddenTabs = visibleTabs.slice(visibleTabCount)
-    visibleTabs = visibleTabs.slice(0, visibleTabCount)
-  }
+    return { visibleTabs: visible, hiddenTabs: hidden, visibleTabCount: count }
+  }, [containerWidth, openTabs, activeTab, isNewTabActive, isAssistantTabActive, isAssistantSidebarOpen])
 
   const handleNewTab = () => {
     setActiveTab(newTabConfig.key)
@@ -1629,311 +2015,33 @@ export default function Home() {
                   activeTab === 'pulse' || activeTab === 'home' ? '' : 'px-8 py-10',
                 )}
               >
-                {isAssistantTabActive ? (
-                  <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-6">
-                    {assistantMode === 'sidebar' ? (
-                      <AssistantPanel
-                        mode="sidebar"
-                        isOpen
-                        onOpenChange={setIsAssistantOpen}
-                        onModeChange={handleAssistantModeChange}
-                        showBodyHeading={false}
-                        showHeaderControls={false}
-                        onStudentClick={handleOpenStudentProfile}
-                      />
-                    ) : (
-                      <AssistantBody showHeading={false} onStudentClick={handleOpenStudentProfile} />
-                    )}
-                  </div>
-                ) : activeTab === 'pulse' ? (
-                  <PulseContent onPrepForMeeting={() => handleNavigate('classroom')} />
-                ) : isHomeActive ? (
-                  <HomeContent
-                    onNavigateToClassroom={() => handleNavigate('classroom')}
-                    onNavigateToExplore={() => handleNavigate('explore')}
-                    onNavigateToPulse={() => handleNavigate('pulse', true)}
-                    onAssistantMessage={handleAssistantMessage}
-                    onStudentClick={handleOpenStudentProfile}
-                  />
-                ) : activeTab === 'explore' ? (
-                  <ExploreContent onAppClick={(appKey) => handleNavigate(appKey as ClosableTabKey)} />
-                ) : activeTab === 'classroom' ? (
-                  <MyClasses onClassClick={handleOpenClassroom} />
-                ) : activeTab === 'records' ? (
-                  <RecordsContent />
-                ) : activeTab === 'inbox' ? (
-                  (() => {
-                    // Check if there's a conversation ID in the URL (inbox/conv-id)
-                    const conversationId = slug && slug.length > 1 && slug[0] === 'inbox' ? slug[1] : undefined
-                    return (
-                      <InboxContent
-                        conversationId={conversationId}
-                        onConversationClick={handleOpenConversation}
-                      />
-                    )
-                  })()
-                ) : typeof activeTab === 'string' && activeTab.startsWith('classroom/') && activeTab.includes('/student/') ? (
-                  // classroom/{classId}/student/{studentSlug}
-                  (() => {
-                    const classroomPath = classroomTabs.get(activeTab)
-                    const parts = classroomPath?.split('/') ?? []
-                    const classId = parts[0]
-                    let studentName = studentProfileTabs.get(activeTab)
-
-                    // Fallback: derive student name from URL if not in map yet
-                    if (!studentName && typeof activeTab === 'string') {
-                      const segments = activeTab.split('/')
-                      if (segments.length >= 4 && segments[2] === 'student') {
-                        const studentSlug = segments[3]
-                        studentName = studentSlug.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
-                      }
-                    }
-
-                    return (
-                      <StudentProfile
-                        studentName={studentName ?? 'Unknown Student'}
-                        classId={classId}
-                        activeTab={activeTab}
-                        onNavigate={(path, replace) => handleNavigate(path as ClosableTabKey, replace)}
-                        classroomTabs={classroomTabs}
-                        studentProfileTabs={studentProfileTabs}
-                        onBack={() => {
-                          if (classId) {
-                            // Navigate back to parent class, replacing current tab
-                            const parentTabKey = `classroom/${classId}` as ClassroomTabKey
-                            setClassroomTabs((prev) => {
-                              const updated = new Map(prev)
-                              updated.set(parentTabKey, classId)
-                              return updated
-                            })
-                            setOpenTabs((tabs) => {
-                              const currentIndex = tabs.indexOf(activeTab as ClosableTabKey)
-                              // Remove both child and any existing parent to prevent duplicates
-                              const filteredTabs = tabs.filter((key) => key !== activeTab && key !== parentTabKey)
-                              if (currentIndex !== -1) {
-                                filteredTabs.splice(currentIndex, 0, parentTabKey)
-                              } else {
-                                filteredTabs.push(parentTabKey)
-                              }
-                              openTabsRef.current = filteredTabs
-                              // Note: sessionStorage persistence happens in the debounced effect
-                              return filteredTabs
-                            })
-                            router.push(`/classroom/${classId}`, { scroll: false })
-                          }
-                        }}
-                      />
-                    )
-                  })()
-                ) : typeof activeTab === 'string' && activeTab.startsWith('classroom/') && activeTab.includes('/students') ? (
-                  // classroom/{classId}/students
-                  (() => {
-                    const classroomPath = classroomTabs.get(activeTab)
-                    const parts = classroomPath?.split('/') ?? []
-                    const classId = parts[0]
-                    return (
-                      <StudentList
-                        classId={classId}
-                        onNavigate={(path, replace) => handleNavigate(path as ClosableTabKey, replace)}
-                        classroomTabs={classroomTabs}
-                        onBack={() => {
-                          if (classId) {
-                            // Navigate back to parent class, replacing current tab
-                            const parentTabKey = `classroom/${classId}` as ClassroomTabKey
-                            setClassroomTabs((prev) => {
-                              const updated = new Map(prev)
-                              updated.set(parentTabKey, classId)
-                              return updated
-                            })
-                            setOpenTabs((tabs) => {
-                              const currentIndex = tabs.indexOf(activeTab as ClosableTabKey)
-                              // Remove both child and any existing parent to prevent duplicates
-                              const filteredTabs = tabs.filter((key) => key !== activeTab && key !== parentTabKey)
-                              if (currentIndex !== -1) {
-                                filteredTabs.splice(currentIndex, 0, parentTabKey)
-                              } else {
-                                filteredTabs.push(parentTabKey)
-                              }
-                              openTabsRef.current = filteredTabs
-                              // Note: sessionStorage persistence happens in the debounced effect
-                              return filteredTabs
-                            })
-                            router.push(`/classroom/${classId}`, { scroll: false })
-                          }
-                        }}
-                        onStudentClick={(studentName) => handleOpenStudentFromClass(classId, studentName)}
-                      />
-                    )
-                  })()
-                ) : typeof activeTab === 'string' && activeTab.startsWith('classroom/') && activeTab.includes('/grades') ? (
-                  // classroom/{classId}/grades
-                  (() => {
-                    const classroomPath = classroomTabs.get(activeTab)
-                    const parts = classroomPath?.split('/') ?? []
-                    const classId = parts[0]
-                    return (
-                      <GradeEntry
-                        classId={classId}
-                        onNavigate={(path, replace) => handleNavigate(path as ClosableTabKey, replace)}
-                        classroomTabs={classroomTabs}
-                        onBack={() => {
-                          if (classId) {
-                            // Navigate back to parent class, replacing current tab
-                            const parentTabKey = `classroom/${classId}` as ClassroomTabKey
-                            setClassroomTabs((prev) => {
-                              const updated = new Map(prev)
-                              updated.set(parentTabKey, classId)
-                              return updated
-                            })
-                            setOpenTabs((tabs) => {
-                              const currentIndex = tabs.indexOf(activeTab as ClosableTabKey)
-                              // Remove both child and any existing parent to prevent duplicates
-                              const filteredTabs = tabs.filter((key) => key !== activeTab && key !== parentTabKey)
-                              if (currentIndex !== -1) {
-                                filteredTabs.splice(currentIndex, 0, parentTabKey)
-                              } else {
-                                filteredTabs.push(parentTabKey)
-                              }
-                              openTabsRef.current = filteredTabs
-                              // Note: sessionStorage persistence happens in the debounced effect
-                              return filteredTabs
-                            })
-                            router.push(`/classroom/${classId}`, { scroll: false })
-                          }
-                        }}
-                      />
-                    )
-                  })()
-                ) : typeof activeTab === 'string' && activeTab.startsWith('classroom/') ? (
-                  // classroom/{classId}
-                  (() => {
-                    const classroomPath = classroomTabs.get(activeTab)
-                    const classId = classroomPath ?? activeTab.replace('classroom/', '')
-                    return (
-                      <ClassOverview
-                        classId={classId}
-                        onBack={() => {
-                          // Navigate back to classroom list, replacing current tab
-                          setOpenTabs((tabs) => {
-                            const currentIndex = tabs.indexOf(activeTab as ClosableTabKey)
-                            // Remove both child and any existing parent to prevent duplicates
-                            const filteredTabs = tabs.filter((key) => key !== activeTab && key !== 'classroom')
-                            if (currentIndex !== -1) {
-                              filteredTabs.splice(currentIndex, 0, 'classroom')
-                            } else {
-                              filteredTabs.push('classroom')
-                            }
-                            openTabsRef.current = filteredTabs
-                            // Note: sessionStorage persistence happens in the debounced effect
-                            return filteredTabs
-                          })
-                          router.push('/classroom', { scroll: false })
-                        }}
-                        onNavigateToGrades={handleOpenGrades}
-                        onStudentClick={(studentName) => handleOpenStudentFromClass(classId, studentName)}
-                        onNavigate={(path, replace) => handleNavigate(path as ClosableTabKey, replace)}
-                        classroomTabs={classroomTabs}
-                      />
-                    )
-                  })()
-                ) : typeof activeTab === 'string' && activeTab.startsWith('student-') ? (
-                  <StudentProfile
-                    studentName={studentProfileTabs.get(activeTab) ?? 'Unknown Student'}
-                    activeTab={activeTab}
-                    onNavigate={(path, replace) => handleNavigate(path as ClosableTabKey, replace)}
-                    classroomTabs={classroomTabs}
-                    studentProfileTabs={studentProfileTabs}
-                    onBack={() => {
-                      handleCloseTab(activeTab)
-                      handleNavigate('classroom')
-                    }}
-                  />
-                ) : currentState ? (
-                  <div className="flex flex-1 flex-col items-center justify-center text-center">
-                    <div className="bg-muted text-muted-foreground flex size-16 items-center justify-center rounded-full">
-                      {ActiveIcon ? <ActiveIcon className="size-7" /> : <Plus className="size-7" />}
-                    </div>
-                    <div className="mt-6 space-y-2">
-                      <h2 className="text-2xl font-semibold tracking-tight">
-                        {currentState.title}
-                      </h2>
-                      <p className="text-muted-foreground text-sm leading-relaxed">
-                        {currentState.description}
-                      </p>
-                    </div>
-                    {(currentState.primaryAction || currentState.secondaryAction) && (
-                      <div className="mt-6 flex flex-wrap justify-center gap-2">
-                        {currentState.primaryAction && (
-                          <Button size="sm">{currentState.primaryAction}</Button>
-                        )}
-                        {currentState.secondaryAction && (
-                          <Button size="sm" variant="outline">
-                            {currentState.secondaryAction}
-                          </Button>
-                        )}
-                      </div>
-                    )}
-                    {isProfileActive && (
-                      <div className="mt-10 w-full max-w-md text-left">
-                        <div className="group relative overflow-hidden rounded-2xl border bg-card p-6 transition-all duration-200 hover:-translate-y-1 hover:bg-accent hover:shadow-lg">
-                          <div className="flex items-center gap-4">
-                            <div className="flex size-14 items-center justify-center rounded-full bg-primary/10 text-lg font-semibold text-primary transition-colors group-hover:bg-primary/20">
-                              DT
-                            </div>
-                            <div className="flex flex-1 flex-col">
-                              <h3 className="text-base font-semibold">Daniel Tan</h3>
-                              <p className="text-muted-foreground text-sm">
-                                Math Teacher · Ready to collaborate
-                              </p>
-                            </div>
-                          </div>
-                          <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
-                            <div className="rounded-lg border border-dashed border-border/60 bg-background/80 p-3 transition group-hover:border-border">
-                              <p className="text-muted-foreground text-xs uppercase tracking-wide">Bio</p>
-                              <p className="mt-1 font-medium">Tell your story here…</p>
-                            </div>
-                            <div className="rounded-lg border border-dashed border-border/60 bg-background/80 p-3 transition group-hover:border-border">
-                              <p className="text-muted-foreground text-xs uppercase tracking-wide">Availability</p>
-                              <p className="mt-1 font-medium">Set your schedule</p>
-                            </div>
-                          </div>
-                          <div className="mt-6 flex flex-wrap items-center gap-2">
-                            <Button size="sm">Preview profile</Button>
-                            <Button size="sm" variant="ghost">
-                              Share profile link
-                            </Button>
-                            <div className="ml-auto">
-                              <ThemeSwitcher />
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  <div className="flex flex-1 flex-col items-center justify-center text-center">
-                    <div className="bg-muted text-muted-foreground flex size-16 items-center justify-center rounded-full">
-                      <Plus className="size-7" />
-                    </div>
-                    <div className="mt-6 space-y-2">
-                      <h2 className="text-2xl font-semibold tracking-tight">
-                        Create your first tab
-                      </h2>
-                      <p className="text-muted-foreground text-sm leading-relaxed">
-                        Open a page from the sidebar or start with a preselected one
-                        to jump into your workspace.
-                      </p>
-                    </div>
-                    <div className="mt-6 flex flex-wrap justify-center gap-2">
-                      <Button size="sm" onClick={() => handleNavigate('home')}>
-                        Go Home
-                      </Button>
-                      <Button size="sm" variant="outline" onClick={() => handleNavigate('pulse')}>
-                        Open Round-up
-                      </Button>
-                    </div>
-                  </div>
-                )}
+                <TabContent
+                  activeTab={activeTab}
+                  slug={slug}
+                  isAssistantTabActive={isAssistantTabActive}
+                  assistantMode={assistantMode}
+                  isAssistantOpen={isAssistantOpen}
+                  isHomeActive={isHomeActive}
+                  currentState={currentState}
+                  ActiveIcon={ActiveIcon}
+                  isProfileActive={isProfileActive}
+                  classroomTabs={classroomTabs}
+                  studentProfileTabs={studentProfileTabs}
+                  handleNavigate={handleNavigate}
+                  handleOpenStudentProfile={handleOpenStudentProfile}
+                  handleOpenClassroom={handleOpenClassroom}
+                  handleOpenConversation={handleOpenConversation}
+                  handleCloseTab={handleCloseTab}
+                  handleAssistantMessage={handleAssistantMessage}
+                  handleOpenStudentFromClass={handleOpenStudentFromClass}
+                  handleOpenGrades={handleOpenGrades}
+                  setIsAssistantOpen={setIsAssistantOpen}
+                  handleAssistantModeChange={handleAssistantModeChange}
+                  setClassroomTabs={setClassroomTabs}
+                  setOpenTabs={setOpenTabs}
+                  openTabsRef={openTabsRef}
+                  router={router}
+                />
               </div>
             </div>
           </div>
