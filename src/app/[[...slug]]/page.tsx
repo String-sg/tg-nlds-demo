@@ -304,12 +304,10 @@ export default function Home() {
   const slug = params.slug as string[] | undefined
   const initialTab = !slug || slug.length === 0 ? 'home' : slug.join('/')
 
-  // Always start with just the active tab to prevent hydration mismatch
-  // We'll restore from sessionStorage after mount
-  // Don't add 'new-tab' to openTabs since it's not a closable tab
-  const initialOpenTabs = initialTab === 'new-tab' ? [] : [initialTab as ClosableTabKey]
-  const [openTabs, setOpenTabs] = useState<ClosableTabKey[]>(initialOpenTabs)
-  const openTabsRef = useRef<ClosableTabKey[]>(openTabs) // Track current tabs in ref
+  // ALWAYS start with empty state during SSR to prevent hydration mismatch
+  // We'll restore from sessionStorage synchronously after mount using useLayoutEffect
+  const [openTabs, setOpenTabs] = useState<ClosableTabKey[]>([])
+  const openTabsRef = useRef<ClosableTabKey[]>([]) // Track current tabs in ref
   const [activeTab, setActiveTab] = useState<TabKey>(initialTab as TabKey)
   const [assistantMode, setAssistantMode] = useState<AssistantMode>('sidebar')
   const [isAssistantOpen, setIsAssistantOpen] = useState(false)
@@ -320,9 +318,9 @@ export default function Home() {
   // Initialize with empty maps to prevent hydration mismatch - restore from sessionStorage after mount
   const [studentProfileTabs, setStudentProfileTabs] = useState<Map<string, string>>(new Map())
   const [classroomTabs, setClassroomTabs] = useState<Map<string, string>>(new Map())
-  const closingTabRef = useRef<string | null>(null) // Track which specific tab is being closed
-  const studentProfileTabsRef = useRef<Map<string, string>>(studentProfileTabs) // Ref for immediate access
-  const classroomTabsRef = useRef<Map<string, string>>(classroomTabs) // Ref for immediate access
+  const [closingTabs, setClosingTabs] = useState<Set<string>>(new Set()) // Track tabs being closed
+  const studentProfileTabsRef = useRef<Map<string, string>>(new Map()) // Ref for immediate access
+  const classroomTabsRef = useRef<Map<string, string>>(new Map()) // Ref for immediate access
   const [pendingAssistantMessage, setPendingAssistantMessage] = useState<string | null>(null)
   const tabContainerRef = useRef<HTMLDivElement>(null)
 
@@ -355,25 +353,33 @@ export default function Home() {
     return null
   }
 
-  // Sync refs with state and persist to sessionStorage
+  // Debounced sessionStorage persistence - only run after mount
   useEffect(() => {
-    studentProfileTabsRef.current = studentProfileTabs
-    // Persist to sessionStorage
-    if (typeof window !== 'undefined') {
-      sessionStorage.setItem('studentProfileTabs', JSON.stringify(Array.from(studentProfileTabs.entries())))
-    }
-  }, [studentProfileTabs])
+    if (!isMounted) return
 
-  useEffect(() => {
-    classroomTabsRef.current = classroomTabs
-    // Persist to sessionStorage
-    if (typeof window !== 'undefined') {
-      sessionStorage.setItem('classroomTabs', JSON.stringify(Array.from(classroomTabs.entries())))
-    }
-  }, [classroomTabs])
+    const timeoutId = setTimeout(() => {
+      try {
+        sessionStorage.setItem('openTabs', JSON.stringify(openTabs))
+        sessionStorage.setItem('studentProfileTabs', JSON.stringify(Array.from(studentProfileTabs.entries())))
+        sessionStorage.setItem('classroomTabs', JSON.stringify(Array.from(classroomTabs.entries())))
 
-  // Sync URL with active tab on URL changes
+        // Sync refs
+        openTabsRef.current = openTabs
+        studentProfileTabsRef.current = studentProfileTabs
+        classroomTabsRef.current = classroomTabs
+      } catch (error) {
+        console.error('Failed to persist tabs to sessionStorage:', error)
+      }
+    }, 300) // Debounce 300ms to avoid excessive writes
+
+    return () => clearTimeout(timeoutId)
+  }, [openTabs, studentProfileTabs, classroomTabs, isMounted])
+
+  // Sync URL with active tab on URL changes - only after mount to avoid race conditions
   useEffect(() => {
+    // Don't run during SSR or before restoration completes
+    if (!isMounted) return
+
     const currentSlug = params.slug as string[] | undefined
     const tabFromUrl = !currentSlug || currentSlug.length === 0 ? 'home' : currentSlug.join('/')
 
@@ -384,17 +390,11 @@ export default function Home() {
 
     // Don't add special tabs to openTabs
     if (tabFromUrl === 'new-tab' || tabFromUrl === 'assistant') {
-      // Clear the closing tab reference if we're navigating to a special tab
-      if (closingTabRef.current) {
-        setTimeout(() => {
-          closingTabRef.current = null
-        }, 100)
-      }
       return
     }
 
-    // Don't re-add a tab that was just closed
-    if (closingTabRef.current && closingTabRef.current === tabFromUrl) {
+    // Don't re-add a tab that's being closed
+    if (closingTabs.has(tabFromUrl)) {
       return
     }
 
@@ -453,16 +453,9 @@ export default function Home() {
       const newTabs = [...filteredTabs, tabFromUrl as ClosableTabKey]
       openTabsRef.current = newTabs // Update ref immediately
       setOpenTabs(newTabs)
-      sessionStorage.setItem('openTabs', JSON.stringify(newTabs)) // Persist to sessionStorage
+      // Note: sessionStorage persistence happens in the debounced effect above
     }
-
-    // Clear the closing tab reference after successfully handling the new tab
-    if (closingTabRef.current && closingTabRef.current !== tabFromUrl) {
-      setTimeout(() => {
-        closingTabRef.current = null
-      }, 100)
-    }
-  }, [params, activeTab])
+  }, [params, activeTab, isMounted, closingTabs])
 
   const currentState = emptyStates[activeTab as keyof typeof emptyStates]
   const ActiveIcon = currentState?.icon
@@ -678,14 +671,14 @@ export default function Home() {
             // Insert the new tab at the parent's position
             filteredTabs.splice(parentIndex, 0, tabKey)
             openTabsRef.current = filteredTabs
-            sessionStorage.setItem('openTabs', JSON.stringify(filteredTabs))
+            // Note: sessionStorage persistence happens in the debounced effect
             return filteredTabs
           } else {
             // Parent doesn't exist, just add the child tab if not already present
             if (!tabs.includes(tabKey)) {
               const newTabs = [...tabs, tabKey]
               openTabsRef.current = newTabs
-              sessionStorage.setItem('openTabs', JSON.stringify(newTabs))
+              // Note: sessionStorage persistence happens in the debounced effect
               return newTabs
             }
             return tabs
@@ -708,14 +701,14 @@ export default function Home() {
             const filteredTabs = tabs.filter((key) => key !== childTab && key !== tabKey)
             filteredTabs.splice(childIndex, 0, tabKey)
             openTabsRef.current = filteredTabs
-            sessionStorage.setItem('openTabs', JSON.stringify(filteredTabs))
+            // Note: sessionStorage persistence happens in the debounced effect
             return filteredTabs
           } else {
             // No child found, just add parent if not present
             if (!tabs.includes(tabKey)) {
               const newTabs = [...tabs, tabKey]
               openTabsRef.current = newTabs
-              sessionStorage.setItem('openTabs', JSON.stringify(newTabs))
+              // Note: sessionStorage persistence happens in the debounced effect
               return newTabs
             }
             return tabs
@@ -816,18 +809,16 @@ export default function Home() {
     const currentTabs = openTabsRef.current
     const filteredTabs = currentTabs.filter((key) => key !== pageKey)
 
-    // Update ref immediately before navigation to prevent race condition
-    openTabsRef.current = filteredTabs
-    sessionStorage.setItem('openTabs', JSON.stringify(filteredTabs))
+    // Mark tab as closing to prevent re-adding
+    setClosingTabs(prev => new Set(prev).add(pageKey as string))
 
-    // Update state
+    // Update ref and state
+    openTabsRef.current = filteredTabs
     setOpenTabs(filteredTabs)
+    // Note: sessionStorage persistence happens in the debounced effect
 
     // Only navigate if we're closing the currently active tab
     if (activeTab === pageKey) {
-      // Track which tab is being closed ONLY when navigating away
-      closingTabRef.current = pageKey as string
-
       // Determine the new active tab
       const closingIndex = currentTabs.indexOf(pageKey as ClosableTabKey)
       const newActiveTab =
@@ -840,48 +831,61 @@ export default function Home() {
       router.push(newPath, { scroll: false })
       setActiveTab(newActiveTab)
     }
+
+    // Clear the closing marker after navigation completes
+    setTimeout(() => {
+      setClosingTabs(prev => {
+        const next = new Set(prev)
+        next.delete(pageKey as string)
+        return next
+      })
+    }, 500)
   }, [activeTab, router])
 
-  // Restore tabs from sessionStorage after mount to prevent hydration mismatch
-  useEffect(() => {
-    setIsMounted(true)
+  // Restore tabs from sessionStorage BEFORE first paint to prevent hydration mismatch
+  // Using useLayoutEffect ensures this runs synchronously before the browser paints
+  useLayoutEffect(() => {
+    // Only run on client-side mount
+    if (typeof window === 'undefined') return
 
-    // Restore open tabs from sessionStorage
-    const storedTabs = sessionStorage.getItem('openTabs')
-    if (storedTabs) {
-      try {
+    try {
+      // Restore open tabs from sessionStorage
+      const storedTabs = sessionStorage.getItem('openTabs')
+      if (storedTabs) {
         const parsedTabs = JSON.parse(storedTabs) as ClosableTabKey[]
         setOpenTabs(parsedTabs)
         openTabsRef.current = parsedTabs
-      } catch (e) {
-        // Failed to parse openTabs from sessionStorage
       }
-    }
 
-    // Restore student profile tabs from sessionStorage
-    const storedStudentTabs = sessionStorage.getItem('studentProfileTabs')
-    if (storedStudentTabs) {
-      try {
+      // Restore student profile tabs from sessionStorage
+      const storedStudentTabs = sessionStorage.getItem('studentProfileTabs')
+      if (storedStudentTabs) {
         const parsedMap = new Map<string, string>(JSON.parse(storedStudentTabs))
         setStudentProfileTabs(parsedMap)
         studentProfileTabsRef.current = parsedMap
-      } catch (e) {
-        // Failed to parse studentProfileTabs from sessionStorage
       }
-    }
 
-    // Restore classroom tabs from sessionStorage
-    const storedClassroomTabs = sessionStorage.getItem('classroomTabs')
-    if (storedClassroomTabs) {
-      try {
+      // Restore classroom tabs from sessionStorage
+      const storedClassroomTabs = sessionStorage.getItem('classroomTabs')
+      if (storedClassroomTabs) {
         const parsedMap = new Map<string, string>(JSON.parse(storedClassroomTabs))
         setClassroomTabs(parsedMap)
         classroomTabsRef.current = parsedMap
-      } catch (e) {
-        // Failed to parse classroomTabs from sessionStorage
       }
+    } catch (error) {
+      // If sessionStorage is corrupted or full, clear it and start fresh
+      console.error('Failed to restore tabs from sessionStorage:', error)
+      try {
+        sessionStorage.removeItem('openTabs')
+        sessionStorage.removeItem('studentProfileTabs')
+        sessionStorage.removeItem('classroomTabs')
+      } catch {
+        // Ignore errors clearing storage
+      }
+    } finally {
+      // Mark as mounted AFTER restoration completes
+      setIsMounted(true)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   // Measure tab container width
@@ -1707,7 +1711,7 @@ export default function Home() {
                                 filteredTabs.push(parentTabKey)
                               }
                               openTabsRef.current = filteredTabs
-                              sessionStorage.setItem('openTabs', JSON.stringify(filteredTabs))
+                              // Note: sessionStorage persistence happens in the debounced effect
                               return filteredTabs
                             })
                             router.push(`/classroom/${classId}`, { scroll: false })
@@ -1746,7 +1750,7 @@ export default function Home() {
                                 filteredTabs.push(parentTabKey)
                               }
                               openTabsRef.current = filteredTabs
-                              sessionStorage.setItem('openTabs', JSON.stringify(filteredTabs))
+                              // Note: sessionStorage persistence happens in the debounced effect
                               return filteredTabs
                             })
                             router.push(`/classroom/${classId}`, { scroll: false })
@@ -1786,7 +1790,7 @@ export default function Home() {
                                 filteredTabs.push(parentTabKey)
                               }
                               openTabsRef.current = filteredTabs
-                              sessionStorage.setItem('openTabs', JSON.stringify(filteredTabs))
+                              // Note: sessionStorage persistence happens in the debounced effect
                               return filteredTabs
                             })
                             router.push(`/classroom/${classId}`, { scroll: false })
@@ -1815,7 +1819,7 @@ export default function Home() {
                               filteredTabs.push('classroom')
                             }
                             openTabsRef.current = filteredTabs
-                            sessionStorage.setItem('openTabs', JSON.stringify(filteredTabs))
+                            // Note: sessionStorage persistence happens in the debounced effect
                             return filteredTabs
                           })
                           router.push('/classroom', { scroll: false })
