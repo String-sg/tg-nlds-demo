@@ -63,9 +63,27 @@ export function StudentProfile({ studentName, classId, onBack, activeTab, onNavi
         ? `Student is under ${studentData.status === 'SWAN' ? 'SWAN (Student With Additional Needs)' : 'SEN'} monitoring and receiving appropriate support.`
         : null
     },
-    recentActivities: [] as Array<{ date: string; activity: string; grade: string }>,
-    strengths: [] as string[],
-    areasForImprovement: [] as string[],
+    recentActivities: studentData.name === 'Eric Lim' ? [
+      { date: '2025-01-20', activity: 'Term 1 Math Test', grade: 'C+' },
+      { date: '2025-01-15', activity: 'English Essay - "My Future Goals"', grade: 'B-' },
+      { date: '2025-01-10', activity: 'Science Practical Assessment', grade: 'C' },
+      { date: '2024-12-18', activity: 'End of Year Math Exam', grade: 'C+' },
+      { date: '2024-12-15', activity: 'Chinese Oral Examination', grade: 'C' },
+    ] : [] as Array<{ date: string; activity: string; grade: string }>,
+    strengths: studentData.name === 'Eric Lim' ? [
+      'Polite and respectful to teachers and peers',
+      'Consistently completes homework despite emotional challenges',
+      'Shows resilience in attending school regularly despite stress',
+      'Thoughtful and introspective in counseling sessions',
+      'Maintains average conduct grade despite personal difficulties'
+    ] : [] as string[],
+    areasForImprovement: studentData.name === 'Eric Lim' ? [
+      'Academic performance - grades declined from 78% to 64% average (-14 points)',
+      'Social engagement - very limited peer interactions outside of Daniel Koh',
+      'Emotional regulation - managing anxiety and stress in academic settings',
+      'Self-advocacy - building confidence to ask for help when needed',
+      'Work-life balance - reducing stress from excessive self-imposed pressure'
+    ] : [] as string[],
     notes: studentData.needs_counselling
       ? 'Student is currently receiving counselling support. Please check Records tab for detailed notes.'
       : 'No special notes at this time.',
