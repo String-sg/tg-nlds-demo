@@ -1,6 +1,7 @@
 'use client'
 
-import { MailIcon, PhoneIcon } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { MailIcon, PhoneIcon, MessageSquare } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -21,6 +22,8 @@ interface StudentProfileProps {
 }
 
 export function StudentProfile({ studentName, classId, onBack, activeTab, onNavigate, classroomTabs, studentProfileTabs }: StudentProfileProps) {
+  const router = useRouter()
+
   // Mock student data - in a real app, this would be fetched based on studentName
   const student = {
     name: studentName,
@@ -177,8 +180,19 @@ export function StudentProfile({ studentName, classId, onBack, activeTab, onNavi
                 </a>
               </div>
               <div className="pt-4">
-                <Button variant="outline" size="sm" className="w-full">
-                  Contact Parent
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full"
+                  onClick={() => {
+                    // Check if conversation exists for this student
+                    // In real app, would query backend to find or create conversation
+                    // For now, navigate to inbox with conversation #1 as demo (Bryan Yeo's parents)
+                    router.push('/inbox/conv-1')
+                  }}
+                >
+                  <MessageSquare className="w-4 h-4 mr-2" />
+                  Message Parents
                 </Button>
               </div>
             </CardContent>

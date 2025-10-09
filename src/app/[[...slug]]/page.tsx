@@ -50,6 +50,7 @@ import { GradeEntry } from '@/components/classroom/grade-entry'
 import { StudentProfile } from '@/components/student-profile'
 import { RecordsContent } from '@/components/records-content'
 import { ExploreContent } from '@/components/explore-content'
+import { InboxContent } from '@/components/messages/inbox-content'
 import { ThemeSwitcher } from '@/components/theme-switcher'
 import { UserProvider } from '@/contexts/user-context'
 import {
@@ -779,6 +780,11 @@ export default function Home() {
     setStudentProfileTabs(updatedStudentProfileTabs)
 
     handleNavigate(tabKey, true) // Replace parent tab
+  }
+
+  const handleOpenConversation = (conversationId: string) => {
+    // Navigate to /inbox/conv-id to show the conversation in the split view
+    router.push(`/inbox/${conversationId}`)
   }
 
   const handleAssistantMessage = (message: string) => {
@@ -1655,6 +1661,17 @@ export default function Home() {
                   <MyClasses onClassClick={handleOpenClassroom} />
                 ) : activeTab === 'records' ? (
                   <RecordsContent />
+                ) : activeTab === 'inbox' ? (
+                  (() => {
+                    // Check if there's a conversation ID in the URL (inbox/conv-id)
+                    const conversationId = slug && slug.length > 1 && slug[0] === 'inbox' ? slug[1] : undefined
+                    return (
+                      <InboxContent
+                        conversationId={conversationId}
+                        onConversationClick={handleOpenConversation}
+                      />
+                    )
+                  })()
                 ) : typeof activeTab === 'string' && activeTab.startsWith('classroom/') && activeTab.includes('/student/') ? (
                   // classroom/{classId}/student/{studentSlug}
                   (() => {

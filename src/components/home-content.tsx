@@ -119,13 +119,13 @@ export function HomeContent({ onNavigateToClassroom, onNavigateToExplore, onAssi
                   <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-stone-600 to-stone-700">
                     <div className="flex items-center gap-0.5">
                       {/* Audio waveform visual */}
-                      {[...Array(15)].map((_, i) => (
+                      {[19.6, 26.0, 20.8, 33.5, 29.1, 29.3, 30.7, 19.3, 19.2, 34.2, 26.4, 30.1, 25.6, 13.9, 33.3].map((height, i) => (
                         <div
                           key={i}
                           className="w-0.5 rounded-full bg-white/60"
                           style={{
-                            height: `${Math.random() * 24 + 12}px`,
-                            animation: `pulse ${Math.random() * 2 + 1}s ease-in-out infinite`,
+                            height: `${height}px`,
+                            animation: `pulse ${[2.8, 1.2, 2.7, 2.4, 1.1, 1.4, 2.4, 2.3, 2.8, 1.8, 1.6, 2.5, 2.8, 2.7, 2.2][i]}s ease-in-out infinite`,
                           }}
                         />
                       ))}
