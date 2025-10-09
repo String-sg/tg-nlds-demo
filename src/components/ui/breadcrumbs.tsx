@@ -30,13 +30,12 @@ export function Breadcrumbs({
   showHomeIcon = true,
   maxItems,
 }: BreadcrumbsProps) {
-  // If no items, don't render anything
-  if (!items || items.length === 0) {
-    return null
-  }
-
   // Handle truncation for long breadcrumb trails
   const displayItems = React.useMemo(() => {
+    if (!items || items.length === 0) {
+      return []
+    }
+
     if (!maxItems || items.length <= maxItems) {
       return items
     }
@@ -52,6 +51,11 @@ export function Breadcrumbs({
 
     return truncated
   }, [items, maxItems])
+
+  // If no items, don't render anything
+  if (!items || items.length === 0 || displayItems.length === 0) {
+    return null
+  }
 
   // Check if we should show a back button (for 2nd level and deeper)
   const showBackButton = items.length > 1
