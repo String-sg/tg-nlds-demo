@@ -10,6 +10,9 @@ import type {
   ClassOverviewStats,
 } from '@/types/classroom'
 
+// Import Eric's comprehensive records
+export { ericStudentRecords, getEricRecordsByType, getEricRecentRecords, getEricCounselingSessions, getEricTermlyCheckIns, getEricPTMPrepNotes } from './eric-records'
+
 // Current logged-in user (Form Teacher for 5A, Subject Teacher for 6B and 7A)
 export const currentUser: User = {
   user_id: 'teacher-001',
@@ -685,22 +688,30 @@ export const mockStudents5A: Student[] = [
     student_id: 'student-031',
     name: 'Eric Lim',
     class_id: 'class-5a',
-    class_name: 'S2-A',
+    class_name: 'S2-A', // Secondary 2, Express Stream
     year_level: 8,
-    status: 'SEN', // SWAN - Student With Additional Needs
-    conduct_grade: 'Average',
-    grades: { english: 65, math: 68, science: 62, chinese: 60, humanities: 64 }, // Declining from previously strong performance
+    status: 'SWAN', // SWAN - Student With Additional Needs (Mental Health)
+    conduct_grade: 'Average', // Maintaining despite emotional challenges
+    grades: {
+      english: 65,
+      math: 68,
+      science: 62,
+      chinese: 60,
+      humanities: 64,
+    }, // Significant decline from Term 2 baseline (78% avg → 64% avg, -14 pts)
     attendance_rate: 89, // Regular absences due to stress-related health issues
     parent_name: 'Dr. & Mrs. Lim',
     parent_email: 'lim.family@email.com',
     parent_phone: '+65 9234 5678',
-    family_background: 'High-achieving family. Parents are both professionals with very high academic expectations. Older sibling excelling academically. Eric experiences constant comparison. Financial pressure mentioned. Limited emotional support at home.',
-    health_declaration: 'Frequent nurse visits with stress-related complaints (headaches, stomach aches). Under SEC monitoring for anxiety and social difficulties.',
-    friends: ['Daniel Koh'], // Small circle, feeling isolated
-    has_medical_conditions: false,
-    needs_counselling: true, // Active counseling sessions, termly check-ins
-    has_disciplinary_issues: false,
-    has_sen: true, // SWAN status for mental health support
+    family_background:
+      'High-achieving professional family (both parents have advanced degrees). Older sibling currently excelling in university. Eric experiences constant comparison and very high academic expectations. Financial pressure from long work hours. Limited emotional support at home - communication style is achievement-focused rather than emotion-focused. Recent family tensions noted (possible marital stress). Family counseling recommended at upcoming PTM (Feb 14, 2025).',
+    health_declaration:
+      'Frequent nurse visits with stress-related psychosomatic complaints (headaches, stomach aches) - 4 visits this term. No chronic physical conditions. Under active SEC monitoring for anxiety and social difficulties since Oct 2024. Currently in bi-weekly counseling sessions with Ms. Sarah Wong (School Counselor).',
+    friends: ['Daniel Koh'], // Very small circle, feeling socially isolated
+    has_medical_conditions: false, // Physical health is fine; concerns are mental health
+    needs_counselling: true, // Active SWAN case - 8 counseling sessions completed, ongoing support
+    has_disciplinary_issues: false, // No behavioral issues; Eric is quiet and compliant
+    has_sen: true, // SWAN status activated Oct 2024 for mental health support (anxiety/social difficulties)
   },
 ]
 
@@ -887,6 +898,20 @@ export function getStudentsByClassId(classId: string): Student[] {
   }
   // Add other classes as needed
   return []
+}
+
+// Helper function to get student by name
+export function getStudentByName(studentName: string): Student | undefined {
+  // Search across all student arrays
+  const allStudents = [...mockStudents5A] // Add other class arrays as they're created
+  return allStudents.find((student) => student.name === studentName)
+}
+
+// Helper function to get student by ID
+export function getStudentById(studentId: string): Student | undefined {
+  // Search across all student arrays
+  const allStudents = [...mockStudents5A] // Add other class arrays as they're created
+  return allStudents.find((student) => student.student_id === studentId)
 }
 
 // Helper function to get alerts by class ID

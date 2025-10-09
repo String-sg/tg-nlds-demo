@@ -29,14 +29,22 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { StudentRecord, RecordType } from '@/types/student-records'
+import { ericStudentRecords } from '@/lib/mock-data/eric-records'
 
 interface StudentRecordsTimelineProps {
   studentName: string
   studentId: string
 }
 
-// Mock data
-const getMockRecords = (studentName: string): StudentRecord[] => [
+// Mock data - returns Eric's comprehensive records if Eric, otherwise generic mock
+const getMockRecords = (studentName: string, studentId: string): StudentRecord[] => {
+  // If this is Eric Lim, return his comprehensive records
+  if (studentId === 'student-031' || studentName === 'Eric Lim') {
+    return ericStudentRecords
+  }
+
+  // Otherwise return generic mock records for other students
+  return [
   {
     id: 'rec-001',
     studentId: 'student-001',
@@ -127,7 +135,8 @@ const getMockRecords = (studentName: string): StudentRecord[] => [
       strengths: ['Resilience', 'Growth mindset', 'Helping peers', 'Diligence'],
     },
   },
-]
+  ]
+}
 
 export function StudentRecordsTimeline({
   studentName,
@@ -136,7 +145,7 @@ export function StudentRecordsTimeline({
   const [filterType, setFilterType] = useState<RecordType | 'all'>('all')
   const [searchQuery, setSearchQuery] = useState('')
 
-  const records = getMockRecords(studentName)
+  const records = getMockRecords(studentName, studentId)
 
   const getRecordIcon = (type: RecordType) => {
     switch (type) {

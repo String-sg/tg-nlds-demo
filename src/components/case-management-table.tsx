@@ -41,6 +41,30 @@ interface CaseData {
 // Mock data based on student roster
 const mockCases: CaseData[] = [
   {
+    id: '241015-00016',
+    createdOn: '15 Oct 2024',
+    createdBy: 'Daniel Tan',
+    studentName: 'Eric Lim',
+    caseType: 'SWAN (Student With Additional Needs)',
+    school: 'Unity Secondary School',
+    status: 'Open',
+    issues: [
+      { type: 'SWAN Activation - Mental Health', remarks: '[Oct 15, 2024] Student activated as SWAN for anxiety and social difficulties. Initial assessment shows high academic pressure from family, limited peer support, and stress-related psychosomatic symptoms.' },
+      { type: 'SEC Monitoring Initiated', remarks: '[Oct 15, 2024] Under active Student Engagement and Counselling (SEC) monitoring. Bi-weekly counseling sessions scheduled with Ms. Sarah Wong (School Counselor).' },
+      { type: 'Academic Decline Observation', remarks: '[Oct 20, 2024] Baseline academic performance: 78% average across subjects. Teacher observations note decreased class participation and signs of stress during assessments.' },
+      { type: 'Family Background Assessment', remarks: '[Oct 28, 2024] Both parents are high-achieving professionals with advanced degrees. Older sibling excelling in university. Eric experiences constant comparison and very high academic expectations. Limited emotional support at home.' },
+      { type: 'Health Concerns - Psychosomatic', remarks: '[Nov 5, 2024] Frequent nurse visits with stress-related complaints (headaches, stomach aches). 4 visits in one term. No chronic physical conditions identified. Concerns are mental health-related.' },
+      { type: 'Social Isolation Noted', remarks: '[Nov 12, 2024] Very limited peer interactions. Only close friend is Daniel Koh. Student reports feeling socially isolated and difficulty connecting with classmates.' },
+      { type: 'Counseling Session 1-4 Summary', remarks: '[Oct 22 - Nov 19, 2024] Completed first 4 counseling sessions. Eric is thoughtful and introspective but struggles with emotional regulation. Working on anxiety management techniques and building self-advocacy skills.' },
+      { type: 'Term 3 Academic Review', remarks: '[Dec 18, 2024] End of year results show significant decline: 78% average → 64% average (-14 points). English: 65, Math: 68, Science: 62, Chinese: 60, Humanities: 64. Student is maintaining homework completion despite emotional challenges.' },
+      { type: 'Family Tensions Identified', remarks: '[Dec 20, 2024] Recent family tensions noted (possible marital stress between parents). Communication style at home is achievement-focused rather than emotion-focused. Student feels unable to express emotional needs.' },
+      { type: 'Counseling Session 5-8 Summary', remarks: '[Nov 26, 2024 - Jan 14, 2025] Sessions 5-8 completed. Progress in identifying stress triggers. Eric showing resilience in attending school regularly (89% attendance) despite difficulties. Building coping strategies for academic pressure.' },
+      { type: 'Attendance Monitoring', remarks: '[Jan 20, 2025] Attendance at 89% - regular absences due to stress-related health issues. No disciplinary concerns. Eric is polite, respectful, and maintains average conduct grade despite personal difficulties.' },
+      { type: 'PTM Preparation - Feb 14, 2025', remarks: '[Jan 15, 2025] Preparing for sensitive PTM with Dr. & Mrs. Lim. Will recommend family counseling resources and discuss reducing academic pressure. Need to coordinate with Ms. Wong before meeting. Focus on Eric\'s strengths and holistic development.' },
+      { type: 'Current Status & Support Plan', remarks: '[Jan 20, 2025] SWAN case remains open. Ongoing bi-weekly counseling with Ms. Wong. Continued monitoring of academic performance, social engagement, and emotional wellbeing. Student shows resilience and is responsive to support. Next review: After Feb 14 PTM.' },
+    ],
+  },
+  {
     id: '251002-00015',
     createdOn: '2 Oct 2025',
     createdBy: 'Daniel Tan',

@@ -10,6 +10,7 @@ import { cn, getInitials, getAvatarColor } from '@/lib/utils'
 import { PageLayout } from '@/components/layout/page-layout'
 import { StudentRecordsTimeline } from '@/components/records/student-records-timeline'
 import { ReportSlip } from '@/components/student/report-slip'
+import { getStudentByName } from '@/lib/mock-data/classroom-data'
 
 interface StudentProfileProps {
   studentName: string
@@ -24,32 +25,94 @@ interface StudentProfileProps {
 export function StudentProfile({ studentName, classId, onBack, activeTab, onNavigate, classroomTabs, studentProfileTabs }: StudentProfileProps) {
   const router = useRouter()
 
-  // Mock student data - in a real app, this would be fetched based on studentName
-  const student = {
-    name: studentName,
-    id: 'S2025001',
-    class: 'Primary 4A',
-    attendance: 98,
-    english: 88,
-    math: 76,
-    science: 82,
-    conduct: 'Above average',
-    status: 'GEP',
-    parentName: 'Mr. & Mrs. ' + studentName.split(' ').slice(-1)[0],
-    parentEmail: studentName.toLowerCase().replace(/\s+/g, '.') + '@email.com',
-    parentPhone: '+65 9123 4567',
+  // Fetch real student data based on studentName
+  const studentData = getStudentByName(studentName)
+
+  // Map real student data to component format, or use fallback if not found
+  const student = studentData ? {
+    name: studentData.name,
+    id: studentData.student_id,
+    class: studentData.class_name,
+    attendance: studentData.attendance_rate,
+    english: studentData.grades.english || 0,
+    math: studentData.grades.math || 0,
+    science: studentData.grades.science || 0,
+    conduct: studentData.conduct_grade,
+    status: studentData.status,
+    parentName: studentData.parent_name,
+    parentEmail: studentData.parent_email,
+    parentPhone: studentData.parent_phone,
     background: {
-      healthDeclaration: 'No known allergies. Requires inhaler for asthma during physical activities.',
-      friendsMapping: ['Sarah Chen', 'Marcus Wong', 'Emily Tan'],
-      familyBackground: 'Lives with both parents and one younger sibling. Mother is a teacher, father works in finance. Supportive home environment.',
-      housingAndFinance: 'HDB 4-room flat. Middle-income family. No financial assistance required.'
+      healthDeclaration: studentData.health_declaration || 'No health declaration on file.',
+      friendsMapping: studentData.friends || [],
+      familyBackground: studentData.family_background || 'No family background information available.',
+      housingAndFinance: 'Information not available' // Not in current student data structure
     },
     attendanceDetails: {
-      daily: '98% (23/24 days present this month)',
-      temperature: 'Normal range (36.5°C - 37.0°C)',
-      cca: 'Robotics Club - 100% attendance',
-      schoolEvents: 'Attended all events this term',
+      daily: `${studentData.attendance_rate}% this term`,
+      temperature: 'Normal range',
+      cca: 'Information not available',
+      schoolEvents: 'Information not available',
       earlyDismissal: 'None this term'
+    },
+    studentNeeds: {
+      counselling: studentData.needs_counselling || false,
+      disciplinary: studentData.has_disciplinary_issues || false,
+      sen: studentData.has_sen || false,
+      senDetails: studentData.has_sen
+        ? `Student is under ${studentData.status === 'SWAN' ? 'SWAN (Student With Additional Needs)' : 'SEN'} monitoring and receiving appropriate support.`
+        : null
+    },
+    recentActivities: studentData.name === 'Eric Lim' ? [
+      { date: '2025-01-20', activity: 'Term 1 Math Test', grade: 'C+' },
+      { date: '2025-01-15', activity: 'English Essay - "My Future Goals"', grade: 'B-' },
+      { date: '2025-01-10', activity: 'Science Practical Assessment', grade: 'C' },
+      { date: '2024-12-18', activity: 'End of Year Math Exam', grade: 'C+' },
+      { date: '2024-12-15', activity: 'Chinese Oral Examination', grade: 'C' },
+    ] : [] as Array<{ date: string; activity: string; grade: string }>,
+    strengths: studentData.name === 'Eric Lim' ? [
+      'Polite and respectful to teachers and peers',
+      'Consistently completes homework despite emotional challenges',
+      'Shows resilience in attending school regularly despite stress',
+      'Thoughtful and introspective in counseling sessions',
+      'Maintains average conduct grade despite personal difficulties'
+    ] : [] as string[],
+    areasForImprovement: studentData.name === 'Eric Lim' ? [
+      'Academic performance - grades declined from 78% to 64% average (-14 points)',
+      'Social engagement - very limited peer interactions outside of Daniel Koh',
+      'Emotional regulation - managing anxiety and stress in academic settings',
+      'Self-advocacy - building confidence to ask for help when needed',
+      'Work-life balance - reducing stress from excessive self-imposed pressure'
+    ] : [] as string[],
+    notes: studentData.needs_counselling
+      ? 'Student is currently receiving counselling support. Please check Records tab for detailed notes.'
+      : 'No special notes at this time.',
+  } : {
+    // Fallback data if student not found
+    name: studentName,
+    id: 'N/A',
+    class: 'Unknown',
+    attendance: 0,
+    english: 0,
+    math: 0,
+    science: 0,
+    conduct: 'N/A',
+    status: 'None',
+    parentName: 'N/A',
+    parentEmail: 'N/A',
+    parentPhone: 'N/A',
+    background: {
+      healthDeclaration: 'No data available',
+      friendsMapping: [],
+      familyBackground: 'No data available',
+      housingAndFinance: 'No data available'
+    },
+    attendanceDetails: {
+      daily: 'No data available',
+      temperature: 'No data available',
+      cca: 'No data available',
+      schoolEvents: 'No data available',
+      earlyDismissal: 'No data available'
     },
     studentNeeds: {
       counselling: false,
@@ -57,14 +120,10 @@ export function StudentProfile({ studentName, classId, onBack, activeTab, onNavi
       sen: false,
       senDetails: null
     },
-    recentActivities: [
-      { date: '2025-09-28', activity: 'Completed Math Assignment 5', grade: 'A' },
-      { date: '2025-09-25', activity: 'Science Project Presentation', grade: 'B+' },
-      { date: '2025-09-20', activity: 'English Essay Submission', grade: 'A-' },
-    ],
-    strengths: ['Mathematics', 'Critical thinking', 'Team collaboration'],
-    areasForImprovement: ['Time management', 'Reading comprehension'],
-    notes: 'Shows consistent improvement in class participation. Parents are supportive and engaged.',
+    recentActivities: [] as Array<{ date: string; activity: string; grade: string }>,
+    strengths: [] as string[],
+    areasForImprovement: [] as string[],
+    notes: 'Student data not found.',
   }
 
   const getStatusColor = (status: string) => {
@@ -72,6 +131,8 @@ export function StudentProfile({ studentName, classId, onBack, activeTab, onNavi
       case 'GEP':
         return 'bg-green-100 text-green-800 border-green-300'
       case 'SEN':
+        return 'bg-amber-100 text-amber-800 border-amber-300'
+      case 'SWAN':
         return 'bg-amber-100 text-amber-800 border-amber-300'
       default:
         return 'bg-stone-100 text-stone-800 border-stone-300'

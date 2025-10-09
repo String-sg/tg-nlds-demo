@@ -31,7 +31,7 @@ export type AssessmentType = 'Assignment' | 'Quiz' | 'Exam' | 'Project'
 
 export type ConductGrade = 'Excellent' | 'Above average' | 'Average' | 'Needs improvement'
 
-export type StudentStatus = 'None' | 'GEP' | 'SEN'
+export type StudentStatus = 'None' | 'GEP' | 'SEN' | 'SWAN'
 
 // User/Teacher
 export interface User {
