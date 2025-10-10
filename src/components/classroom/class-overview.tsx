@@ -224,7 +224,7 @@ export function ClassOverview({ classId, onBack, onNavigateToGrades, onStudentCl
             <div>
               <h3 className="text-sm font-medium text-stone-500 mb-2">Teacher</h3>
               <p className="text-base text-stone-900">
-                {currentUser.name}
+                {user?.name}
                 {isFormClass && ' (Form Teacher)'}
               </p>
             </div>
