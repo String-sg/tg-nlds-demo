@@ -99,8 +99,8 @@ export function Breadcrumbs({
 
             const isHome = item.label === 'Home'
             const isLast = index === displayItems.length - 1
-            // Don't show Home icon when we have a back button
-            const shouldShowHomeIcon = isHome && showHomeIcon && !showBackButton
+            // Never show Home icon
+            const shouldShowHomeIcon = false
 
             return (
               <React.Fragment key={item.path}>
@@ -110,7 +110,10 @@ export function Breadcrumbs({
                     // Show skeleton for loading items
                     <Skeleton className="h-4 w-20" />
                   ) : item.isActive ? (
-                    <BreadcrumbPage className={shouldShowHomeIcon ? 'flex items-center gap-1' : ''}>
+                    <BreadcrumbPage className={cn(
+                      shouldShowHomeIcon ? 'flex items-center gap-1' : '',
+                      isHome && 'pl-2'
+                    )}>
                       {shouldShowHomeIcon && (
                         <HomeIcon className="h-4 w-4" />
                       )}
@@ -124,7 +127,8 @@ export function Breadcrumbs({
                       }}
                       className={cn(
                         'cursor-pointer',
-                        shouldShowHomeIcon && 'flex items-center gap-1'
+                        shouldShowHomeIcon && 'flex items-center gap-1',
+                        isHome && 'pl-2'
                       )}
                     >
                       {shouldShowHomeIcon && (
