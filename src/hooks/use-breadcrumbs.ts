@@ -92,8 +92,8 @@ export function useBreadcrumbs({
 
     // Always add Home as first item (unless we're on home page)
     if (currentPath !== 'home') {
-      // Check if current path is a child of home (e.g., roundup/pulse)
-      const isHomeChild = currentPath === 'roundup'
+      // Check if current path is a child of home (e.g., pulse)
+      const isHomeChild = currentPath === 'pulse'
       items.push({
         label: 'Home',
         path: 'home',
@@ -123,11 +123,11 @@ export function useBreadcrumbs({
         path: 'records',
         isActive: true,
       })
-    } else if (currentPath === 'roundup') {
-      // Roundup/Pulse is a child of Home
+    } else if (currentPath === 'pulse') {
+      // Pulse is a child of Home
       items.push({
         label: 'Pulse',
-        path: 'roundup',
+        path: 'pulse',
         isActive: true,
       })
     } else if (currentPath === 'classroom') {

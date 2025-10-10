@@ -147,7 +147,7 @@ export function isValidFileSize(fileSize: number, maxSize: number = 10 * 1024 * 
  * Get color class for user role
  */
 export function getRoleColor(role: 'teacher' | 'parent'): string {
-  return role === 'teacher' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-900'
+  return role === 'teacher' ? 'bg-blue-600 text-white' : 'bg-stone-100 text-stone-900'
 }
 
 /**

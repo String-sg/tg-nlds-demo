@@ -7,7 +7,7 @@ export type TabKey =
   | 'home'
   | 'explore'
   | 'records'
-  | 'roundup'
+  | 'pulse'
   | ClassroomTabKey
   | `student/${string}`
 

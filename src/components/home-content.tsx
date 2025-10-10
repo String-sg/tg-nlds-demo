@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import {
   Edit2,
-  Sparkles,
+  Sparkle,
   BookOpen,
   MessageSquare,
   ArrowRight,
@@ -27,7 +27,7 @@ import { cn } from '@/lib/utils'
 
 const actionButtons = [
   { key: 'marking', label: 'Marking', icon: Edit2 },
-  { key: 'analyse', label: 'Analyse', icon: Sparkles },
+  { key: 'analyse', label: 'Analyse', icon: Sparkle },
   { key: 'learn', label: 'Learn', icon: BookOpen },
   { key: 'communicate', label: 'Communicate', icon: MessageSquare },
   { key: 'explore', label: 'Explore', icon: Compass },
@@ -228,7 +228,7 @@ export function HomeContent({ onNavigateToClassroom, onNavigateToExplore, onAssi
       </div>
 
       {/* Fixed Bottom section with Assistant and Icon Dock - floats at bottom */}
-      <div className="absolute bottom-0 left-0 right-0 border-t border-border/40">
+      <div className="absolute bottom-0 left-0 right-0">
         <div className="mx-auto w-full max-w-5xl px-6 py-6">
             <div className="relative">
               {/* Glow effect backdrop */}
@@ -276,7 +276,7 @@ export function HomeContent({ onNavigateToClassroom, onNavigateToExplore, onAssi
                       {/* Input field - stays in same position */}
                       <div className="relative">
                         <div className="absolute left-5 top-1/2 z-10 -translate-y-1/2">
-                          <Sparkles className="size-5 text-stone-600" />
+                          <Sparkle className="size-5 text-stone-600" />
                         </div>
                         <Input
                           type="text"

@@ -33,6 +33,7 @@ import {
   Briefcase,
   ChevronDown,
   RotateCcw,
+  Sparkle,
 } from 'lucide-react'
 
 import {
@@ -1554,7 +1555,7 @@ export default function Home() {
 
   return (
     <UserProvider>
-    <div className="flex min-h-svh w-full bg-background">
+    <div className="flex min-h-svh w-full bg-stone-100 dark:bg-stone-800">
       <Sidebar variant="inset" collapsible="icon">
         <SidebarContent className="gap-6">
           <SidebarGroup className="gap-3">
@@ -1735,7 +1736,7 @@ export default function Home() {
       <SidebarInset>
         <div className="flex flex-1 flex-col">
           <div className="sticky top-0 z-20 overflow-hidden rounded-t-2xl bg-background">
-            <div className="border-b border-border/70 bg-muted/20 px-4 backdrop-blur-sm">
+            <div className="px-4">
               <div ref={tabContainerRef} className="flex items-center gap-2 py-2" suppressHydrationWarning>
                 <div className="flex items-center gap-2" suppressHydrationWarning>
                 <TooltipProvider delayDuration={150}>
@@ -2018,14 +2019,14 @@ export default function Home() {
                       aria-expanded={isAssistantOpen}
                       aria-controls="assistant-panel"
                     >
-                      <MessageSquare className="size-4" />
+                      <Sparkle className="size-4" />
                       Assistant
                     </Button>
                   </div>
                 )}
               </div>
             </div>
-            <div className="flex flex-col border-b bg-background">
+            <div className="flex flex-col bg-background">
               {/* Page Header */}
               <div className="flex h-16 items-center gap-3 px-4">
                 <SidebarTrigger className="md:hidden" />
