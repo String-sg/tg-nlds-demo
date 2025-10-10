@@ -8,6 +8,7 @@ export interface BreadcrumbItem {
   label: string
   path: string
   isActive: boolean
+  isLoading?: boolean // Indicates this item is still loading
   onClick?: () => void
 }
 
@@ -15,6 +16,7 @@ interface UseBreadcrumbsProps {
   activeTab?: string
   classroomTabs?: Map<string, string>
   studentProfileTabs?: Map<string, string>
+  classroomNames?: Map<string, string>
   onNavigate?: (path: string, replaceTab?: boolean) => void
 }
 
@@ -31,6 +33,7 @@ export function useBreadcrumbs({
   activeTab,
   classroomTabs,
   studentProfileTabs,
+  classroomNames,
   onNavigate,
 }: UseBreadcrumbsProps = {}): UseBreadcrumbsReturn {
   const router = useRouter()
@@ -148,7 +151,12 @@ export function useBreadcrumbs({
 
       if (segments.length >= 2) {
         const classId = segments[1]
-        const className = classNames.get(classId) || classroomTabs?.get(`classroom/${classId}`) || 'Loading...'
+        // Try multiple sources for the class name
+        const className =
+          classroomNames?.get(classId) ||  // First check cached names from navigation
+          classNames.get(classId) ||        // Then check async fetched names
+          classroomTabs?.get(`classroom/${classId}`) || // Fallback to tab path
+          null                               // Use null to indicate loading
 
         // Check if this is a nested student view
         if (segments.length >= 4 && segments[2] === 'student') {
@@ -157,11 +165,12 @@ export function useBreadcrumbs({
           const studentName = studentProfileTabs?.get(currentPath) ||
                              studentSlug.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
 
-          // Add class breadcrumb
+          // Add class breadcrumb - show skeleton if loading
           items.push({
-            label: className,
+            label: className || 'Loading',
             path: `classroom/${classId}`,
             isActive: false,
+            isLoading: !className,
             onClick: () => handleNavigate(`classroom/${classId}`, true),
           })
 
@@ -174,9 +183,10 @@ export function useBreadcrumbs({
         } else if (segments.length >= 3 && segments[2] === 'students') {
           // classroom/{classId}/students
           items.push({
-            label: className,
+            label: className || 'Loading',
             path: `classroom/${classId}`,
             isActive: false,
+            isLoading: !className,
             onClick: () => handleNavigate(`classroom/${classId}`, true),
           })
 
@@ -188,9 +198,10 @@ export function useBreadcrumbs({
         } else if (segments.length >= 3 && segments[2] === 'grades') {
           // classroom/{classId}/grades
           items.push({
-            label: className,
+            label: className || 'Loading',
             path: `classroom/${classId}`,
             isActive: false,
+            isLoading: !className,
             onClick: () => handleNavigate(`classroom/${classId}`, true),
           })
 
@@ -202,9 +213,10 @@ export function useBreadcrumbs({
         } else if (segments.length >= 3 && segments[2] === 'attendance') {
           // classroom/{classId}/attendance
           items.push({
-            label: className,
+            label: className || 'Loading',
             path: `classroom/${classId}`,
             isActive: false,
+            isLoading: !className,
             onClick: () => handleNavigate(`classroom/${classId}`, true),
           })
 
@@ -216,9 +228,10 @@ export function useBreadcrumbs({
         } else {
           // Just classroom/{classId}
           items.push({
-            label: className,
+            label: className || 'Loading',
             path: currentPath,
             isActive: true,
+            isLoading: !className,
           })
         }
       }
@@ -244,7 +257,7 @@ export function useBreadcrumbs({
     }
 
     return items
-  }, [currentPath, classNames, classroomTabs, studentProfileTabs, handleNavigate])
+  }, [currentPath, classNames, classroomTabs, studentProfileTabs, classroomNames, handleNavigate])
 
   return {
     breadcrumbs,

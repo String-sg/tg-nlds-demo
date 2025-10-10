@@ -9,7 +9,7 @@ import { cn } from '@/lib/utils'
 import type { Class, CCAClass } from '@/types/classroom'
 
 interface MyClassesProps {
-  onClassClick?: (classId: string) => void
+  onClassClick?: (classId: string, className: string) => void
 }
 
 export function MyClasses({ onClassClick }: MyClassesProps) {
@@ -120,7 +120,7 @@ export function MyClasses({ onClassClick }: MyClassesProps) {
 interface ClassCardProps {
   classData: Class
   isFormClass: boolean
-  onClassClick?: (classId: string) => void
+  onClassClick?: (classId: string, className: string) => void
 }
 
 function ClassCard({ classData, isFormClass, onClassClick }: ClassCardProps) {
@@ -131,7 +131,7 @@ function ClassCard({ classData, isFormClass, onClassClick }: ClassCardProps) {
         "hover:border-stone-300",
         isFormClass && "ring-2 ring-blue-500/20 bg-blue-50/30"
       )}
-      onClick={() => onClassClick?.(classData.class_id)}
+      onClick={() => onClassClick?.(classData.class_id, classData.class_name)}
     >
       <CardHeader className="pb-2">
         <div className="flex items-start justify-between">
@@ -171,7 +171,7 @@ function ClassCard({ classData, isFormClass, onClassClick }: ClassCardProps) {
 // New CCA Card Component
 interface CCACardProps {
   ccaData: CCAClass
-  onClassClick?: (classId: string) => void
+  onClassClick?: (classId: string, className: string) => void
 }
 
 function CCACard({ ccaData, onClassClick }: CCACardProps) {
@@ -181,7 +181,7 @@ function CCACard({ ccaData, onClassClick }: CCACardProps) {
         "border-stone-200 hover:shadow-lg transition-all cursor-pointer group h-full",
         "hover:border-stone-300 bg-amber-50/30"
       )}
-      onClick={() => onClassClick?.(ccaData.cca_id)}
+      onClick={() => onClassClick?.(ccaData.cca_id, ccaData.name)}
     >
       <CardHeader className="pb-2">
         <div className="flex items-start justify-between">

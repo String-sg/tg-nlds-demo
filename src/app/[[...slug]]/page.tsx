@@ -83,6 +83,7 @@ import {
 } from '@/components/ui/tooltip'
 import { useBreadcrumbs } from '@/hooks/use-breadcrumbs'
 import { Breadcrumbs } from '@/components/ui/breadcrumbs'
+import { createClient } from '@/lib/supabase/client'
 
 const primaryPages = [
   { key: 'home', label: 'Home', icon: HomeIcon, tooltip: 'Home' },
@@ -337,7 +338,7 @@ const TabContent = memo(function TabContent({
   studentProfileTabs: Map<string, string>
   handleNavigate: (tab: ClosableTabKey, replaceParent?: boolean) => void
   handleOpenStudentProfile: (studentName: string) => void
-  handleOpenClassroom: (classId: string) => void
+  handleOpenClassroom: (classId: string, className?: string) => void
   handleOpenConversation: (conversationId: string) => void
   handleCloseTab: (tab: TabKey) => void
   handleAssistantMessage: (message: string) => void
@@ -412,7 +413,8 @@ const TabContent = memo(function TabContent({
   if (typeof activeTab === 'string' && activeTab.startsWith('classroom/') && activeTab.includes('/student/')) {
     const classroomPath = classroomTabs.get(activeTab)
     const parts = classroomPath?.split('/') ?? []
-    const classId = parts[0]
+    // Parse classId from encoded format "classId:className"
+    const [classId] = parts[0]?.includes(':') ? parts[0].split(':', 2) : [parts[0]]
     let studentName = studentProfileTabs.get(activeTab)
 
     if (!studentName && typeof activeTab === 'string') {
@@ -460,7 +462,8 @@ const TabContent = memo(function TabContent({
   if (typeof activeTab === 'string' && activeTab.startsWith('classroom/') && activeTab.includes('/students')) {
     const classroomPath = classroomTabs.get(activeTab)
     const parts = classroomPath?.split('/') ?? []
-    const classId = parts[0]
+    // Parse classId from encoded format "classId:className"
+    const [classId] = parts[0]?.includes(':') ? parts[0].split(':', 2) : [parts[0]]
     return (
       <StudentList
         classId={classId}
@@ -496,7 +499,8 @@ const TabContent = memo(function TabContent({
   if (typeof activeTab === 'string' && activeTab.startsWith('classroom/') && activeTab.includes('/grades')) {
     const classroomPath = classroomTabs.get(activeTab)
     const parts = classroomPath?.split('/') ?? []
-    const classId = parts[0]
+    // Parse classId from encoded format "classId:className"
+    const [classId] = parts[0]?.includes(':') ? parts[0].split(':', 2) : [parts[0]]
     return (
       <GradeEntry
         classId={classId}
@@ -530,7 +534,8 @@ const TabContent = memo(function TabContent({
 
   if (typeof activeTab === 'string' && activeTab.startsWith('classroom/')) {
     const classroomPath = classroomTabs.get(activeTab)
-    const classId = classroomPath ?? activeTab.replace('classroom/', '')
+    // Parse classId from encoded format "classId:className"
+    const [classId] = classroomPath?.includes(':') ? classroomPath.split(':', 2) : [classroomPath ?? activeTab.replace('classroom/', '')]
     return (
       <ClassOverview
         classId={classId}
@@ -687,9 +692,11 @@ export default function Home() {
   // Initialize with empty maps to prevent hydration mismatch - restore from sessionStorage after mount
   const [studentProfileTabs, setStudentProfileTabs] = useState<Map<string, string>>(new Map())
   const [classroomTabs, setClassroomTabs] = useState<Map<string, string>>(new Map())
+  const [classroomNames, setClassroomNames] = useState<Map<string, string>>(new Map()) // Cache class names
   const [closingTabs, setClosingTabs] = useState<Set<string>>(new Set()) // Track tabs being closed
   const studentProfileTabsRef = useRef<Map<string, string>>(new Map()) // Ref for immediate access
   const classroomTabsRef = useRef<Map<string, string>>(new Map()) // Ref for immediate access
+  const classroomNamesRef = useRef<Map<string, string>>(new Map()) // Ref for immediate access to class names
   const [pendingAssistantMessage, setPendingAssistantMessage] = useState<string | null>(null)
   const tabContainerRef = useRef<HTMLDivElement>(null)
 
@@ -733,11 +740,12 @@ export default function Home() {
           sessionStorage.setItem('openTabs', JSON.stringify(openTabs))
           sessionStorage.setItem('studentProfileTabs', JSON.stringify(Array.from(studentProfileTabs.entries())))
           sessionStorage.setItem('classroomTabs', JSON.stringify(Array.from(classroomTabs.entries())))
+          sessionStorage.setItem('classroomNames', JSON.stringify(Array.from(classroomNames.entries())))
 
-          // Sync refs
+          // Sync refs (except classroomTabsRef and classroomNamesRef which are updated synchronously in handlers)
           openTabsRef.current = openTabs
           studentProfileTabsRef.current = studentProfileTabs
-          classroomTabsRef.current = classroomTabs
+          // DO NOT overwrite classroomTabsRef or classroomNamesRef from state - they're updated synchronously in handleOpenClassroom
         } catch (error) {
           console.error('Failed to persist tabs to sessionStorage:', error)
         }
@@ -752,7 +760,52 @@ export default function Home() {
     }, 1000) // Increased debounce to 1s for better performance
 
     return () => clearTimeout(timeoutId)
-  }, [openTabs, studentProfileTabs, classroomTabs, isMounted])
+  }, [openTabs, studentProfileTabs, classroomTabs, classroomNames, isMounted])
+
+  // Fetch class names from database for classroom tabs
+  useEffect(() => {
+    if (!isMounted) return
+
+    // Find all classroom tabs that need names
+    const classroomTabKeys = openTabs.filter(tab =>
+      typeof tab === 'string' && tab.startsWith('classroom/')
+    )
+
+    classroomTabKeys.forEach(async (tabKey) => {
+      const classId = (tabKey as string).replace('classroom/', '').split('/')[0]
+
+      // Skip if we already have this class name
+      if (classroomNamesRef.current.has(classId)) return
+
+      // Skip if it's already encoded with a name
+      const classroomPath = classroomTabsRef.current.get(tabKey)
+      if (classroomPath?.includes(':')) {
+        const [_, encodedName] = classroomPath.split(':', 2)
+        if (encodedName) {
+          classroomNamesRef.current.set(classId, encodedName)
+          setClassroomNames(new Map(classroomNamesRef.current))
+          return
+        }
+      }
+
+      // Fetch from database
+      try {
+        const supabase = createClient()
+        const { data, error } = await supabase
+          .from('classes')
+          .select('name')
+          .eq('id', classId)
+          .single()
+
+        if (!error && data && 'name' in data) {
+          classroomNamesRef.current.set(classId, data.name)
+          setClassroomNames(new Map(classroomNamesRef.current))
+        }
+      } catch (err) {
+        console.error('Error fetching class name:', err)
+      }
+    })
+  }, [openTabs, isMounted])
 
   // Sync URL with active tab on URL changes - only after mount to avoid race conditions
   useEffect(() => {
@@ -783,8 +836,13 @@ export default function Home() {
       // Extract the path portion (everything after 'classroom/')
       const classroomPath = segments.slice(1).join('/')
 
-      // Always update to ensure component re-renders with correct data
-      if (!classroomTabsRef.current.has(tabFromUrl) || classroomTabsRef.current.get(tabFromUrl) !== classroomPath) {
+      // Only update if:
+      // 1. Tab doesn't exist in map yet
+      // 2. OR existing value is NOT encoded (doesn't have className, no colon in first segment)
+      const currentValue = classroomTabsRef.current.get(tabFromUrl)
+      const isCurrentValueEncoded = currentValue && currentValue.split('/')[0].includes(':')
+
+      if (!classroomTabsRef.current.has(tabFromUrl) || (!isCurrentValueEncoded && currentValue !== classroomPath)) {
         const updatedClassroomTabs = new Map(classroomTabsRef.current)
         updatedClassroomTabs.set(tabFromUrl, classroomPath)
         classroomTabsRef.current = updatedClassroomTabs
@@ -847,10 +905,11 @@ export default function Home() {
   const isAssistantSidebarOpen = assistantMode === 'sidebar' && isAssistantOpen
 
   // Get breadcrumbs for current tab - declare after handlers are defined
-  const { breadcrumbs: pageBreadcrumbs } = useBreadcrumbs({
+  const { breadcrumbs: pageBreadcrumbs, isLoading: breadcrumbsLoading } = useBreadcrumbs({
     activeTab: activeTab as string,
     classroomTabs,
     studentProfileTabs,
+    classroomNames,
     // Use inline function to avoid hoisting issues
     onNavigate: useCallback((path: string, replace?: boolean) => {
       const newPath = path === 'home' ? '/' : `/${path}`
@@ -1122,14 +1181,18 @@ export default function Home() {
     handleNavigate(tabKey)
   }
 
-  const handleOpenClassroom = (classId: string) => {
+  const handleOpenClassroom = (classId: string, className?: string) => {
     const tabKey = `classroom/${classId}` as ClassroomTabKey
 
-    setClassroomTabs((prev) => {
-      const updated = new Map(prev)
-      updated.set(tabKey, classId)
-      return updated
-    })
+    // Encode className in the classroomPath using delimiter ":"
+    // Format: "classId:className" or just "classId" if no name provided
+    const classroomPath = className ? `${classId}:${className}` : classId
+
+    // Update classroomTabs ref AND state synchronously
+    const updatedClassroomTabs = new Map(classroomTabsRef.current)
+    updatedClassroomTabs.set(tabKey, classroomPath)
+    classroomTabsRef.current = updatedClassroomTabs
+    setClassroomTabs(updatedClassroomTabs)
 
     handleNavigate(tabKey, true) // Replace parent tab
   }
@@ -1248,6 +1311,14 @@ export default function Home() {
         setClassroomTabs(parsedMap)
         classroomTabsRef.current = parsedMap
       }
+
+      // Restore classroom names from sessionStorage
+      const storedClassroomNames = sessionStorage.getItem('classroomNames')
+      if (storedClassroomNames) {
+        const parsedMap = new Map<string, string>(JSON.parse(storedClassroomNames))
+        setClassroomNames(parsedMap)
+        classroomNamesRef.current = parsedMap
+      }
     } catch (error) {
       // If sessionStorage is corrupted or full, clear it and start fresh
       console.error('Failed to restore tabs from sessionStorage:', error)
@@ -1255,6 +1326,7 @@ export default function Home() {
         sessionStorage.removeItem('openTabs')
         sessionStorage.removeItem('studentProfileTabs')
         sessionStorage.removeItem('classroomTabs')
+        sessionStorage.removeItem('classroomNames')
       } catch {
         // Ignore errors clearing storage
       }
@@ -1644,7 +1716,8 @@ export default function Home() {
                     const isClassroom = typeof tabKey === 'string' && tabKey.startsWith('classroom/')
                     const isHomeChild = typeof tabKey === 'string' && tabKey === 'pulse'
                     const studentName = isStudentProfile ? studentProfileTabs.get(tabKey) : undefined
-                    let classroomPath = isClassroom ? classroomTabs.get(tabKey) : undefined
+                    // Use ref for immediate access to avoid UUID flicker
+                    let classroomPath = isClassroom ? classroomTabsRef.current.get(tabKey) : undefined
                     // Fallback: derive classroomPath from tabKey if not in map
                     if (isClassroom && !classroomPath && typeof tabKey === 'string') {
                       classroomPath = tabKey.replace('classroom/', '')
@@ -1665,9 +1738,10 @@ export default function Home() {
                       label = studentName ?? 'Student'
                     } else if (isClassroom && classroomPath) {
                       const parts = classroomPath.split('/')
-                      const classId = parts[0]
-                      // Convert class-5a -> Class 5A
-                      const className = classId.replace('class-', '').toUpperCase()
+                      const pathFirst = parts[0] // This is "classId:className" or just "classId"
+                      // Parse encoded className from pathFirst (format: "classId:className")
+                      const [classId, encodedClassName] = pathFirst.includes(':') ? pathFirst.split(':', 2) : [pathFirst, null]
+                      const className = encodedClassName || classroomNamesRef.current.get(classId) || 'Details'
                       if (classroomPath.includes('/student/')) {
                         // classroom/{classId}/student/{studentSlug} -> show student name
                         let studentNameFromMap = studentProfileTabs.get(tabKey)
@@ -1812,9 +1886,10 @@ export default function Home() {
                             label = studentName ?? 'Student'
                           } else if (isClassroom && classroomPath) {
                             const parts = classroomPath.split('/')
-                            const classId = parts[0]
-                            // Convert class-5a -> Class 5A
-                            const className = classId.replace('class-', '').toUpperCase()
+                            const pathFirst = parts[0] // This is "classId:className" or just "classId"
+                            // Parse encoded className from pathFirst (format: "classId:className")
+                            const [classId, encodedClassName] = pathFirst.includes(':') ? pathFirst.split(':', 2) : [pathFirst, null]
+                            const className = encodedClassName || classroomNamesRef.current.get(classId) || 'Details'
                             if (classroomPath.includes('/student/')) {
                               label = studentProfileTabs.get(tabKey) ?? 'Student'
                             } else if (classroomPath.includes('/students')) {
@@ -1936,7 +2011,7 @@ export default function Home() {
                 <div className="hidden flex-1 md:flex items-center">
                   {/* Breadcrumbs */}
                   {pageBreadcrumbs && pageBreadcrumbs.length > 0 && (
-                    <Breadcrumbs items={pageBreadcrumbs} />
+                    <Breadcrumbs items={pageBreadcrumbs} isLoading={breadcrumbsLoading} />
                   )}
                 </div>
                 <div className="flex items-center gap-2">

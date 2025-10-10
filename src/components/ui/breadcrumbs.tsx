@@ -4,6 +4,7 @@ import * as React from 'react'
 import { HomeIcon, ArrowLeftIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
+import { Skeleton } from '@/components/ui/skeleton'
 import {
   Breadcrumb,
   BreadcrumbList,
@@ -21,6 +22,7 @@ export interface BreadcrumbsProps {
   className?: string
   showHomeIcon?: boolean
   maxItems?: number
+  isLoading?: boolean
 }
 
 export function Breadcrumbs({
@@ -29,6 +31,7 @@ export function Breadcrumbs({
   className,
   showHomeIcon = true,
   maxItems,
+  isLoading = false,
 }: BreadcrumbsProps) {
   // Handle truncation for long breadcrumb trails
   const displayItems = React.useMemo(() => {
@@ -77,6 +80,11 @@ export function Breadcrumbs({
 
       <Breadcrumb>
         <BreadcrumbList>
+          {isLoading && items.length === 0 && (
+            <ShadcnBreadcrumbItem>
+              <Skeleton className="h-4 w-24" />
+            </ShadcnBreadcrumbItem>
+          )}
           {displayItems.map((item, index) => {
             if (item === 'ellipsis') {
               return (
@@ -98,7 +106,10 @@ export function Breadcrumbs({
               <React.Fragment key={item.path}>
                 {index > 0 && <BreadcrumbSeparator>{separator}</BreadcrumbSeparator>}
                 <ShadcnBreadcrumbItem>
-                  {item.isActive ? (
+                  {item.isLoading ? (
+                    // Show skeleton for loading items
+                    <Skeleton className="h-4 w-20" />
+                  ) : item.isActive ? (
                     <BreadcrumbPage className={shouldShowHomeIcon ? 'flex items-center gap-1' : ''}>
                       {shouldShowHomeIcon && (
                         <HomeIcon className="h-4 w-4" />
