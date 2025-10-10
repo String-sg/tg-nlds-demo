@@ -2,10 +2,11 @@
 
 import React, { createContext, useContext } from 'react'
 import type { User } from '@/types/classroom'
-import { currentUser } from '@/lib/mock-data/classroom-data'
+import { useTeacherData } from '@/hooks/use-teacher-data'
 
 interface UserContextType {
-  user: User
+  user: User | null
+  loading: boolean
   isFormTeacher: boolean
   isFormTeacherFor: (classId: string) => boolean
 }
@@ -13,14 +14,17 @@ interface UserContextType {
 const UserContext = createContext<UserContextType | undefined>(undefined)
 
 export function UserProvider({ children }: { children: React.ReactNode }) {
-  const isFormTeacher = currentUser.role === 'FormTeacher'
+  const { teacher, loading } = useTeacherData()
+
+  const isFormTeacher = teacher?.role === 'FormTeacher'
 
   const isFormTeacherFor = (classId: string) => {
-    return isFormTeacher && currentUser.form_class_id === classId
+    return isFormTeacher && teacher?.form_class_id === classId
   }
 
   const value: UserContextType = {
-    user: currentUser,
+    user: teacher,
+    loading,
     isFormTeacher,
     isFormTeacherFor,
   }

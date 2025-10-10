@@ -3,7 +3,8 @@
 import { HomeIcon, UsersIcon, TrophyIcon } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { currentUser, mockClasses, mockCCAClasses } from '@/lib/mock-data/classroom-data'
+import { useUser } from '@/contexts/user-context'
+import { useClasses } from '@/hooks/use-classes'
 import { cn } from '@/lib/utils'
 import type { Class, CCAClass } from '@/types/classroom'
 
@@ -12,11 +13,31 @@ interface MyClassesProps {
 }
 
 export function MyClasses({ onClassClick }: MyClassesProps) {
-  // Separate classes by type
-  const formClass = mockClasses.find((c) => c.is_form_class && c.class_id === currentUser.form_class_id)
-  const subjectClasses = mockClasses.filter((c) => !c.is_form_class)
-  const ccaClasses = mockCCAClasses.filter((c) => currentUser.cca_classes.includes(c.cca_id))
-  const hasFormClass = currentUser.role === 'FormTeacher' && formClass
+  const { user, loading: userLoading } = useUser()
+  const { formClass, subjectClasses, ccaClasses, loading: classesLoading } = useClasses(user?.user_id || '')
+
+  const hasFormClass = user?.role === 'FormTeacher' && formClass
+  const loading = userLoading || classesLoading
+
+  if (loading) {
+    return (
+      <div className="mx-auto w-full max-w-5xl space-y-8">
+        <div className="text-center py-12">
+          <p className="text-stone-600">Loading classes...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (!user) {
+    return (
+      <div className="mx-auto w-full max-w-5xl space-y-8">
+        <div className="text-center py-12">
+          <p className="text-red-600">Error loading user data</p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="mx-auto w-full max-w-5xl space-y-8">
