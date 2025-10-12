@@ -29,7 +29,7 @@ export type CommunicationType = 'Email' | 'Phone' | 'Meeting' | 'SMS'
 
 export type AssessmentType = 'Assignment' | 'Quiz' | 'Exam' | 'Project'
 
-export type ConductGrade = 'Excellent' | 'Above average' | 'Average' | 'Needs improvement'
+export type ConductGrade = 'Excellent' | 'Very Good' | 'Good' | 'Fair' | 'Poor'
 
 export type StudentStatus = 'None' | 'GEP' | 'SEN' | 'SWAN'
 
@@ -124,6 +124,7 @@ export interface Student {
     science?: number
     [subject: string]: number | undefined
   }
+  average_grade?: number // Calculated average of all grades
 
   // Attendance
   attendance_rate: number // percentage

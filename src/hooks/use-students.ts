@@ -35,7 +35,7 @@ export function useStudents(classId: string) {
         if (queryError) throw queryError
 
         // Map to Student type
-        const mappedStudents = (enrollments || [])
+        let mappedStudents = (enrollments || [])
           .filter(enrollment => typeof enrollment === 'object' && enrollment !== null && 'student' in enrollment && 'class' in enrollment)
           .map((enrollment) => {
             const typedEnrollment = enrollment as { student: { id: string; name: string; year_level?: string; primary_guardian?: unknown; form_teacher?: unknown; student_classes?: unknown[] }; class: { id: string; name: string } }
@@ -48,6 +48,101 @@ export function useStudents(classId: string) {
               classData.name
             )
           })
+
+        if (mappedStudents.length === 0) {
+          setStudents([])
+          return
+        }
+
+        // Get student IDs for enrichment queries
+        const studentIds = mappedStudents.map(s => s.student_id)
+
+        // Fetch attendance data for all students
+        const { data: attendanceData } = await supabase
+          .from('attendance')
+          .select('student_id, status')
+          .in('student_id', studentIds)
+
+        // Calculate attendance rates per student
+        const attendanceMap = new Map<string, { total: number; present: number }>()
+        attendanceData?.forEach(record => {
+          const current = attendanceMap.get(record.student_id) || { total: 0, present: 0 }
+          current.total++
+          if (record.status === 'present') {
+            current.present++
+          }
+          attendanceMap.set(record.student_id, current)
+        })
+
+        // Fetch academic results
+        const { data: academicData } = await supabase
+          .from('academic_results')
+          .select('student_id, subject, score')
+          .in('student_id', studentIds)
+
+        // Group academic results by student
+        const gradesMap = new Map<string, Array<{ subject: string; score: number }>>()
+        academicData?.forEach(result => {
+          const current = gradesMap.get(result.student_id) || []
+          current.push({ subject: result.subject, score: result.score })
+          gradesMap.set(result.student_id, current)
+        })
+
+        // Fetch student overviews for status and conduct
+        const { data: overviewData } = await supabase
+          .from('student_overview')
+          .select('student_id, is_swan, conduct_grade')
+          .in('student_id', studentIds)
+
+        const overviewMap = new Map<string, { is_swan: boolean; conduct_grade?: string }>()
+        overviewData?.forEach(overview => {
+          overviewMap.set(overview.student_id, {
+            is_swan: overview.is_swan || false,
+            conduct_grade: overview.conduct_grade || undefined
+          })
+        })
+
+        // Enrich students with fetched data
+        mappedStudents = mappedStudents.map(student => {
+          let enriched = { ...student }
+
+          // Add attendance
+          const attendance = attendanceMap.get(student.student_id)
+          if (attendance) {
+            const rate = attendance.total > 0
+              ? Math.round((attendance.present / attendance.total) * 100)
+              : 0
+            enriched.attendance_rate = rate
+          }
+
+          // Add grades and calculate average
+          const grades = gradesMap.get(student.student_id)
+          if (grades && grades.length > 0) {
+            const gradeObj: { [subject: string]: number } = {}
+            grades.forEach(g => {
+              gradeObj[g.subject.toLowerCase()] = g.score
+            })
+            enriched.grades = gradeObj
+
+            // Calculate average grade
+            const total = grades.reduce((sum, g) => sum + g.score, 0)
+            enriched.average_grade = Math.round(total / grades.length)
+          }
+
+          // Add status and conduct
+          const overview = overviewMap.get(student.student_id)
+          if (overview) {
+            if (overview.is_swan) {
+              enriched.status = 'SWAN'
+              enriched.has_sen = true
+            }
+            if (overview.conduct_grade) {
+              enriched.conduct_grade = overview.conduct_grade as Student['conduct_grade']
+            }
+          }
+
+          return enriched
+        })
 
         setStudents(mappedStudents)
       } catch (err) {

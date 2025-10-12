@@ -114,7 +114,7 @@ export function mapSupabaseStudentToStudent(
     class_name: className || '',
     year_level: parseInt(student.year_level || '0'),
     status: 'None', // TODO: Add status field to student_overview
-    conduct_grade: 'Average', // TODO: Add to student_overview
+    conduct_grade: 'Good', // Default Singapore MOE conduct grade
 
     // Academic - empty for now, will query academic_results
     grades: {},

@@ -75,13 +75,6 @@ export function ClassOverview({ classId, onBack, onNavigateToGrades, onStudentCl
   const [sortField, setSortField] = useState<'name' | 'attendance_rate' | 'average_grade' | 'conduct'>('name')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc')
 
-  // Helper function to calculate average grade
-  const getAverageGrade = (student: Student): number => {
-    const gradeValues = Object.values(student.grades).filter((g): g is number => typeof g === 'number')
-    if (gradeValues.length === 0) return 0
-    return gradeValues.reduce((sum, grade) => sum + grade, 0) / gradeValues.length
-  }
-
   // Filter and sort students - must be before early return
   const filteredStudents = useMemo(() => {
     // Filter by search
@@ -105,7 +98,7 @@ export function ClassOverview({ classId, onBack, onNavigateToGrades, onStudentCl
           compareValue = a.attendance_rate - b.attendance_rate
           break
         case 'average_grade':
-          compareValue = getAverageGrade(a) - getAverageGrade(b)
+          compareValue = (a.average_grade || 0) - (b.average_grade || 0)
           break
         case 'conduct':
           compareValue = a.conduct_grade.localeCompare(b.conduct_grade)
@@ -183,8 +176,8 @@ export function ClassOverview({ classId, onBack, onNavigateToGrades, onStudentCl
                       <TableHead className="w-12">#</TableHead>
                       <TableHead>Name</TableHead>
                       <TableHead className="w-32">Attendance</TableHead>
-                      <TableHead className="w-32">Average</TableHead>
-                      <TableHead className="w-32">Conduct</TableHead>
+                      <TableHead className="w-32">Average Grade</TableHead>
+                      <TableHead className="w-32">Conduct Grade</TableHead>
                       <TableHead className="w-24">Status</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -474,6 +467,7 @@ export function ClassOverview({ classId, onBack, onNavigateToGrades, onStudentCl
                   <DropdownMenuItem onClick={() => setFilterStatus('all')}>All</DropdownMenuItem>
                   <DropdownMenuItem onClick={() => setFilterStatus('GEP')}>GEP</DropdownMenuItem>
                   <DropdownMenuItem onClick={() => setFilterStatus('SEN')}>SEN</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setFilterStatus('SWAN')}>SWAN</DropdownMenuItem>
                   <DropdownMenuItem onClick={() => setFilterStatus('None')}>None</DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -501,8 +495,8 @@ export function ClassOverview({ classId, onBack, onNavigateToGrades, onStudentCl
                   <TableHead className="w-12">#</TableHead>
                   <TableHead>Name</TableHead>
                   <TableHead className="w-32">Attendance</TableHead>
-                  <TableHead className="w-32">Average</TableHead>
-                  <TableHead className="w-32">Conduct</TableHead>
+                  <TableHead className="w-32">Average Grade</TableHead>
+                  <TableHead className="w-32">Conduct Grade</TableHead>
                   <TableHead className="w-24">Status</TableHead>
                 </TableRow>
               </TableHeader>
@@ -535,22 +529,41 @@ export function ClassOverview({ classId, onBack, onNavigateToGrades, onStudentCl
                         </span>
                       </TableCell>
                       <TableCell>
-                        <span className={cn(
-                          "font-medium",
-                          getAverageGrade(student) >= 75 ? "text-green-600" :
-                          getAverageGrade(student) >= 50 ? "text-amber-600" : "text-red-600"
-                        )}>
-                          {getAverageGrade(student).toFixed(0)}%
-                        </span>
+                        {student.average_grade !== undefined ? (
+                          <span className={cn(
+                            "font-medium",
+                            student.average_grade >= 75 ? "text-green-600" :
+                            student.average_grade >= 50 ? "text-amber-600" : "text-red-600"
+                          )}>
+                            {student.average_grade}%
+                          </span>
+                        ) : (
+                          <span className="text-stone-400">-</span>
+                        )}
                       </TableCell>
                       <TableCell>
                         <Badge
                           variant={
-                            student.conduct_grade === 'Excellent' || student.conduct_grade === 'Above average'
+                            student.conduct_grade === 'Excellent'
                               ? 'default'
-                              : student.conduct_grade === 'Needs improvement'
-                                ? 'destructive'
-                                : 'secondary'
+                              : student.conduct_grade === 'Very Good'
+                                ? 'secondary'
+                                : student.conduct_grade === 'Poor'
+                                  ? 'destructive'
+                                  : student.conduct_grade === 'Fair'
+                                    ? 'outline'
+                                    : 'secondary'
+                          }
+                          className={
+                            student.conduct_grade === 'Excellent'
+                              ? 'bg-green-100 text-green-800 border-green-300'
+                              : student.conduct_grade === 'Very Good'
+                                ? 'bg-blue-100 text-blue-800 border-blue-300'
+                                : student.conduct_grade === 'Good'
+                                  ? 'bg-gray-100 text-gray-800 border-gray-300'
+                                  : student.conduct_grade === 'Fair'
+                                    ? 'bg-amber-100 text-amber-800 border-amber-300'
+                                    : 'bg-red-100 text-red-800 border-red-300'
                           }
                         >
                           {student.conduct_grade}
@@ -570,6 +583,8 @@ export function ClassOverview({ classId, onBack, onNavigateToGrades, onStudentCl
                                   ? 'Gifted Education Programme'
                                   : student.status === 'SEN'
                                   ? 'Special Educational Needs'
+                                  : student.status === 'SWAN'
+                                  ? 'Student With Additional Needs'
                                   : student.status}
                               </p>
                             </TooltipContent>

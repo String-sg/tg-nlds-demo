@@ -89,17 +89,21 @@ export function HomeContent({ onNavigateToClassroom, onNavigateToExplore, onAssi
   const [studentAlerts, setStudentAlerts] = useState<StudentAlert[] | null>(null)
   const { user, loading: userLoading } = useUser()
 
+  // Extract stable dependency values
+  const userId = user?.user_id ?? null
+  const isUserLoading = userLoading ?? false
+
   // Fetch student alerts on mount
   useEffect(() => {
     let isMounted = true
 
     async function fetchStudentAlerts() {
       // Wait for user context to finish loading before proceeding
-      if (userLoading) {
+      if (isUserLoading) {
         return
       }
 
-      if (!user?.user_id) {
+      if (!userId) {
         if (isMounted) {
           setStudentAlerts(fallbackStudentAlertsData)
         }
@@ -108,7 +112,7 @@ export function HomeContent({ onNavigateToClassroom, onNavigateToExplore, onAssi
 
       try {
         const supabase = createClient()
-        const { data, error } = await getStudentAlerts(supabase, user.user_id, 3)
+        const { data, error } = await getStudentAlerts(supabase, userId, 3)
 
         if (!isMounted) return
 
@@ -133,7 +137,7 @@ export function HomeContent({ onNavigateToClassroom, onNavigateToExplore, onAssi
     return () => {
       isMounted = false
     }
-  }, [user?.user_id, userLoading])
+  }, [userId, isUserLoading])
 
   const handleAssistantSubmit = (e: React.FormEvent) => {
     e.preventDefault()
