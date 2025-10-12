@@ -57,22 +57,23 @@ export function useStudents(classId: string) {
         // Get student IDs for enrichment queries
         const studentIds = mappedStudents.map(s => s.student_id)
 
-        // Fetch attendance data for all students
-        const { data: attendanceData } = await supabase
-          .from('attendance')
-          .select('student_id, status')
-          .in('student_id', studentIds)
-
-        // Calculate attendance rates per student
+        // Fetch attendance data for each student individually to avoid row limit issues
         const attendanceMap = new Map<string, { total: number; present: number }>()
-        attendanceData?.forEach(record => {
-          const current = attendanceMap.get(record.student_id) || { total: 0, present: 0 }
-          current.total++
-          if (record.status === 'present') {
-            current.present++
+
+        for (const studentId of studentIds) {
+          const { data: attendanceData } = await supabase
+            .from('attendance')
+            .select('status')
+            .eq('student_id', studentId)
+
+          if (attendanceData && attendanceData.length > 0) {
+            const present = attendanceData.filter(a => a.status === 'present').length
+            attendanceMap.set(studentId, {
+              total: attendanceData.length,
+              present
+            })
           }
-          attendanceMap.set(record.student_id, current)
-        })
+        }
 
         // Fetch academic results
         const { data: academicData } = await supabase
@@ -106,14 +107,13 @@ export function useStudents(classId: string) {
         mappedStudents = mappedStudents.map(student => {
           let enriched = { ...student }
 
-          // Add attendance
+          // Add attendance - explicitly set rate even if no data
           const attendance = attendanceMap.get(student.student_id)
-          if (attendance) {
-            const rate = attendance.total > 0
-              ? Math.round((attendance.present / attendance.total) * 100)
-              : 0
-            enriched.attendance_rate = rate
-          }
+          const rate = attendance && attendance.total > 0
+            ? Math.round((attendance.present / attendance.total) * 100)
+            : 0
+
+          enriched.attendance_rate = rate
 
           // Add grades and calculate average
           const grades = gradesMap.get(student.student_id)

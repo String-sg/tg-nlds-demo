@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Separator } from '@/components/ui/separator'
+import { cn } from '@/lib/utils'
 import {
   Table,
   TableBody,
@@ -82,6 +83,23 @@ export function ReportSlip({ studentId, studentName, class: className }: ReportS
         )
       default:
         return null
+    }
+  }
+
+  const getConductColor = (conduct: string) => {
+    switch (conduct) {
+      case 'Excellent':
+        return 'bg-green-100 text-green-800 border-green-300'
+      case 'Very Good':
+        return 'bg-blue-100 text-blue-800 border-blue-300'
+      case 'Good':
+        return 'bg-gray-100 text-gray-800 border-gray-300'
+      case 'Fair':
+        return 'bg-amber-100 text-amber-800 border-amber-300'
+      case 'Poor':
+        return 'bg-red-100 text-red-800 border-red-300'
+      default:
+        return 'bg-stone-100 text-stone-600 border-stone-300'
     }
   }
 
@@ -223,12 +241,18 @@ export function ReportSlip({ studentId, studentName, class: className }: ReportS
             <CardTitle className="text-base">Conduct</CardTitle>
           </CardHeader>
           <CardContent>
-            <Badge
-              variant={reportSlip.conduct === 'Excellent' ? 'default' : 'secondary'}
-              className="px-3 py-1 text-base"
-            >
-              {reportSlip.conduct}
-            </Badge>
+            <div className="flex items-start gap-3">
+              <div className="flex-1">
+                <p className="text-sm text-stone-500 mb-2">Overall Conduct Assessment</p>
+                <p className="text-xs text-stone-500">Based on Singapore MOE grading system</p>
+              </div>
+              <span className={cn(
+                'inline-flex px-3 py-1.5 text-sm font-medium rounded-full border',
+                getConductColor(reportSlip.conduct)
+              )}>
+                {reportSlip.conduct}
+              </span>
+            </div>
           </CardContent>
         </Card>
 

@@ -99,7 +99,7 @@ export function StudentProfile({ studentName, classId, onBack, activeTab, onNavi
     english: getSubjectAverage('English'),
     math: getSubjectAverage('Math'),
     science: getSubjectAverage('Science'),
-    conduct: studentData.cce_results[0]?.overall_grade || 'N/A',
+    conduct: studentData.overview?.conduct_grade || 'N/A',
     status: studentData.overview?.is_swan ? 'SWAN' : 'None',
     parentName: studentData.guardian?.name || 'N/A',
     parentEmail: studentData.guardian?.email || 'N/A',
@@ -122,15 +122,17 @@ export function StudentProfile({ studentName, classId, onBack, activeTab, onNavi
   const getConductColor = (conduct: string) => {
     switch (conduct) {
       case 'Excellent':
-        return 'text-green-600'
-      case 'Above average':
-        return 'text-stone-900'
-      case 'Average':
-        return 'text-stone-600'
-      case 'Needs improvement':
-        return 'text-amber-600'
+        return 'bg-green-100 text-green-800 border-green-300'
+      case 'Very Good':
+        return 'bg-blue-100 text-blue-800 border-blue-300'
+      case 'Good':
+        return 'bg-gray-100 text-gray-800 border-gray-300'
+      case 'Fair':
+        return 'bg-amber-100 text-amber-800 border-amber-300'
+      case 'Poor':
+        return 'bg-red-100 text-red-800 border-red-300'
       default:
-        return 'text-stone-600'
+        return 'bg-stone-100 text-stone-600 border-stone-300'
     }
   }
 
@@ -319,6 +321,27 @@ export function StudentProfile({ studentName, classId, onBack, activeTab, onNavi
               ) : (
                 <p className="text-sm text-stone-500">No private notes recorded</p>
               )}
+            </CardContent>
+          </Card>
+
+          {/* Conduct Grade */}
+          <Card className="border-stone-200">
+            <CardHeader>
+              <CardTitle className="text-base font-medium text-stone-900">Conduct Grade</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-stone-500 mb-2">Overall Conduct Assessment</p>
+                  <p className="text-xs text-stone-500">Based on attendance, behavior, and character development</p>
+                </div>
+                <span className={cn(
+                  'inline-flex px-3 py-1.5 text-sm font-medium rounded-full border',
+                  getConductColor(student.conduct)
+                )}>
+                  {student.conduct}
+                </span>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
