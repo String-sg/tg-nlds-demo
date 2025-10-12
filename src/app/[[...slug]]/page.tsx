@@ -1561,7 +1561,7 @@ export default function Home() {
       <Sidebar variant="inset" collapsible="icon">
         <SidebarContent className="gap-6">
           <SidebarGroup className="gap-3">
-            <div className="flex h-8 w-full items-center justify-between px-2 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0">
+            <div className="flex h-8 w-full items-center justify-between pl-2 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0">
               <SidebarGroupLabel className="flex-1 truncate px-0 text-xs font-semibold uppercase tracking-wide text-sidebar-foreground/60 group-data-[collapsible=icon]:mt-0 group-data-[collapsible=icon]:hidden">
                 Tan&apos;s Space
               </SidebarGroupLabel>
@@ -1573,7 +1573,7 @@ export default function Home() {
                 {primaryPages.slice(0, 4).map((page) => {
                   const Icon = page.icon
                   const isInbox = page.key === 'inbox'
-                  const urgentMessageCount = isInbox ? 3 : 0 // TODO: Replace with actual count from inbox data
+                  const urgentMessageCount = isInbox ? 2 : 0 // TODO: Replace with actual urgent conversation count
 
                   return (
                     <SidebarMenuItem key={page.key}>
