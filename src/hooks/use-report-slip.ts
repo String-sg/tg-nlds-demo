@@ -139,7 +139,14 @@ export function useReportSlip(studentName: string) {
           .eq('academic_year', '2024')
           .single()
 
-        // 6. Get behaviour observations for teacher remarks
+        // 6. Get student overview for conduct grade
+        const { data: studentOverview } = await supabase
+          .from('student_overview')
+          .select('conduct_grade')
+          .eq('student_id', studentId)
+          .single()
+
+        // 7. Get behaviour observations for teacher remarks
         const { data: behaviourObs } = await supabase
           .from('behaviour_observations')
           .select('*')
@@ -176,10 +183,10 @@ export function useReportSlip(studentName: string) {
 
         teacherRemarks += 'Continue to encourage their learning journey.'
 
-        // Determine conduct grade from behaviour observations
-        const conduct = concernObs.length === 0 ? 'Excellent' :
-                       concernObs.length === 1 ? 'Good' :
-                       concernObs.length === 2 ? 'Fair' : 'Needs Improvement'
+        // Get conduct grade from student_overview (Singapore MOE 5-tier system)
+        const conduct = (studentOverview && typeof studentOverview === 'object' && 'conduct_grade' in studentOverview)
+          ? (studentOverview as { conduct_grade?: string }).conduct_grade || 'Good'
+          : 'Good'
 
         const studentData = student as { student_id: string; name: string; form_teacher?: { name: string } | null }
 
