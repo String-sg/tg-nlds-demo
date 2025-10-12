@@ -1,7 +1,7 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { MailIcon, PhoneIcon, MessageSquare, Loader2 } from 'lucide-react'
+import { MailIcon, PhoneIcon, MessageSquare, Loader2, Sparkles } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -200,6 +200,28 @@ export function StudentProfile({ studentName, classId, onBack, activeTab, onNavi
 
         {/* Overview Tab */}
         <TabsContent value="overview" className="space-y-6">
+          {/* AI Summary */}
+          {studentData.ai_summary && (
+            <Card className="border-stone-200 bg-stone-50">
+              <CardHeader>
+                <CardTitle className="text-base font-medium text-stone-900 flex items-center gap-2">
+                  <Sparkles className="h-4 w-4 text-amber-600" />
+                  AI Agent
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-2">
+                  {studentData.ai_summary.insights.map((insight, index) => (
+                    <li key={index} className="text-sm text-stone-700 flex items-start gap-2">
+                      <span className="text-stone-400 mt-1">•</span>
+                      <span>{insight}</span>
+                    </li>
+                  ))}
+                </ul>
+              </CardContent>
+            </Card>
+          )}
+
           {/* Parent/Guardian Information */}
           <Card className="border-stone-200">
             <CardHeader>

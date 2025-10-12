@@ -57,7 +57,8 @@ export interface ClassSchedule {
 // AI Agent Notification
 // TODO: Integrate with AI Agent API for dynamic message generation
 export interface AINotification {
-  message: string
+  message?: string // Single message (deprecated, use insights instead)
+  insights?: string[] // Array of bullet points for AI summary
   timestamp?: string
   priority?: 'info' | 'warning' | 'urgent'
   type?: 'event' | 'reminder' | 'insight'

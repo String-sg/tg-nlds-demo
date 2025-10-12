@@ -381,17 +381,21 @@ function AINotificationBox({ notification }: AINotificationBoxProps) {
         <Sparkle className="h-5 w-5 text-orange-500 mt-0.5 flex-shrink-0" />
         <div className="flex-1 min-w-0">
           <p className="text-sm font-medium text-stone-900">AI Agent</p>
-          <p className="text-sm text-stone-700 mt-1 leading-relaxed">
-            {notification.message}
-          </p>
-          {notification.timestamp && (
-            <p className="text-xs text-stone-500 mt-2">
-              {new Date(notification.timestamp).toLocaleString('en-SG', {
-                month: 'short',
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit',
-              })}
+
+          {/* Display insights as bullet points if available */}
+          {notification.insights && notification.insights.length > 0 ? (
+            <ul className="mt-2 space-y-1.5">
+              {notification.insights.map((insight, index) => (
+                <li key={index} className="text-sm text-stone-700 flex items-start gap-2">
+                  <span className="text-stone-400 mt-1">•</span>
+                  <span className="leading-relaxed">{insight}</span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            /* Fallback to message if insights not available */
+            <p className="text-sm text-stone-700 mt-1 leading-relaxed">
+              {notification.message}
             </p>
           )}
         </div>

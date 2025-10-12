@@ -62,6 +62,21 @@ export function mapSupabaseClassToClass(
 ): Class {
   const schedule = parseSchedule(classRow.schedule)
 
+  // Generate contextual AI notification based on class data
+  const generateAINotification = () => {
+    const insights: string[] = []
+
+    // HDP generation message for all classes
+    insights.push('I have generated comments for the holistic development profile (HDP) of all students.')
+    insights.push('Please take a moment to review them.')
+
+    return {
+      insights,
+      priority: 'info' as const,
+      type: 'insight' as const
+    }
+  }
+
   return {
     class_id: classRow.id,
     class_name: classRow.name,
@@ -74,6 +89,7 @@ export function mapSupabaseClassToClass(
     academic_year: classRow.academic_year,
     is_form_class: classRow.type === 'form',
     student_count: studentCount || 0,
+    ai_notification: generateAINotification(),
   }
 }
 
@@ -87,6 +103,21 @@ export function mapSupabaseClassToCCAClass(
 ): CCAClass {
   const schedule = parseSchedule(classRow.schedule)
 
+  // Generate contextual AI notification for CCA
+  const generateCCAAINotification = () => {
+    const insights: string[] = []
+
+    // HDP generation message for CCA classes
+    insights.push('I have generated comments for the holistic development profile (HDP) of all students.')
+    insights.push('Please take a moment to review them.')
+
+    return {
+      insights,
+      priority: 'info' as const,
+      type: 'insight' as const
+    }
+  }
+
   return {
     cca_id: classRow.id,
     name: classRow.name,
@@ -94,6 +125,7 @@ export function mapSupabaseClassToCCAClass(
     teacher_in_charge: teacherId || '',
     members: memberIds,
     schedule,
+    ai_notification: generateCCAAINotification(),
   }
 }
 

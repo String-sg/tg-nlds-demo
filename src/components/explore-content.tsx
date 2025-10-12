@@ -134,7 +134,7 @@ export function ExploreContent({ onAppClick }: ExploreContentProps = {}) {
   return (
     <div className="mx-auto w-full max-w-5xl space-y-8 pb-16">
       {/* Search Bar */}
-      <div className="sticky top-0 z-10 space-y-4 pt-4">
+      <div className="space-y-4 pt-4">
         <div className="relative">
           <Search className="absolute left-4 top-1/2 size-5 -translate-y-1/2 text-muted-foreground" />
           <Input

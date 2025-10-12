@@ -126,6 +126,12 @@ export interface StudentProfileData {
     closed_date: string | null
     guardian_notified: boolean
   }>
+
+  // AI Summary
+  ai_summary: {
+    generated_at: string
+    insights: string[]
+  } | null
 }
 
 export function useStudentProfile(studentName: string) {
@@ -280,6 +286,80 @@ export function useStudentProfile(studentName: string) {
           .eq('student_id', typedStudentData.id)
           .order('opened_date', { ascending: false })
 
+        // Generate AI summary insights based on student data
+        const generateAISummary = () => {
+          const insights: string[] = []
+
+          // Attendance insights
+          if (attendance_rate < 85) {
+            insights.push(`Attendance at ${attendance_rate}% - below expected threshold, may need follow-up`)
+          } else if (attendance_rate >= 95) {
+            insights.push(`Excellent attendance record at ${attendance_rate}%`)
+          }
+
+          // Academic insights
+          if (academicData && academicData.length > 0) {
+            type AcademicResult = { percentage?: number | null; score?: number | null }
+            const recentScores = academicData.slice(0, 3) as AcademicResult[]
+            const avgScore = recentScores.reduce((sum, r) => sum + (r.percentage || r.score || 0), 0) / recentScores.length
+            if (avgScore < 60) {
+              insights.push('Recent academic performance below average - intervention may be needed')
+            } else if (avgScore >= 80) {
+              insights.push('Strong academic performance across recent assessments')
+            }
+          }
+
+          // Behavior insights
+          if (behaviourData && behaviourData.length > 0) {
+            type BehaviorObservation = { category?: string }
+            const typedBehaviorData = behaviourData as BehaviorObservation[]
+            const concernBehaviors = typedBehaviorData.filter(b => b.category === 'concern')
+            if (concernBehaviors.length > 2) {
+              insights.push(`${concernBehaviors.length} behavioral concerns recorded this term`)
+            }
+          }
+
+          // Social insights
+          if (friendsData && friendsData.length > 0) {
+            const closeFriends = friendsData.filter((f: { closeness_level: string | null }) => f.closeness_level === 'very_close' || f.closeness_level === 'close')
+            if (closeFriends.length === 0) {
+              insights.push('Limited close friendships - may benefit from social integration support')
+            } else if (closeFriends.length >= 3) {
+              insights.push(`Healthy social network with ${closeFriends.length} close friends`)
+            }
+          } else {
+            insights.push('No friend relationships recorded - consider monitoring social integration')
+          }
+
+          // SWAN status
+          type OverviewData = { is_swan?: boolean }
+          const typedOverviewData = overviewData as OverviewData | null
+          if (typedOverviewData?.is_swan) {
+            insights.push('Student With Additional Needs (SWAN) - receiving appropriate support and monitoring')
+          }
+
+          // Cases insights
+          if (casesData && casesData.length > 0) {
+            type CaseData = { status?: string }
+            const typedCasesData = casesData as CaseData[]
+            const openCases = typedCasesData.filter(c => c.status === 'open' || c.status === 'in_progress')
+            if (openCases.length > 0) {
+              insights.push(`${openCases.length} active case(s) requiring ongoing attention`)
+            }
+          }
+
+          // Default message if no insights
+          if (insights.length === 0) {
+            insights.push('Student performing well overall with no major concerns flagged')
+            insights.push('Continue regular monitoring and support')
+          }
+
+          return {
+            generated_at: new Date().toISOString(),
+            insights: insights.slice(0, 4) // Limit to 4 insights
+          }
+        }
+
         // Assemble the profile data
         const profileData: StudentProfileData = {
           id: typedStudentData.id,
@@ -321,6 +401,7 @@ export function useStudentProfile(studentName: string) {
           })),
           private_notes: privateNotesData || [],
           cases: casesData || [],
+          ai_summary: generateAISummary(),
         }
 
         setStudent(profileData)

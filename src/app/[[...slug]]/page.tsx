@@ -70,6 +70,7 @@ import {
   SidebarGroupLabel,
   SidebarInset,
   SidebarMenu,
+  SidebarMenuBadge,
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarSeparator,
@@ -89,8 +90,8 @@ import { createClient } from '@/lib/supabase/client'
 
 const primaryPages = [
   { key: 'home', label: 'Home', icon: HomeIcon, tooltip: 'Home' },
-  { key: 'calendar', label: 'Calendar', icon: CalendarDays, tooltip: 'Calendar' },
   { key: 'inbox', label: 'Inbox', icon: Inbox, tooltip: 'Inbox' },
+  { key: 'calendar', label: 'Calendar', icon: CalendarDays, tooltip: 'Calendar' },
   { key: 'drafts', label: 'Drafts', icon: FileText, tooltip: 'Drafts' },
   { key: 'classroom', label: 'Classroom', icon: Users, tooltip: 'Classroom' },
   { key: 'myschool', label: 'School', icon: School, tooltip: 'School' },
@@ -1571,6 +1572,8 @@ export default function Home() {
               <SidebarMenu>
                 {primaryPages.slice(0, 4).map((page) => {
                   const Icon = page.icon
+                  const isInbox = page.key === 'inbox'
+                  const urgentMessageCount = isInbox ? 3 : 0 // TODO: Replace with actual count from inbox data
 
                   return (
                     <SidebarMenuItem key={page.key}>
@@ -1587,6 +1590,9 @@ export default function Home() {
                         <Icon className="size-4" />
                         <span>{page.label}</span>
                       </SidebarMenuButton>
+                      {isInbox && urgentMessageCount > 0 && (
+                        <SidebarMenuBadge>{urgentMessageCount}</SidebarMenuBadge>
+                      )}
                     </SidebarMenuItem>
                   )
                 })}
