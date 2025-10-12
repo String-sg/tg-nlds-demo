@@ -46,8 +46,7 @@ export function MyClasses({ onClassClick }: MyClassesProps) {
         {/* Subject Classes Skeleton */}
         <div className="space-y-4">
           <Skeleton className="h-6 w-48" />
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            <ClassCardSkeleton />
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <ClassCardSkeleton />
             <ClassCardSkeleton />
           </div>
@@ -114,8 +113,8 @@ export function MyClasses({ onClassClick }: MyClassesProps) {
             Subject class {subjectClasses.length}
           </h2>
 
-          {/* Three-column grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {/* Two-column grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {subjectClasses.map((classData) => (
               <ClassCard
                 key={classData.class_id}
@@ -186,22 +185,20 @@ function ClassCard({ classData, isFormClass, onClassClick }: ClassCardProps) {
         {/* Top row: Title and Stats aligned */}
         <div className="flex items-start justify-between gap-8 mb-3">
           <div className="flex flex-col gap-3 min-w-0">
-            <div className="flex flex-col">
-              <CardTitle className="text-2xl font-semibold text-stone-900">
-                Class {classData.class_name}
-              </CardTitle>
-              {!isFormClass && classData.subject && (
-                <div className="text-2xl font-semibold text-stone-900">
-                  {classData.subject}
-                </div>
-              )}
-            </div>
+            <CardTitle className="text-2xl font-semibold text-stone-900">
+              Class {classData.class_name}
+            </CardTitle>
             
             {/* Badges row below title */}
             <div className="flex flex-wrap gap-2">
               {isFormClass && (
                 <Badge variant="secondary" className="bg-stone-100 text-stone-700 border-stone-200">
                   Form class
+                </Badge>
+              )}
+              {!isFormClass && classData.subject && (
+                <Badge variant="secondary" className="bg-stone-100 text-stone-700 border-stone-200">
+                  {classData.subject}
                 </Badge>
               )}
               <Badge variant="secondary" className="bg-stone-100 text-stone-700 border-stone-200">
@@ -313,16 +310,16 @@ function OverallCard({ status }: OverallCardProps) {
 
   return (
     <Card className="border-stone-200 h-full flex flex-col">
-      <CardHeader className="pb-6">
-        <p className="text-xs font-medium text-stone-500 uppercase tracking-wide">Overall</p>
-        <CardTitle className="text-lg font-semibold text-stone-900 mt-2">
+      <CardHeader className="pb-10">
+        <p className="text-xs font-medium text-stone-500 uppercase tracking-wide mb-1">Overall</p>
+        <CardTitle className="text-2xl font-semibold text-stone-900">
           {statusMessage}
         </CardTitle>
       </CardHeader>
 
-      <CardContent className="pt-0">
+      <CardContent className="pt-0 flex-1 flex flex-col">
         {status?.illustration_url ? (
-          <div className="rounded-lg overflow-hidden h-48">
+          <div className="rounded-lg overflow-hidden flex-1">
             <img 
               src={status.illustration_url} 
               alt="Overall status illustration" 
@@ -330,19 +327,18 @@ function OverallCard({ status }: OverallCardProps) {
             />
           </div>
         ) : (
-          // Placeholder with gradient background (matching Figma design)
+          // Default illustration with gradient background
           <div 
-            className="relative rounded-lg overflow-hidden h-48 border border-stone-100"
+            className="relative rounded-lg overflow-hidden flex-1 border border-stone-100"
             style={{ background: 'linear-gradient(180deg, #B4ECFF 0%, #F5E3DF 100%)' }}
           >
-            {/* Cloud-like decorative element */}
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="text-center p-4">
-                <p className="text-xs text-stone-500 italic">
-                  {/* TODO: Add illustration asset */}
-                  Illustration pending
-                </p>
-              </div>
+            {/* Cloud illustration */}
+            <div className="absolute top-4 right-4">
+              <img 
+                src="/images/cloud-transparent.png" 
+                alt="Cloud illustration" 
+                className="w-24 h-auto object-contain"
+              />
             </div>
           </div>
         )}
@@ -434,14 +430,12 @@ function ClassCardSkeleton({ isFormClass = false }: { isFormClass?: boolean }) {
         {/* Top row: Title and Stats aligned */}
         <div className="flex items-start justify-between gap-8 mb-3">
           <div className="flex flex-col gap-3 min-w-0">
-            <div className="flex flex-col gap-1">
-              <Skeleton className="h-8 w-32" />
-              {!isFormClass && <Skeleton className="h-8 w-40" />}
-            </div>
+            <Skeleton className="h-8 w-32" />
             
             {/* Badges row */}
             <div className="flex flex-wrap gap-2">
               {isFormClass && <Skeleton className="h-5 w-20" />}
+              {!isFormClass && <Skeleton className="h-5 w-24" />}
               <Skeleton className="h-5 w-16" />
               <Skeleton className="h-5 w-32" />
             </div>

@@ -177,7 +177,7 @@ export function PulseContent({ onPrepForMeeting }: PulseContentProps) {
                 {/* Illustration */}
                 <div className="flex h-52 items-center justify-center overflow-hidden rounded-t-lg bg-stone-100">
                   <img
-                    src="/roundup-illustration.png"
+                    src="/images/roundup-illustration.png"
                     alt="Notification illustration"
                     className="h-full w-full object-cover"
                   />
