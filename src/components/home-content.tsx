@@ -29,7 +29,7 @@ import { getStudentAlerts, type StudentAlert } from '@/lib/supabase/queries'
 import { useUser } from '@/contexts/user-context'
 
 const actionButtons = [
-  { key: 'marking', label: 'Marking', icon: Edit2 },
+  { key: 'marking', label: 'Take attendance', icon: Edit2 },
   { key: 'analyse', label: 'Analyse', icon: Sparkle },
   { key: 'learn', label: 'Learn', icon: BookOpen },
   { key: 'communicate', label: 'Communicate', icon: MessageSquare },

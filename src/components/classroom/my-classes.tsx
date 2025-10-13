@@ -176,7 +176,7 @@ function ClassCard({ classData, isFormClass, onClassClick }: ClassCardProps) {
   return (
     <Card
       className={cn(
-        "border-stone-200 hover:shadow-md transition-shadow cursor-pointer group h-full flex flex-col",
+        "border-stone-200 transition-all cursor-pointer group h-full flex flex-col",
         "hover:border-stone-300"
       )}
       onClick={() => onClassClick?.(classData.class_id, classData.class_name)}
@@ -249,7 +249,7 @@ function CCACard({ ccaData, onClassClick }: CCACardProps) {
   return (
     <Card
       className={cn(
-        "border-stone-200 hover:shadow-md transition-shadow cursor-pointer group",
+        "border-stone-200 transition-all cursor-pointer group",
         "hover:border-stone-300"
       )}
       onClick={() => onClassClick?.(ccaData.cca_id, ccaData.name)}

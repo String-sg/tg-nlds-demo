@@ -6,6 +6,8 @@ import { ConversationView } from './conversation-view'
 import { MetadataSidebar } from './metadata-sidebar'
 import { conversationGroups as mockConversationGroups } from '@/lib/mock-data/inbox-data'
 import { useInboxStudents } from '@/hooks/use-inbox-students'
+import { useUser } from '@/contexts/user-context'
+import { useClasses } from '@/hooks/use-classes'
 import type { Priority, ConversationGroup } from '@/types/inbox'
 
 interface InboxLayoutProps {
@@ -16,6 +18,8 @@ interface InboxLayoutProps {
 export function InboxLayout({ conversationId, onConversationClick }: InboxLayoutProps) {
   const [searchQuery, setSearchQuery] = useState('')
   const [priorityFilter, setPriorityFilter] = useState<Priority | 'all'>('all')
+  const { user } = useUser()
+  const { formClass } = useClasses(user?.user_id || '')
   const { students, loading, error } = useInboxStudents()
 
   // Merge real student data with mock conversations
@@ -23,19 +27,23 @@ export function InboxLayout({ conversationId, onConversationClick }: InboxLayout
     // Convert students map to array
     const studentArray = Array.from(students.values())
 
+    // Use form class name if available, otherwise fall back to "5A"
+    const displayClassName = formClass?.class_name || '5A'
+    const displayClassId = formClass?.class_id || ''
+
     // If we have real students, update the first few mock conversations with real data
     if (studentArray.length > 0) {
       return mockConversationGroups.map((group, index) => {
         const realStudent = studentArray[index]
         if (realStudent) {
-          // Update student info
+          // Update student info - use form class name instead of student's individual class
           const updatedStudent = {
             ...group.student,
             id: realStudent.student_id,
             name: realStudent.name,
-            class: realStudent.class_name,
-            class_id: realStudent.class_id,
-            class_name: realStudent.class_name,
+            class: displayClassName,
+            class_id: displayClassId,
+            class_name: displayClassName,
           }
 
           // Update parent participant name to match student
@@ -57,7 +65,7 @@ export function InboxLayout({ conversationId, onConversationClick }: InboxLayout
                   ...thread.studentContext,
                   studentId: realStudent.student_id,
                   studentName: realStudent.name,
-                  className: realStudent.class_name || '',
+                  className: displayClassName,
                 }
               }
             }
@@ -76,7 +84,7 @@ export function InboxLayout({ conversationId, onConversationClick }: InboxLayout
 
     // Fall back to mock data if no real students yet
     return mockConversationGroups
-  }, [students])
+  }, [students, formClass])
 
   // Filter by priority
   let filteredGroups = conversationGroups
@@ -127,6 +135,7 @@ export function InboxLayout({ conversationId, onConversationClick }: InboxLayout
             <MetadataSidebar
               conversationId={conversationId}
               conversationGroups={conversationGroups}
+              isLoading={loading && students.size === 0}
             />
           </div>
         )}

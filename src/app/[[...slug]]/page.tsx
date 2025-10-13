@@ -48,7 +48,7 @@ import { PulseContent } from '@/components/pulse-content'
 import { MyClasses } from '@/components/classroom/my-classes'
 import { ClassOverview } from '@/components/classroom/class-overview'
 import { StudentList } from '@/components/classroom/student-list'
-import { GradeEntry } from '@/components/classroom/grade-entry'
+import { AcademicRecordEntry } from '@/components/classroom/academic-record-entry'
 import { StudentProfile } from '@/components/student-profile'
 import { RecordsContent } from '@/components/records-content'
 import { ExploreContent } from '@/components/explore-content'
@@ -327,6 +327,7 @@ const TabContent = memo(function TabContent({
   setClassroomTabs,
   setOpenTabs,
   openTabsRef,
+  classroomNamesRef,
   router: routerProp,
 }: {
   activeTab: TabKey
@@ -354,6 +355,7 @@ const TabContent = memo(function TabContent({
   setClassroomTabs: React.Dispatch<React.SetStateAction<Map<string, string>>>
   setOpenTabs: React.Dispatch<React.SetStateAction<ClosableTabKey[]>>
   openTabsRef: React.MutableRefObject<ClosableTabKey[]>
+  classroomNamesRef: React.MutableRefObject<Map<string, string>>
   router: ReturnType<typeof useRouter>
 }) {
   // Use currentUrl for content rendering decisions
@@ -506,13 +508,14 @@ const TabContent = memo(function TabContent({
   if (typeof currentUrl === 'string' && currentUrl.startsWith('classroom/') && currentUrl.includes('/grades')) {
     const classroomPath = classroomTabs.get(currentUrl)
     const parts = classroomPath?.split('/') ?? []
-    // Parse classId from encoded format "classId:className"
-    const [classId] = parts[0]?.includes(':') ? parts[0].split(':', 2) : [parts[0]]
+    // Parse classId and className from encoded format "classId:className"
+    const [classId, encodedClassName] = parts[0]?.includes(':') ? parts[0].split(':', 2) : [parts[0], null]
+    const className = encodedClassName || classroomNamesRef.current.get(classId) || classId
     return (
-      <GradeEntry
+      <AcademicRecordEntry
         classId={classId}
-        onNavigate={(path, replace) => handleNavigate(path as ClosableTabKey, replace)}
-        classroomTabs={classroomTabs}
+        className={className}
+        subject="Mathematics"
         onBack={() => {
           if (classId) {
             const parentTabKey = `classroom/${classId}` as ClassroomTabKey
@@ -1094,8 +1097,7 @@ export default function Home() {
           {
             label: 'Message Parents',
             icon: MessageSquare,
-            onClick: undefined,
-            disabled: true,
+            onClick: () => handleOpenConversation('conv-1'),
             variant: 'outline',
           },
         ]
@@ -1143,8 +1145,7 @@ export default function Home() {
           {
             label: 'Message Parents',
             icon: MessageSquare,
-            onClick: undefined,
-            disabled: true,
+            onClick: () => handleOpenConversation('conv-1'),
             variant: 'outline',
           },
         ]
@@ -1187,8 +1188,7 @@ export default function Home() {
         {
           label: 'Message Parents',
           icon: MessageSquare,
-          onClick: undefined,
-          disabled: true,
+          onClick: () => handleOpenConversation('conv-1'),
           variant: 'outline',
         },
       ]
@@ -2154,6 +2154,7 @@ export default function Home() {
                   setClassroomTabs={setClassroomTabs}
                   setOpenTabs={setOpenTabs}
                   openTabsRef={openTabsRef}
+                  classroomNamesRef={classroomNamesRef}
                   router={router}
                 />
               </div>
