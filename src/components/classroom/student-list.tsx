@@ -131,12 +131,14 @@ export function StudentList({ classId, onBack, onStudentClick, onNavigate, class
 
   if (loading) {
     return (
-      <PageLayout
-        title="Students"
-        subtitle={<Skeleton className="h-5 w-64" />}
-        contentClassName="px-6 py-6"
-      >
-        <div className="mx-auto w-full max-w-6xl space-y-6">
+      <PageLayout>
+        <div className="px-6 py-6">
+          <div className="mx-auto w-full max-w-6xl space-y-6">
+          {/* Page Title */}
+          <div className="space-y-1">
+            <h1 className="text-2xl font-semibold text-stone-900">Students</h1>
+            <Skeleton className="h-5 w-64" />
+          </div>
           <Card className="border-stone-200">
             <CardHeader className="pb-4">
               <div className="flex items-center justify-between">
@@ -192,6 +194,7 @@ export function StudentList({ classId, onBack, onStudentClick, onNavigate, class
               </Table>
             </CardContent>
           </Card>
+          </div>
         </div>
       </PageLayout>
     )
@@ -226,12 +229,15 @@ export function StudentList({ classId, onBack, onStudentClick, onNavigate, class
 
 
   return (
-    <PageLayout
-      title="Students"
-      subtitle={`Class ${classData.class_name} · ${classData.subject}`}
-      contentClassName="px-6 py-6"
-    >
-      <div className="mx-auto w-full max-w-6xl space-y-6">
+    <PageLayout>
+      <div className="px-6 py-6">
+        <div className="mx-auto w-full max-w-6xl space-y-6">
+
+      {/* Page Title */}
+      <div className="space-y-1">
+        <h1 className="text-2xl font-semibold text-stone-900">Students</h1>
+        <p className="text-sm text-stone-600">Class {classData.class_name} · {classData.subject}</p>
+      </div>
 
       {/* Students Table */}
       <Card className="border-stone-200">
@@ -361,6 +367,7 @@ export function StudentList({ classId, onBack, onStudentClick, onNavigate, class
           </Table>
         </CardContent>
       </Card>
+        </div>
       </div>
     </PageLayout>
   )

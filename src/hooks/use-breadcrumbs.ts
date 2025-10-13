@@ -130,6 +130,32 @@ export function useBreadcrumbs({
         path: 'pulse',
         isActive: true,
       })
+    } else if (currentPath === 'inbox') {
+      // Main inbox page
+      items.push({
+        label: 'Inbox',
+        path: 'inbox',
+        isActive: true,
+      })
+    } else if (currentPath.startsWith('inbox/')) {
+      // Inbox conversation view
+      items.push({
+        label: 'Inbox',
+        path: 'inbox',
+        isActive: false,
+        onClick: () => handleNavigate('inbox', true),
+      })
+
+      // Add conversation as second breadcrumb if needed
+      const segments = currentPath.split('/')
+      if (segments.length >= 2) {
+        const conversationId = segments[1]
+        items.push({
+          label: 'Conversation',
+          path: currentPath,
+          isActive: true,
+        })
+      }
     } else if (currentPath === 'classroom') {
       // Main classroom page
       items.push({

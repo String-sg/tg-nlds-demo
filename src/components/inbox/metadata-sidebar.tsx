@@ -12,14 +12,26 @@ import {
   MessageSquare
 } from 'lucide-react'
 import { getInitials, getAvatarColor } from '@/lib/chat/utils'
+import { useUser } from '@/contexts/user-context'
+import { useClasses } from '@/hooks/use-classes'
+import { MetadataSidebarSkeleton } from './metadata-sidebar-skeleton'
 import type { ConversationGroup } from '@/types/inbox'
 
 interface MetadataSidebarProps {
   conversationId: string
   conversationGroups: ConversationGroup[]
+  isLoading?: boolean
 }
 
-export function MetadataSidebar({ conversationId, conversationGroups }: MetadataSidebarProps) {
+export function MetadataSidebar({ conversationId, conversationGroups, isLoading = false }: MetadataSidebarProps) {
+  const { user } = useUser()
+  const { formClass } = useClasses(user?.user_id || '')
+
+  // Show skeleton while loading
+  if (isLoading) {
+    return <MetadataSidebarSkeleton />
+  }
+
   // Find the conversation and its group
   let conversationGroup: ConversationGroup | undefined
   let currentThread
@@ -200,9 +212,12 @@ export function MetadataSidebar({ conversationId, conversationGroups }: Metadata
             size="sm"
             className="w-full justify-start h-8 text-xs"
             onClick={() => {
-              // Navigate to class overview
-              window.location.href = `/classes/${student.class.replace(/\s+/g, '-').toLowerCase()}`
+              // Navigate to form teacher class overview
+              if (formClass) {
+                window.location.href = `/classroom/${formClass.class_id}`
+              }
             }}
+            disabled={!formClass}
           >
             <ExternalLink className="h-3.5 w-3.5 mr-2" />
             View Class
