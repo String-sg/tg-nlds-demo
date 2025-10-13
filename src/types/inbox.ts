@@ -30,7 +30,9 @@ export interface Alert {
 export interface StudentInfo {
   id: string
   name: string
-  class: string
+  class: string // For backward compatibility with mock data
+  class_id?: string // Real class ID from database
+  class_name?: string // Real class name from database
   avatar?: string
   recentGrade?: string
   attendance?: number

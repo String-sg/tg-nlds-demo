@@ -13,6 +13,7 @@ import {
 import { Search, MessageSquare, Filter } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { getInitials, getAvatarColor } from '@/lib/chat/utils'
+import { ConversationListSkeleton } from './conversation-list-skeleton'
 import type { ConversationGroup, Priority } from '@/types/inbox'
 
 interface ConversationListProps {
@@ -23,6 +24,7 @@ interface ConversationListProps {
   onSearchChange: (query: string) => void
   priorityFilter: Priority | 'all'
   onPriorityFilterChange: (filter: Priority | 'all') => void
+  isLoading?: boolean
 }
 
 export function ConversationList({
@@ -33,6 +35,7 @@ export function ConversationList({
   onSearchChange,
   priorityFilter,
   onPriorityFilterChange,
+  isLoading = false,
 }: ConversationListProps) {
   const formatTime = (date: Date) => {
     const now = new Date()
@@ -116,7 +119,9 @@ export function ConversationList({
 
       {/* Conversation List */}
       <div className="flex-1 min-h-0 overflow-y-auto">
-        {conversationGroups.length === 0 ? (
+        {isLoading ? (
+          <ConversationListSkeleton />
+        ) : conversationGroups.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
             <MessageSquare className="size-8 text-stone-400 mb-3" />
             <p className="text-sm text-stone-600">
