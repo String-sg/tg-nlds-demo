@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from 'next/font/google'
 
 import { ThemeProvider } from '@/components/theme-provider'
 import { SidebarProvider } from '@/components/ui/sidebar'
+import { SWRProvider } from '@/components/providers/swr-provider'
 import './globals.css'
 
 const geistSans = Geist({
@@ -36,7 +37,9 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <SidebarProvider>{children}</SidebarProvider>
+          <SWRProvider>
+            <SidebarProvider>{children}</SidebarProvider>
+          </SWRProvider>
         </ThemeProvider>
       </body>
     </html>
