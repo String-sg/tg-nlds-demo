@@ -737,6 +737,10 @@ export default function Home() {
       // Pulse is a child of Home
       return 'home'
     }
+    if (tabKey.startsWith('inbox/')) {
+      // inbox/{conversationId} -> return inbox
+      return 'inbox'
+    }
     if (tabKey.startsWith('classroom/')) {
       // For classroom routes, check if it's a nested route
       const parts = tabKey.split('/')
@@ -995,6 +999,37 @@ export default function Home() {
     }, [router]),
   })
 
+  // Define navigation handlers before pageActions useMemo to avoid hoisting issues
+  const handleNavigate = (tabKey: ClosableTabKey, navigateWithinTab: boolean = false) => {
+    // Determine if this is a parent (top-level) page or a child page
+    const isParentPage = isTopLevelTab(tabKey)
+    const parentOfThisPage = getParentTab(tabKey)
+
+    // If navigateWithinTab is true OR this is a child page, just navigate the URL without changing tabs
+    if (navigateWithinTab || (!isParentPage && parentOfThisPage)) {
+      // Just navigate the URL - keep the current tab structure
+      const newPath = tabKey === 'home' ? '/' : `/${tabKey}`
+      router.push(newPath, { scroll: false })
+      return
+    }
+
+    // For parent pages: Open/switch to the tab
+    const newPath = tabKey === 'home' ? '/' : `/${tabKey}`
+    router.push(newPath, { scroll: false })
+  }
+
+  const handleOpenGrades = useCallback((classId: string) => {
+    const tabKey = `classroom/${classId}/grades` as ClassroomTabKey
+
+    setClassroomTabs((prev) => {
+      const updated = new Map(prev)
+      updated.set(tabKey, `${classId}/grades`)
+      return updated
+    })
+
+    handleNavigate(tabKey, true) // Navigate within tab
+  }, [setClassroomTabs])
+
   // Memoize page actions - declare after all handlers
   const pageActions = React.useMemo((): PageAction[] => {
     let actions: PageAction[] = []
@@ -1012,7 +1047,8 @@ export default function Home() {
     } else if (typeof activeTab === 'string' && activeTab.startsWith('classroom/')) {
       const classroomPath = classroomTabs.get(activeTab)
       const parts = classroomPath?.split('/') ?? []
-      const classId = parts[0]
+      // Parse classId from encoded format "classId:className"
+      const [classId] = parts[0]?.includes(':') ? parts[0].split(':', 2) : [parts[0]]
 
       if (activeTab.includes('/students')) {
         // Student list page actions
@@ -1161,36 +1197,6 @@ export default function Home() {
     return actions
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab, classroomTabs])
-
-  const handleNavigate = (tabKey: ClosableTabKey, navigateWithinTab: boolean = false) => {
-    // Determine if this is a parent (top-level) page or a child page
-    const isParentPage = isTopLevelTab(tabKey)
-    const parentOfThisPage = getParentTab(tabKey)
-
-    // If navigateWithinTab is true OR this is a child page, just navigate the URL without changing tabs
-    if (navigateWithinTab || (!isParentPage && parentOfThisPage)) {
-      // Just navigate the URL - keep the current tab structure
-      const newPath = tabKey === 'home' ? '/' : `/${tabKey}`
-      router.push(newPath, { scroll: false })
-      return
-    }
-
-    // For parent pages: Open/switch to the tab
-    const newPath = tabKey === 'home' ? '/' : `/${tabKey}`
-    router.push(newPath, { scroll: false })
-  }
-
-  const handleOpenGrades = useCallback((classId: string) => {
-    const tabKey = `classroom/${classId}/grades` as ClassroomTabKey
-
-    setClassroomTabs((prev) => {
-      const updated = new Map(prev)
-      updated.set(tabKey, `${classId}/grades`)
-      return updated
-    })
-
-    handleNavigate(tabKey, true) // Navigate within tab
-  }, [setClassroomTabs])
 
   const handleOpenStudentProfile = (studentName: string) => {
     const tabKey = `student-${studentName.toLowerCase().replace(/\s+/g, '-')}` as StudentProfileTabKey
@@ -1582,7 +1588,8 @@ export default function Home() {
                         isActive={
                           activeTab === page.key ||
                           (page.key === 'classroom' && typeof activeTab === 'string' && activeTab.startsWith('classroom/')) ||
-                          (page.key === 'home' && activeTab === 'pulse')
+                          (page.key === 'home' && activeTab === 'pulse') ||
+                          (page.key === 'inbox' && typeof activeTab === 'string' && activeTab.startsWith('inbox/'))
                         }
                         onClick={() => handleNavigate(page.key)}
                         type="button"

@@ -7,6 +7,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Send, Paperclip, MoreVertical, MessageSquare, Star } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { getInitials, getAvatarColor } from '@/lib/chat/utils'
+import { ConversationViewSkeleton } from './conversation-view-skeleton'
 import type { ConversationGroup, ConversationThread } from '@/types/inbox'
 import type { Message, Attachment } from '@/types/chat'
 
@@ -21,6 +22,9 @@ export function ConversationView({ conversationId, conversationGroups }: Convers
   const [messages, setMessages] = useState<Message[]>([])
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
+  // Cache for loaded conversations - persists across renders
+  const conversationCacheRef = useRef<Map<string, { conversation: ConversationThread; messages: Message[] }>>(new Map())
+
   useEffect(() => {
     if (!conversationId) {
       setConversation(undefined)
@@ -28,20 +32,48 @@ export function ConversationView({ conversationId, conversationGroups }: Convers
       return
     }
 
-    // Find the conversation
-    for (const group of conversationGroups) {
-      const thread = group.threads.find((t) => t.id === conversationId)
-      if (thread) {
-        setConversation(thread)
-        setMessages(thread.messages)
-        break
-      }
+    // Check if conversation is in cache
+    const cached = conversationCacheRef.current.get(conversationId)
+    if (cached) {
+      // Use cached data immediately (no skeleton, no delay)
+      setConversation(cached.conversation)
+      setMessages(cached.messages)
+      return
     }
+
+    // Not in cache - simulate async loading with setTimeout (in real app, this would be an API call)
+    const timeoutId = setTimeout(() => {
+      // Find the conversation
+      for (const group of conversationGroups) {
+        const thread = group.threads.find((t) => t.id === conversationId)
+        if (thread) {
+          const loadedData = {
+            conversation: thread,
+            messages: thread.messages,
+          }
+          // Store in cache for future use
+          conversationCacheRef.current.set(conversationId, loadedData)
+          // Update state
+          setConversation(thread)
+          setMessages(thread.messages)
+          break
+        }
+      }
+    }, 400) // 400ms delay to show skeleton
+
+    return () => clearTimeout(timeoutId)
   }, [conversationId, conversationGroups])
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
+
+  // Derive loading state synchronously - only show skeleton if:
+  // 1. We have a conversationId to load AND
+  // 2. The conversation is NOT in cache AND
+  // 3. Either we have no conversation loaded OR the loaded conversation doesn't match
+  const isInCache = conversationId ? conversationCacheRef.current.has(conversationId) : false
+  const shouldShowSkeleton = conversationId && !isInCache && (!conversation || conversation.id !== conversationId)
 
   const handleSendMessage = () => {
     if (!conversation || !newMessage.trim()) return
@@ -71,7 +103,13 @@ export function ConversationView({ conversationId, conversationGroups }: Convers
     }
   }
 
-  if (!conversation) {
+  // Show loading skeleton when switching conversations
+  if (shouldShowSkeleton) {
+    return <ConversationViewSkeleton />
+  }
+
+  // Show empty state when no conversation is selected
+  if (!conversationId || !conversation) {
     return (
       <div className="flex h-full flex-col items-center justify-center text-center px-4">
         <div className="rounded-full bg-stone-200 p-6 mb-4">

@@ -55,7 +55,7 @@ export function MetadataSidebar({ conversationId, conversationGroups }: Metadata
               {student.name}
             </h3>
             <p className="text-xs text-stone-600 mb-1">
-              {student.class}
+              {student.class_name || student.class}
             </p>
             <Badge variant="outline" className="h-5 text-xs">
               Student
@@ -184,8 +184,12 @@ export function MetadataSidebar({ conversationId, conversationGroups }: Metadata
             size="sm"
             className="w-full justify-start h-8 text-xs"
             onClick={() => {
-              // Navigate to student profile
-              window.location.href = `/students/${student.id}`
+              // Navigate to classroom student profile
+              // Use real class_id if available, otherwise use class name as slug
+              const classId = student.class_id || student.class.toLowerCase().replace(/\s+/g, '-')
+              // Convert student name to slug
+              const studentSlug = student.name.toLowerCase().replace(/\s+/g, '-')
+              window.location.href = `/classroom/${classId}/student/${studentSlug}`
             }}
           >
             <User className="h-3.5 w-3.5 mr-2" />
