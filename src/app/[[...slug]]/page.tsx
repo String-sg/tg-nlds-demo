@@ -1034,7 +1034,7 @@ export default function Home() {
   const pageActions = React.useMemo((): PageAction[] => {
     let actions: PageAction[] = []
 
-    if (activeTab === 'home') {
+    if (currentUrl === 'home') {
       // Home page actions
       actions = [
         {
@@ -1044,19 +1044,19 @@ export default function Home() {
           variant: 'outline',
         },
       ]
-    } else if (typeof activeTab === 'string' && activeTab.startsWith('classroom/')) {
-      const classroomPath = classroomTabs.get(activeTab)
+    } else if (typeof currentUrl === 'string' && currentUrl.startsWith('classroom/')) {
+      const classroomPath = classroomTabs.get(currentUrl)
       const parts = classroomPath?.split('/') ?? []
       // Parse classId from encoded format "classId:className"
       const [classId] = parts[0]?.includes(':') ? parts[0].split(':', 2) : [parts[0]]
 
-      if (activeTab.includes('/students')) {
+      if (currentUrl.includes('/students')) {
         // Student list page actions
         actions = []
-      } else if (activeTab.includes('/grades')) {
+      } else if (currentUrl.includes('/grades')) {
         // Grade entry page actions
         actions = []
-      } else if (activeTab.includes('/student/')) {
+      } else if (currentUrl.includes('/student/')) {
         // Student profile from class actions
         actions = [
           {
@@ -1149,7 +1149,7 @@ export default function Home() {
           },
         ]
       }
-    } else if (typeof activeTab === 'string' && activeTab.startsWith('student-')) {
+    } else if (typeof currentUrl === 'string' && currentUrl.startsWith('student-')) {
       // Standalone student profile actions
       actions = [
         {
@@ -1196,7 +1196,7 @@ export default function Home() {
 
     return actions
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeTab, classroomTabs])
+  }, [currentUrl, classroomTabs])
 
   const handleOpenStudentProfile = (studentName: string) => {
     const tabKey = `student-${studentName.toLowerCase().replace(/\s+/g, '-')}` as StudentProfileTabKey
@@ -2065,7 +2065,7 @@ export default function Home() {
                                 <Button
                                   size="sm"
                                   variant={action.variant || 'outline'}
-                                  className="hidden sm:flex"
+                                  className="flex"
                                 >
                                   <Icon className="mr-1.5 h-4 w-4" />
                                   {action.label}
@@ -2099,7 +2099,7 @@ export default function Home() {
                             variant={action.variant || 'outline'}
                             disabled={action.disabled}
                             onClick={action.onClick}
-                            className="hidden sm:flex"
+                            className="flex"
                           >
                             <Icon className="mr-1.5 h-4 w-4" />
                             {action.label}
