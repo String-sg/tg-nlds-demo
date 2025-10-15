@@ -1563,7 +1563,7 @@ export default function Home() {
 
   return (
     <UserProvider>
-    <div className="flex h-svh w-full bg-stone-100 dark:bg-stone-800">
+    <div className="flex h-svh w-full">
       <Sidebar variant="inset" collapsible="icon">
         <SidebarContent className="gap-6">
           <SidebarGroup className="gap-3">

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import type { Json } from '@/types/database'
+import { ericStudentRecords } from '@/lib/mock-data/eric-records'
 
 export interface StudentProfileData {
   // Basic info
@@ -286,6 +287,32 @@ export function useStudentProfile(studentName: string) {
           .eq('student_id', typedStudentData.id)
           .order('opened_date', { ascending: false })
 
+        // 10b. If this is Eric Lim, merge in mock case data
+        let finalCasesData = casesData || []
+        if (typedStudentData.student_id === 'student-031') {
+          // Extract case-related records from Eric's mock data
+          const ericCaseRecords = ericStudentRecords.filter(
+            (record) => record.type === 'case-related' && record.data.subType === 'sec-case'
+          )
+
+          // Convert to case format expected by the component
+          const mockCases = ericCaseRecords.map((record) => ({
+            id: record.id,
+            case_number: record.id.toUpperCase(),
+            case_type: record.data.caseType?.toLowerCase().replace(/\//g, '_').replace(/ /g, '_') || 'counselling',
+            title: record.title,
+            description: record.description,
+            status: 'open',
+            severity: record.data.severity?.toLowerCase() || 'medium',
+            opened_date: record.date,
+            closed_date: null,
+            guardian_notified: false,
+          }))
+
+          // Use mock cases for Eric
+          finalCasesData = mockCases
+        }
+
         // Generate AI summary insights based on student data
         const generateAISummary = () => {
           const insights: string[] = []
@@ -339,9 +366,9 @@ export function useStudentProfile(studentName: string) {
           }
 
           // Cases insights
-          if (casesData && casesData.length > 0) {
+          if (finalCasesData && finalCasesData.length > 0) {
             type CaseData = { status?: string }
-            const typedCasesData = casesData as CaseData[]
+            const typedCasesData = finalCasesData as CaseData[]
             const openCases = typedCasesData.filter(c => c.status === 'open' || c.status === 'in_progress')
             if (openCases.length > 0) {
               insights.push(`${openCases.length} active case(s) requiring ongoing attention`)
@@ -400,7 +427,7 @@ export function useStudentProfile(studentName: string) {
             notes: f.notes,
           })),
           private_notes: privateNotesData || [],
-          cases: casesData || [],
+          cases: finalCasesData || [],
           ai_summary: generateAISummary(),
         }
 
