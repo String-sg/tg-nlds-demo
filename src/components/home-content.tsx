@@ -17,23 +17,47 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip'
 import { cn } from '@/lib/utils'
 import { createClient } from '@/lib/supabase/client'
 import { getStudentAlerts, type StudentAlert } from '@/lib/supabase/queries'
 import { useUser } from '@/contexts/user-context'
 
 const actionButtons = [
-  { key: 'marking', label: 'Take attendance', icon: Edit2 },
-  { key: 'analyse', label: 'Analyse', icon: Sparkle },
-  { key: 'learn', label: 'Learn', icon: BookOpen },
-  { key: 'communicate', label: 'Communicate', icon: MessageSquare },
-  { key: 'explore', label: 'Explore', icon: Compass },
+  { 
+    key: 'marking', 
+    label: 'Attendance', 
+    icon: Edit2,
+    gradient: 'from-blue-400 to-blue-600',
+    iconColor: 'text-white'
+  },
+  { 
+    key: 'analyse', 
+    label: 'Analyse', 
+    icon: Sparkle,
+    gradient: 'from-purple-400 to-purple-600',
+    iconColor: 'text-white'
+  },
+  { 
+    key: 'learn', 
+    label: 'Learn', 
+    icon: BookOpen,
+    gradient: 'from-orange-400 to-orange-600',
+    iconColor: 'text-white'
+  },
+  { 
+    key: 'communicate', 
+    label: 'Messages', 
+    icon: MessageSquare,
+    gradient: 'from-green-400 to-green-600',
+    iconColor: 'text-white'
+  },
+  { 
+    key: 'explore', 
+    label: 'Explore', 
+    icon: Compass,
+    gradient: 'from-cyan-400 to-cyan-600',
+    iconColor: 'text-white'
+  },
 ]
 
 // Mock data for teacher widgets
@@ -385,34 +409,35 @@ export function HomeContent({ onNavigateToClassroom, onNavigateToExplore, onAssi
                 </form>
 
                 {/* Icon Dock - macOS style container */}
-                <TooltipProvider delayDuration={150}>
-                  <div className="flex w-full items-center justify-center rounded-2xl border border-stone-200/80 bg-white/95 px-3 py-2 shadow-lg backdrop-blur-sm">
-                    {actionButtons.map((action) => {
-                      const Icon = action.icon
-                      return (
-                        <Tooltip key={action.key}>
-                          <TooltipTrigger asChild>
-                            <button
-                              onClick={() => {
-                                if (action.key === 'explore') {
-                                  onNavigateToExplore?.()
-                                }
-                              }}
-                              className="group relative flex flex-1 items-center justify-center transition-all duration-200 ease-out hover:scale-110"
-                            >
-                              <div className="flex h-12 w-12 items-center justify-center rounded-xl transition-all sm:h-14 sm:w-14">
-                                <Icon className="size-5 text-stone-600 transition-transform group-hover:scale-110 sm:size-6" />
-                              </div>
-                            </button>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p>{action.label}</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      )
-                    })}
-                  </div>
-                </TooltipProvider>
+                <div className="flex w-full items-center justify-center rounded-2xl border border-stone-200/80 bg-white/95 px-3 py-3 shadow-lg backdrop-blur-sm">
+                  {actionButtons.map((action) => {
+                    const Icon = action.icon
+                    return (
+                      <button
+                        key={action.key}
+                        onClick={() => {
+                          if (action.key === 'explore') {
+                            onNavigateToExplore?.()
+                          }
+                        }}
+                        className="group relative flex flex-1 flex-col items-center justify-center gap-2 transition-all duration-200 ease-out hover:scale-105"
+                      >
+                        <div className={cn(
+                          "relative flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br shadow-sm transition-all group-hover:shadow-md sm:h-14 sm:w-14",
+                          action.gradient
+                        )}>
+                          <Icon className={cn(
+                            "size-5 transition-transform group-hover:scale-110 sm:size-6",
+                            action.iconColor
+                          )} />
+                        </div>
+                        <span className="text-xs font-medium text-stone-600 transition-colors group-hover:text-stone-900">
+                          {action.label}
+                        </span>
+                      </button>
+                    )
+                  })}
+                </div>
               </div>
             </div>
         </div>

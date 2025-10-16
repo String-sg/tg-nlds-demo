@@ -4,6 +4,7 @@ import { Geist, Geist_Mono } from 'next/font/google'
 import { ThemeProvider } from '@/components/theme-provider'
 import { SidebarProvider } from '@/components/ui/sidebar'
 import { SWRProvider } from '@/components/providers/swr-provider'
+import { FontSizeProvider } from '@/contexts/font-size-context'
 import './globals.css'
 
 const geistSans = Geist({
@@ -31,16 +32,18 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="light"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <SWRProvider>
-            <SidebarProvider>{children}</SidebarProvider>
-          </SWRProvider>
-        </ThemeProvider>
+        <FontSizeProvider>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="light"
+            enableSystem
+            disableTransitionOnChange
+          >
+            <SWRProvider>
+              <SidebarProvider>{children}</SidebarProvider>
+            </SWRProvider>
+          </ThemeProvider>
+        </FontSizeProvider>
       </body>
     </html>
   )

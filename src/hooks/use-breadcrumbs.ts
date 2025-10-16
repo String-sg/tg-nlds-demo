@@ -130,6 +130,12 @@ export function useBreadcrumbs({
         path: 'pulse',
         isActive: true,
       })
+    } else if (currentPath === 'settings') {
+      items.push({
+        label: 'Settings',
+        path: 'settings',
+        isActive: true,
+      })
     } else if (currentPath === 'inbox') {
       // Main inbox page
       items.push({

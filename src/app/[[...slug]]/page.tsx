@@ -20,6 +20,7 @@ import {
   PieChart,
   Plus,
   School,
+  Settings,
   User,
   Users,
   Users2,
@@ -53,6 +54,7 @@ import { StudentProfile } from '@/components/student-profile'
 import { RecordsContent } from '@/components/records-content'
 import { ExploreContent } from '@/components/explore-content'
 import { InboxContent } from '@/components/messages/inbox-content'
+import { SettingsContent } from '@/components/settings-content'
 import { ThemeSwitcher } from '@/components/theme-switcher'
 import { UserProvider } from '@/contexts/user-context'
 import {
@@ -114,6 +116,13 @@ const profileTabConfig = {
   tooltip: 'Profile',
 } as const
 
+const settingsTabConfig = {
+  key: 'settings',
+  label: 'Settings',
+  icon: Settings,
+  tooltip: 'Settings',
+} as const
+
 const assistantTabConfig = {
   key: 'assistant',
   label: 'Assistant',
@@ -123,15 +132,16 @@ const assistantTabConfig = {
 
 type PrimaryPageKey = (typeof primaryPages)[number]['key']
 type ProfileTabKey = typeof profileTabConfig['key']
+type SettingsTabKey = typeof settingsTabConfig['key']
 type AssistantTabKey = typeof assistantTabConfig['key']
 type StudentProfileTabKey = `student-${string}` // Dynamic student profile tabs (standalone)
 type ClassroomTabKey = `classroom/${string}` // Dynamic classroom tabs with forward slash
 type PulseTabKey = 'pulse' // Pulse is a child of Home
 type LegacyTabKey = 'records' | 'recents' // Legacy tab keys for backward compatibility
-type PageKey = PrimaryPageKey | ProfileTabKey
+type PageKey = PrimaryPageKey | ProfileTabKey | SettingsTabKey
 type ClosableTabKey = PageKey | AssistantTabKey | StudentProfileTabKey | ClassroomTabKey | PulseTabKey | LegacyTabKey
 type TabKey = typeof newTabConfig['key'] | ClosableTabKey
-type PageConfig = (typeof primaryPages)[number] | typeof profileTabConfig
+type PageConfig = (typeof primaryPages)[number] | typeof profileTabConfig | typeof settingsTabConfig
 type TabConfig = PageConfig | typeof newTabConfig | typeof assistantTabConfig
 
 type EmptyState = {
@@ -275,6 +285,14 @@ const emptyStates: Record<TabKey, EmptyState> = {
     primaryAction: 'Edit profile',
     secondaryAction: 'Upload photo',
   },
+  settings: {
+    heading: 'Settings',
+    title: 'Customize your experience',
+    description:
+      'Manage app preferences, accessibility options, and personalize your workspace.',
+    icon: Settings,
+    primaryAction: 'View preferences',
+  },
   assistant: {
     heading: 'Assistant',
     title: 'Ask the assistant',
@@ -291,7 +309,10 @@ const pageConfigMap: Record<PageKey, PageConfig> = primaryPages.reduce(
     acc[page.key] = page
     return acc
   },
-  { [profileTabConfig.key]: profileTabConfig } as Record<PageKey, PageConfig>,
+  {
+    [profileTabConfig.key]: profileTabConfig,
+    [settingsTabConfig.key]: settingsTabConfig,
+  } as Record<PageKey, PageConfig>,
 )
 
 const tabConfigMap: Partial<Record<TabKey, TabConfig>> = {
@@ -407,6 +428,10 @@ const TabContent = memo(function TabContent({
 
   if (currentUrl === 'records') {
     return <RecordsContent />
+  }
+
+  if (currentUrl === 'settings') {
+    return <SettingsContent />
   }
 
   if (currentUrl === 'inbox' || currentUrl.startsWith('inbox/')) {
@@ -984,6 +1009,7 @@ export default function Home() {
   const ActiveIcon = currentState?.icon
   const isNewTabActive = activeTab === newTabConfig.key
   const isProfileActive = activeTab === profileTabConfig.key
+  const isSettingsActive = activeTab === settingsTabConfig.key
   const isAssistantTabActive = activeTab === assistantTabConfig.key
   const isHomeActive = activeTab === 'home' || activeTab === 'pulse'
   const isSidebarCollapsed = sidebarState === 'collapsed'
@@ -1699,7 +1725,7 @@ export default function Home() {
         </SidebarContent>
 
         <SidebarFooter className="border-t border-sidebar-border px-3 py-4">
-          <div className={cn(isSidebarCollapsed && 'flex justify-center')}>
+          <div className={cn('flex gap-2', isSidebarCollapsed && 'flex-col items-center')}>
             <TooltipProvider delayDuration={150}>
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -1710,10 +1736,10 @@ export default function Home() {
                     aria-label="Open profile"
                     aria-pressed={isProfileActive}
                     className={cn(
-                      'group/profile flex h-10 w-full items-center justify-start gap-3 rounded-xl px-1 text-left text-sidebar-foreground transition-colors focus-visible:ring-2 focus-visible:ring-sidebar-ring',
+                      'group/profile flex h-10 flex-1 items-center justify-start gap-3 rounded-xl px-1 text-left text-sidebar-foreground transition-colors focus-visible:ring-2 focus-visible:ring-sidebar-ring',
                       'hover:bg-sidebar-accent hover:text-sidebar-accent-foreground',
                       isProfileActive && 'bg-sidebar-accent text-sidebar-accent-foreground',
-                      'group-data-[collapsible=icon]:mx-auto group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:h-10 group-data-[collapsible=icon]:w-10 group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:rounded-full group-data-[collapsible=icon]:px-0 group-data-[collapsible=icon]:transition-none',
+                      'group-data-[collapsible=icon]:mx-auto group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:h-10 group-data-[collapsible=icon]:w-10 group-data-[collapsible=icon]:flex-none group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:rounded-full group-data-[collapsible=icon]:px-0 group-data-[collapsible=icon]:transition-none',
                       'group-data-[collapsible=icon]:bg-transparent group-data-[collapsible=icon]:hover:bg-transparent group-data-[collapsible=icon]:hover:text-sidebar-foreground group-data-[collapsible=icon]:focus-visible:ring-0',
                       isProfileActive &&
                         'group-data-[collapsible=icon]:bg-transparent group-data-[collapsible=icon]:text-sidebar-accent-foreground',
@@ -1740,6 +1766,28 @@ export default function Home() {
                 </TooltipTrigger>
                 <TooltipContent side="top" align="start" hidden={!isSidebarCollapsed}>
                   View profile
+                </TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    onClick={() => handleNavigate(settingsTabConfig.key)}
+                    aria-label="Open settings"
+                    aria-pressed={isSettingsActive}
+                    className={cn(
+                      'group/settings flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-sidebar-foreground transition-colors focus-visible:ring-2 focus-visible:ring-sidebar-ring',
+                      'hover:bg-sidebar-accent hover:text-sidebar-accent-foreground',
+                      isSettingsActive && 'bg-sidebar-accent text-sidebar-accent-foreground',
+                      'group-data-[collapsible=icon]:mx-auto group-data-[collapsible=icon]:rounded-full',
+                    )}
+                  >
+                    <Settings className="size-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="top" align="end" hidden={!isSidebarCollapsed}>
+                  Settings
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>

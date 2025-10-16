@@ -288,7 +288,19 @@ export function useStudentProfile(studentName: string) {
           .order('opened_date', { ascending: false })
 
         // 10b. If this is Eric Lim, merge in mock case data
-        let finalCasesData = casesData || []
+        type CaseRecord = {
+          id: string
+          case_number: string
+          case_type: string
+          title: string
+          description: string | null
+          status: string
+          severity: string | null
+          opened_date: string
+          closed_date: string | null
+          guardian_notified: boolean
+        }
+        let finalCasesData: CaseRecord[] = casesData || []
         if (typedStudentData.student_id === 'student-031') {
           // Extract case-related records from Eric's mock data
           const ericCaseRecords = ericStudentRecords.filter(
@@ -296,18 +308,21 @@ export function useStudentProfile(studentName: string) {
           )
 
           // Convert to case format expected by the component
-          const mockCases = ericCaseRecords.map((record) => ({
-            id: record.id,
-            case_number: record.id.toUpperCase(),
-            case_type: record.data.caseType?.toLowerCase().replace(/\//g, '_').replace(/ /g, '_') || 'counselling',
-            title: record.title,
-            description: record.description,
-            status: 'open',
-            severity: record.data.severity?.toLowerCase() || 'medium',
-            opened_date: record.date,
-            closed_date: null,
-            guardian_notified: false,
-          }))
+          const mockCases = ericCaseRecords.map((record) => {
+            const data = record.data as { caseType?: string; severity?: string; subType?: string }
+            return {
+              id: record.id,
+              case_number: record.id.toUpperCase(),
+              case_type: data.caseType?.toLowerCase().replace(/\//g, '_').replace(/ /g, '_') || 'counselling',
+              title: record.title,
+              description: record.description,
+              status: 'open',
+              severity: data.severity?.toLowerCase() || 'medium',
+              opened_date: record.date,
+              closed_date: null,
+              guardian_notified: false,
+            }
+          })
 
           // Use mock cases for Eric
           finalCasesData = mockCases
