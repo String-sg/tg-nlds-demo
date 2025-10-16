@@ -7,8 +7,8 @@ import { Label } from '@/components/ui/label'
 
 const FONT_SIZE_OPTIONS = [
   { value: 14, label: 'Small' },
-  { value: 16, label: 'Medium (Default)' },
-  { value: 18, label: 'Large' },
+  { value: 16, label: 'Medium' },
+  { value: 18, label: 'Large (Default)' },
   { value: 20, label: 'Extra Large' },
 ]
 

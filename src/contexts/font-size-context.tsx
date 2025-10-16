@@ -10,27 +10,32 @@ interface FontSizeContextValue {
 const FontSizeContext = createContext<FontSizeContextValue | null>(null)
 
 const FONT_SIZE_KEY = 'app-font-size'
-const DEFAULT_FONT_SIZE = 16
+const DEFAULT_FONT_SIZE = 18
 
 export function FontSizeProvider({ children }: { children: React.ReactNode }) {
-  const [fontSize, setFontSizeState] = useState<number>(DEFAULT_FONT_SIZE)
-  const [isMounted, setIsMounted] = useState(false)
-
-  // Load font size from localStorage on mount
-  useEffect(() => {
+  // Lazy initialization - reads localStorage synchronously on first render
+  const [fontSize, setFontSizeState] = useState<number>(() => {
+    if (typeof window === 'undefined') return DEFAULT_FONT_SIZE
+    
     try {
       const stored = localStorage.getItem(FONT_SIZE_KEY)
       if (stored) {
         const parsed = parseInt(stored, 10)
         if (!isNaN(parsed) && parsed >= 14 && parsed <= 20) {
-          setFontSizeState(parsed)
+          return parsed
         }
       }
     } catch (error) {
       console.error('Failed to load font size from localStorage:', error)
-    } finally {
-      setIsMounted(true)
     }
+    return DEFAULT_FONT_SIZE
+  })
+  
+  const [isMounted, setIsMounted] = useState(false)
+
+  // Mark as mounted
+  useEffect(() => {
+    setIsMounted(true)
   }, [])
 
   // Apply font size to document root

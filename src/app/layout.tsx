@@ -29,6 +29,25 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                try {
+                  var stored = localStorage.getItem('app-font-size');
+                  if (stored) {
+                    var size = parseInt(stored, 10);
+                    if (!isNaN(size) && size >= 14 && size <= 20) {
+                      document.documentElement.style.setProperty('--font-size-base', size + 'px');
+                    }
+                  }
+                } catch (e) {}
+              })();
+            `,
+          }}
+        />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
