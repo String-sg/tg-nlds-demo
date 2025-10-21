@@ -4,6 +4,7 @@ import { TrophyIcon, Sparkle } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
+import { ScrollArea } from '@/components/ui/scroll-area'
 import { useUser } from '@/contexts/user-context'
 import { useClasses } from '@/hooks/use-classes'
 import { cn } from '@/lib/utils'
@@ -77,7 +78,8 @@ export function MyClasses({ onClassClick }: MyClassesProps) {
   }
 
   return (
-    <div className="mx-auto w-full max-w-5xl space-y-8">
+    <ScrollArea className="h-full w-full">
+      <div className="mx-auto w-full max-w-5xl space-y-8 px-8 py-10">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -149,7 +151,8 @@ export function MyClasses({ onClassClick }: MyClassesProps) {
           </div>
         </div>
       )}
-    </div>
+      </div>
+    </ScrollArea>
   )
 }
 

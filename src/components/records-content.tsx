@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { cn } from '@/lib/utils'
+import { ScrollArea } from '@/components/ui/scroll-area'
 import { CaseManagementTable } from '@/components/case-management-table'
 
 type RecordTab = 'attendance' | 'results' | 'cases'
@@ -16,9 +17,9 @@ export function RecordsContent() {
   ]
 
   return (
-    <div className="flex flex-1 flex-col">
-      {/* Tab Navigation */}
-      <div className="border-b border-stone-200 bg-white px-6">
+    <div className="flex h-full w-full flex-col">
+      {/* Tab Navigation - Fixed */}
+      <div className="flex-shrink-0 border-b border-stone-200 bg-white px-8">
         <div className="flex gap-8">
           {tabs.map((tab) => (
             <button
@@ -41,8 +42,9 @@ export function RecordsContent() {
         </div>
       </div>
 
-      {/* Tab Content */}
-      <div className="mx-auto w-full max-w-5xl space-y-6 pb-16 pt-6">
+      {/* Tab Content - Scrollable */}
+      <ScrollArea className="flex-1">
+        <div className="mx-auto w-full max-w-5xl space-y-6 px-8 py-10">
         {activeTab === 'attendance' && (
           <div className="rounded-lg border border-stone-200 bg-white p-8 text-center">
             <p className="text-stone-500">Attendance records coming soon</p>
@@ -56,7 +58,8 @@ export function RecordsContent() {
         {activeTab === 'cases' && (
           <CaseManagementTable />
         )}
-      </div>
+        </div>
+      </ScrollArea>
     </div>
   )
 }

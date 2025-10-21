@@ -2227,14 +2227,8 @@ export default function Home() {
             </div>
           </div>
           <div className="flex flex-1 min-h-0 overflow-hidden rounded-b-[15px]">
-            <div
-                className={cn(
-                  'flex flex-1 min-h-0 flex-col',
-                  // Remove overflow-y-auto for pages that handle their own scrolling (inbox, home, pulse, myschool)
-                  activeTab !== 'inbox' && activeTab !== 'myschool' && !(typeof activeTab === 'string' && activeTab.startsWith('inbox/')) && 'overflow-y-auto',
-                  activeTab === 'pulse' || activeTab === 'home' || activeTab === 'inbox' || activeTab === 'myschool' || (typeof activeTab === 'string' && activeTab.startsWith('inbox/')) ? '' : 'px-8 py-10',
-                )}
-              >
+            <div className="flex flex-1 min-h-0 flex-col">
+              {/* All pages now handle their own scrolling via ScrollArea */}
                 <TabContent
                   activeTab={activeTab}
                   currentUrl={currentUrl}

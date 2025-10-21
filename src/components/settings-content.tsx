@@ -7,6 +7,7 @@ import { Slider } from '@/components/ui/slider'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 import { Button } from '@/components/ui/button'
+import { ScrollArea } from '@/components/ui/scroll-area'
 import { Type, Contrast } from 'lucide-react'
 
 const FONT_SIZE_OPTIONS = [
@@ -33,7 +34,8 @@ export function SettingsContent() {
   }
 
   return (
-    <div className="mx-auto w-full max-w-4xl space-y-6">
+    <ScrollArea className="h-full w-full">
+      <div className="mx-auto w-full max-w-4xl space-y-6 px-8 py-10">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
         <p className="text-muted-foreground mt-2">
@@ -166,6 +168,7 @@ export function SettingsContent() {
           </p>
         </CardContent>
       </Card>
-    </div>
+      </div>
+    </ScrollArea>
   )
 }

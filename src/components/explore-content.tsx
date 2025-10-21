@@ -20,6 +20,7 @@ import {
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
+import { ScrollArea } from '@/components/ui/scroll-area'
 
 interface App {
   key: string
@@ -187,7 +188,8 @@ export function ExploreContent({ onAppClick }: ExploreContentProps = {}) {
   }, [filteredApps])
 
   return (
-    <div className="mx-auto w-full max-w-5xl space-y-6 px-6 py-6">
+    <ScrollArea className="h-full w-full">
+      <div className="mx-auto w-full max-w-5xl space-y-6 px-8 py-10">
       {/* Search Bar */}
       <div className="space-y-3">
         <div className="relative">
@@ -280,6 +282,7 @@ export function ExploreContent({ onAppClick }: ExploreContentProps = {}) {
           ))}
         </div>
       )}
-    </div>
+      </div>
+    </ScrollArea>
   )
 }
