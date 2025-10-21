@@ -138,7 +138,8 @@ export function SchoolDashboard({ onNavigate }: SchoolDashboardProps) {
 
   return (
     <ScrollArea className="h-full w-full">
-      <div className="mx-auto max-w-[1600px] space-y-6 p-6 pb-12">
+      <div className="space-y-6 p-6 pb-12">
+        <div className="mx-auto max-w-[1600px] space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
@@ -576,6 +577,7 @@ export function SchoolDashboard({ onNavigate }: SchoolDashboardProps) {
               </Button>
             </CardContent>
           </Card>
+        </div>
         </div>
       </div>
     </ScrollArea>
