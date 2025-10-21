@@ -10,6 +10,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { ScrollArea } from '@/components/ui/scroll-area'
 import { Search, MessageSquare, Filter } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { getInitials, getAvatarColor } from '@/lib/chat/utils'
@@ -118,7 +119,7 @@ export function ConversationList({
       </div>
 
       {/* Conversation List */}
-      <div className="flex-1 min-h-0 overflow-y-auto">
+      <ScrollArea className="flex-1 min-h-0">
         {isLoading ? (
           <ConversationListSkeleton />
         ) : conversationGroups.length === 0 ? (
@@ -194,7 +195,7 @@ export function ConversationList({
             })}
           </div>
         )}
-      </div>
+      </ScrollArea>
     </div>
   )
 }

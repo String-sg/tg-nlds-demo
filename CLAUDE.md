@@ -569,6 +569,149 @@ export default function Error({
 }
 ```
 
+## Scrolling Patterns
+
+### Standard Scrolling with ScrollArea
+
+**Always use the `ScrollArea` component** from shadcn/ui for consistent scrollbar styling across the application. Never use direct `overflow-y-auto` or `overflow-x-auto` classes.
+
+```tsx
+import { ScrollArea } from '@/components/ui/scroll-area'
+
+export function MyComponent() {
+  return (
+    <ScrollArea className="flex-1 min-h-0">
+      {/* Scrollable content */}
+    </ScrollArea>
+  )
+}
+```
+
+### Height Constraint Pattern
+
+For scroll containers to work properly within flex layouts, follow this pattern:
+
+```tsx
+// Parent container
+<div className="flex h-full flex-col">
+  {/* Fixed header */}
+  <div className="flex-shrink-0 border-b">
+    Header content
+  </div>
+
+  {/* Scrollable content area */}
+  <ScrollArea className="flex-1 min-h-0">
+    Content that scrolls
+  </ScrollArea>
+
+  {/* Fixed footer */}
+  <div className="flex-shrink-0 border-t">
+    Footer content
+  </div>
+</div>
+```
+
+**Key principles:**
+- Parent: `h-full` or `flex-1` with flex direction
+- Fixed sections: `flex-shrink-0` to prevent compression
+- Scrollable sections: `flex-1 min-h-0` with `ScrollArea`
+- The `min-h-0` is crucial - it allows flex children to shrink below their content size
+
+### Multi-Column Layouts with Scroll
+
+For complex layouts with multiple scroll areas (like inbox):
+
+```tsx
+<div className="flex h-full">
+  {/* Left sidebar - fixed width, scrollable */}
+  <div className="w-[360px] min-h-0 flex-shrink-0">
+    <ScrollArea className="h-full">
+      Sidebar content
+    </ScrollArea>
+  </div>
+
+  {/* Main content - flexible, scrollable */}
+  <div className="flex-1 min-h-0">
+    <ScrollArea className="h-full">
+      Main content
+    </ScrollArea>
+  </div>
+
+  {/* Right sidebar - fixed width, scrollable */}
+  <div className="w-[280px] min-h-0 flex-shrink-0">
+    <ScrollArea className="h-full">
+      Metadata sidebar
+    </ScrollArea>
+  </div>
+</div>
+```
+
+### Auto-Scroll to Bottom (Chat/Messaging)
+
+Use the `useScrollToBottom` hook for chat interfaces:
+
+```tsx
+import { useScrollToBottom } from '@/hooks/use-scroll-to-bottom'
+
+export function ChatView() {
+  const [messages, setMessages] = useState([])
+  const { scrollRef } = useScrollToBottom({
+    dependencies: [messages],
+    behavior: 'smooth' // or 'instant'
+  })
+
+  return (
+    <ScrollArea className="flex-1">
+      <div className="space-y-4">
+        {messages.map(msg => (
+          <Message key={msg.id} {...msg} />
+        ))}
+        {/* Scroll anchor - must be at the bottom */}
+        <div ref={scrollRef} />
+      </div>
+    </ScrollArea>
+  )
+}
+```
+
+### Common Mistakes to Avoid
+
+❌ **Don't** use `overflow-y-auto` directly:
+```tsx
+<div className="flex-1 overflow-y-auto">
+```
+
+✅ **Do** use ScrollArea:
+```tsx
+<ScrollArea className="flex-1">
+```
+
+❌ **Don't** forget `min-h-0` on flex children:
+```tsx
+<div className="flex-1"> {/* Will not scroll properly */}
+```
+
+✅ **Do** include `min-h-0`:
+```tsx
+<ScrollArea className="flex-1 min-h-0">
+```
+
+❌ **Don't** nest ScrollArea components unnecessarily:
+```tsx
+<ScrollArea>
+  <div>
+    <ScrollArea> {/* Avoid nested scroll areas */}
+```
+
+✅ **Do** use a single ScrollArea for the entire scrollable region:
+```tsx
+<ScrollArea>
+  <div>
+    {/* All content scrolls together */}
+  </div>
+</ScrollArea>
+```
+
 ## Development Commands
 
 ```bash

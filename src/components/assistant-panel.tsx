@@ -4,6 +4,7 @@ import React, { useState } from 'react'
 import { CheckIcon, ChevronDownIcon, ChevronRightIcon, MonitorIcon, PanelRightIcon, SendIcon, SquareIcon, XIcon } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
+import { ScrollArea } from '@/components/ui/scroll-area'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,6 +15,7 @@ import {
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import { Textarea } from '@/components/ui/textarea'
 import { cn, getInitials, getAvatarColor } from '@/lib/utils'
+import { useScrollToBottom } from '@/hooks/use-scroll-to-bottom'
 
 type AssistantMode = 'floating' | 'sidebar'
 
@@ -295,6 +297,7 @@ function PTMResponseContent({ onStudentClick }: { onStudentClick?: (studentName:
 
 function AssistantBody({ onStudentClick, incomingMessage, onMessageProcessed }: AssistantBodyProps) {
   const [messages, setMessages] = useState<Message[]>([])
+  const { scrollRef } = useScrollToBottom({ dependencies: [messages] })
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [showShortcuts, setShowShortcuts] = useState(false)
@@ -445,7 +448,8 @@ function AssistantBody({ onStudentClick, incomingMessage, onMessageProcessed }: 
 
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-4">
-      <div className="flex flex-1 flex-col gap-3 overflow-y-auto [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:opacity-0 hover:[&::-webkit-scrollbar-thumb]:opacity-100 [&::-webkit-scrollbar-thumb]:transition-opacity">
+      <ScrollArea className="flex-1">
+        <div className="flex flex-col gap-3">
           {messages.map((message) => (
             <div
               key={message.id}
@@ -491,7 +495,9 @@ function AssistantBody({ onStudentClick, incomingMessage, onMessageProcessed }: 
               </div>
             </div>
           )}
+          <div ref={scrollRef} />
         </div>
+      </ScrollArea>
 
       <div className="flex flex-col gap-2">
         {/* Shortcut hints - only show when no messages */}

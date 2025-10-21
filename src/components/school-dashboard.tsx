@@ -19,6 +19,7 @@ import {
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { ScrollArea } from '@/components/ui/scroll-area'
 import { cn } from '@/lib/utils'
 
 // Mock data for dashboard widgets
@@ -136,7 +137,7 @@ export function SchoolDashboard({ onNavigate }: SchoolDashboardProps) {
   }
 
   return (
-    <div className="h-full w-full overflow-auto">
+    <ScrollArea className="h-full w-full">
       <div className="mx-auto max-w-[1600px] space-y-6 p-6 pb-12">
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -577,6 +578,6 @@ export function SchoolDashboard({ onNavigate }: SchoolDashboardProps) {
           </Card>
         </div>
       </div>
-    </div>
+    </ScrollArea>
   )
 }

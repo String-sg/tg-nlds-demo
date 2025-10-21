@@ -4,8 +4,10 @@ import { useState, useEffect, useRef } from 'react'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { ScrollArea } from '@/components/ui/scroll-area'
 import { getConversation, getConversationMessages } from '@/lib/mock-data/chat-data'
 import { groupMessagesByDate, getDateSeparator, formatMessageTime, formatFileSize, getFileIcon, getInitials, getAvatarColor } from '@/lib/chat/utils'
+import { useScrollToBottom } from '@/hooks/use-scroll-to-bottom'
 import type { Conversation, Message, Attachment } from '@/types/chat'
 import { Send, Paperclip, X, Download, Users, MoreVertical } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -20,7 +22,7 @@ export function ConversationContent({ conversationId }: ConversationContentProps
   const [newMessage, setNewMessage] = useState('')
   const [attachedFiles, setAttachedFiles] = useState<File[]>([])
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const messagesEndRef = useRef<HTMLDivElement>(null)
+  const { scrollRef } = useScrollToBottom({ dependencies: [messages] })
 
   useEffect(() => {
     const conv = getConversation(conversationId)
@@ -28,11 +30,6 @@ export function ConversationContent({ conversationId }: ConversationContentProps
     setConversation(conv)
     setMessages(msgs)
   }, [conversationId])
-
-  // Scroll to bottom when messages change
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [messages])
 
   const handleSendMessage = async () => {
     if (!conversation || (!newMessage.trim() && attachedFiles.length === 0)) return
@@ -131,7 +128,7 @@ export function ConversationContent({ conversationId }: ConversationContentProps
       </div>
 
       {/* Messages Area */}
-      <div className="flex-1 overflow-y-auto bg-stone-50 px-6 py-4">
+      <ScrollArea className="flex-1 bg-stone-50 px-6 py-4">
         {messageGroups.length === 0 ? (
           <div className="flex h-full items-center justify-center text-center">
             <p className="text-stone-500">No messages yet. Start the conversation!</p>
@@ -237,10 +234,10 @@ export function ConversationContent({ conversationId }: ConversationContentProps
                 })}
               </div>
             ))}
-            <div ref={messagesEndRef} />
+            <div ref={scrollRef} />
           </div>
         )}
-      </div>
+      </ScrollArea>
 
       {/* Input Area */}
       <div className="flex-shrink-0 border-t border-stone-200 bg-white p-4">

@@ -3,6 +3,7 @@
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { ScrollArea } from '@/components/ui/scroll-area'
 import {
   User,
   Clock,
@@ -53,7 +54,7 @@ export function MetadataSidebar({ conversationId, conversationGroups, isLoading 
   const parentParticipant = currentThread.participants.find((p) => p.role === 'parent')
 
   return (
-    <div className="h-full min-h-0 overflow-y-auto">
+    <ScrollArea className="h-full min-h-0">
       {/* Student Info Card */}
       <div className="flex-shrink-0 border-b border-stone-200 bg-white p-4">
         <div className="flex items-start gap-3 mb-3">
@@ -227,7 +228,7 @@ export function MetadataSidebar({ conversationId, conversationGroups, isLoading 
 
       {/* Related Conversations */}
       {conversationGroup.threads.length > 1 && (
-        <div className="flex-1 overflow-y-auto bg-stone-50 p-4">
+        <div className="flex-1 bg-stone-50 p-4">
           <div className="flex items-center gap-1.5 text-xs font-medium text-stone-700 mb-3">
             <Clock className="h-3.5 w-3.5" />
             <span>Related Conversations</span>
@@ -264,6 +265,6 @@ export function MetadataSidebar({ conversationId, conversationGroups, isLoading 
           </div>
         </div>
       )}
-    </div>
+    </ScrollArea>
   )
 }

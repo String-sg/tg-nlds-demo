@@ -4,9 +4,11 @@ import { useState, useEffect, useRef } from 'react'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { ScrollArea } from '@/components/ui/scroll-area'
 import { Send, Paperclip, MoreVertical, MessageSquare, Star } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { getInitials, getAvatarColor } from '@/lib/chat/utils'
+import { useScrollToBottom } from '@/hooks/use-scroll-to-bottom'
 import { ConversationViewSkeleton } from './conversation-view-skeleton'
 import type { ConversationGroup, ConversationThread } from '@/types/inbox'
 import type { Message, Attachment } from '@/types/chat'
@@ -20,7 +22,7 @@ export function ConversationView({ conversationId, conversationGroups }: Convers
   const [newMessage, setNewMessage] = useState('')
   const [conversation, setConversation] = useState<ConversationThread | undefined>()
   const [messages, setMessages] = useState<Message[]>([])
-  const messagesEndRef = useRef<HTMLDivElement>(null)
+  const { scrollRef } = useScrollToBottom({ dependencies: [messages] })
 
   // Cache for loaded conversations - persists across renders
   const conversationCacheRef = useRef<Map<string, { conversation: ConversationThread; messages: Message[] }>>(new Map())
@@ -63,10 +65,6 @@ export function ConversationView({ conversationId, conversationGroups }: Convers
 
     return () => clearTimeout(timeoutId)
   }, [conversationId, conversationGroups])
-
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [messages])
 
   // Derive loading state synchronously - only show skeleton if:
   // 1. We have a conversationId to load AND
@@ -179,7 +177,7 @@ export function ConversationView({ conversationId, conversationGroups }: Convers
       </div>
 
       {/* Messages Area */}
-      <div className="flex-1 min-h-0 overflow-y-auto bg-stone-50 px-6 py-4">
+      <ScrollArea className="flex-1 min-h-0 bg-stone-50 px-6 py-4">
         <div className="space-y-6">
           {messageGroups.map((group, groupIndex) => (
             <div key={groupIndex} className="space-y-4">
@@ -226,9 +224,9 @@ export function ConversationView({ conversationId, conversationGroups }: Convers
               })}
             </div>
           ))}
-          <div ref={messagesEndRef} />
+          <div ref={scrollRef} />
         </div>
-      </div>
+      </ScrollArea>
 
       {/* Input Area */}
       <div className="flex-shrink-0 border-t border-stone-200 bg-white p-4">

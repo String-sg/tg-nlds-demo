@@ -17,6 +17,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
+import { ScrollArea } from '@/components/ui/scroll-area'
 import { cn } from '@/lib/utils'
 import { createClient } from '@/lib/supabase/client'
 import { getStudentAlerts, type StudentAlert } from '@/lib/supabase/queries'
@@ -177,7 +178,7 @@ export function HomeContent({ onNavigateToClassroom, onNavigateToExplore, onNavi
   return (
     <div className="relative flex h-full flex-col bg-gradient-to-b from-white to-[#F5E3DF]">
       {/* Top section with widgets - scrollable */}
-      <div className="flex-1 overflow-auto pb-48">
+      <ScrollArea className="flex-1 pb-48">
         <div className="mx-auto w-full max-w-5xl px-6 py-6">
           {/* Teacher Widgets Section */}
           <div
@@ -338,7 +339,7 @@ export function HomeContent({ onNavigateToClassroom, onNavigateToExplore, onNavi
             </Card>
           </div>
         </div>
-      </div>
+      </ScrollArea>
 
       {/* Fixed Bottom section with Assistant and Icon Dock - floats at bottom */}
       <div className="absolute bottom-0 left-0 right-0">
