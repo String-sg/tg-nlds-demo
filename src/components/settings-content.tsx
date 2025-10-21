@@ -1,9 +1,13 @@
 'use client'
 
 import { useFontSize } from '@/contexts/font-size-context'
+import { useAccessibility } from '@/contexts/accessibility-context'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Slider } from '@/components/ui/slider'
 import { Label } from '@/components/ui/label'
+import { Switch } from '@/components/ui/switch'
+import { Button } from '@/components/ui/button'
+import { Type, Contrast } from 'lucide-react'
 
 const FONT_SIZE_OPTIONS = [
   { value: 14, label: 'Small' },
@@ -14,6 +18,7 @@ const FONT_SIZE_OPTIONS = [
 
 export function SettingsContent() {
   const { fontSize, setFontSize } = useFontSize()
+  const accessibility = useAccessibility()
 
   const handleFontSizeChange = (values: number[]) => {
     const newSize = values[0]
@@ -38,21 +43,42 @@ export function SettingsContent() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Accessibility</CardTitle>
-          <CardDescription>
-            Customize the app to better suit your needs
-          </CardDescription>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle>Accessibility</CardTitle>
+              <CardDescription>
+                Customize the app to better suit your needs
+              </CardDescription>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={accessibility.resetToDefaults}
+            >
+              Reset All
+            </Button>
+          </div>
         </CardHeader>
         <CardContent className="space-y-6">
           {/* Font Size Control */}
           <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <Label htmlFor="font-size-slider" className="text-base font-medium">
-                Font Size
-              </Label>
-              <span className="text-muted-foreground text-sm">
-                {getCurrentLabel()}
-              </span>
+            <div className="flex items-center gap-3">
+              <div className="bg-primary/10 text-primary flex size-10 items-center justify-center rounded-lg">
+                <Type className="size-5" />
+              </div>
+              <div className="flex-1">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="font-size-slider" className="text-base font-medium">
+                    Font Size
+                  </Label>
+                  <span className="text-muted-foreground text-sm">
+                    {getCurrentLabel()}
+                  </span>
+                </div>
+                <p className="text-muted-foreground text-sm">
+                  Adjust text size throughout the app
+                </p>
+              </div>
             </div>
 
             <Slider
@@ -66,22 +92,48 @@ export function SettingsContent() {
             />
 
             <div className="flex justify-between text-xs text-muted-foreground">
-              <span>Small (14px)</span>
-              <span>Medium (16px)</span>
-              <span>Large (18px)</span>
-              <span>XL (20px)</span>
+              <span>Small</span>
+              <span>Medium</span>
+              <span>Large</span>
+              <span>XL</span>
             </div>
+          </div>
 
-            {/* Live Preview */}
-            <div className="border-border bg-muted/30 mt-6 rounded-lg border p-6">
-              <p className="text-muted-foreground mb-2 text-sm font-medium">
-                Preview
-              </p>
-              <p style={{ fontSize: `${fontSize}px` }} className="leading-relaxed">
-                The quick brown fox jumps over the lazy dog. This is how text will
-                appear throughout the app with your selected font size.
-              </p>
+          <div className="border-t" />
+
+          {/* High Contrast Mode */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="bg-primary/10 text-primary flex size-10 items-center justify-center rounded-lg">
+                <Contrast className="size-5" />
+              </div>
+              <div className="space-y-1">
+                <Label htmlFor="high-contrast" className="text-base font-medium">
+                  High Contrast Mode
+                </Label>
+                <p className="text-muted-foreground text-sm">
+                  Increase contrast for better visibility
+                </p>
+              </div>
             </div>
+            <Switch
+              id="high-contrast"
+              checked={accessibility.highContrast}
+              onCheckedChange={accessibility.setHighContrast}
+            />
+          </div>
+
+          <div className="border-t" />
+
+          {/* Live Preview */}
+          <div className="border-border bg-muted/30 rounded-lg border p-6">
+            <p className="text-muted-foreground mb-4 text-sm font-medium">
+              Preview
+            </p>
+            <p style={{ fontSize: `${fontSize}px` }} className="leading-relaxed">
+              The quick brown fox jumps over the lazy dog. This is how text will
+              appear throughout the app with your selected font size.
+            </p>
           </div>
         </CardContent>
       </Card>

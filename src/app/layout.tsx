@@ -5,6 +5,7 @@ import { ThemeProvider } from '@/components/theme-provider'
 import { SidebarProvider } from '@/components/ui/sidebar'
 import { SWRProvider } from '@/components/providers/swr-provider'
 import { FontSizeProvider } from '@/contexts/font-size-context'
+import { AccessibilityProvider } from '@/contexts/accessibility-context'
 import './globals.css'
 
 const geistSans = Geist({
@@ -52,16 +53,18 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <FontSizeProvider>
-          <ThemeProvider
-            attribute="class"
-            defaultTheme="light"
-            enableSystem
-            disableTransitionOnChange
-          >
-            <SWRProvider>
-              <SidebarProvider>{children}</SidebarProvider>
-            </SWRProvider>
-          </ThemeProvider>
+          <AccessibilityProvider>
+            <ThemeProvider
+              attribute="class"
+              defaultTheme="light"
+              enableSystem
+              disableTransitionOnChange
+            >
+              <SWRProvider>
+                <SidebarProvider>{children}</SidebarProvider>
+              </SWRProvider>
+            </ThemeProvider>
+          </AccessibilityProvider>
         </FontSizeProvider>
       </body>
     </html>

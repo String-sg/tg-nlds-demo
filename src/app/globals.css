@@ -151,6 +151,27 @@
   }
 }
 
+/* Accessibility Features */
+
+/* High Contrast Mode */
+.high-contrast {
+  --background: oklch(1 0 0);
+  --foreground: oklch(0 0 0);
+  --border: oklch(0 0 0);
+  --ring: oklch(0.2 0 0);
+}
+
+.dark.high-contrast {
+  --background: oklch(0 0 0);
+  --foreground: oklch(1 0 0);
+  --border: oklch(1 0 0);
+  --ring: oklch(0.8 0 0);
+}
+
+.high-contrast * {
+  border-color: var(--border) !important;
+}
+
 @layer utilities {
   .tab-scrollbar-hidden {
     scrollbar-width: none;

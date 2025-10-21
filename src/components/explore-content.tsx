@@ -14,10 +14,12 @@ import {
   Send,
   Languages,
   Check,
+  Sparkles,
   type LucideIcon,
 } from 'lucide-react'
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
+import { Badge } from '@/components/ui/badge'
 
 interface App {
   key: string
@@ -26,6 +28,13 @@ interface App {
   icon: LucideIcon
   category: string
   gradient?: string
+  thirdParty?: boolean
+}
+
+const categoryDescriptions: Record<string, string> = {
+  'Teacher workspace apps': 'Core tools for teaching, classroom management, and professional development',
+  'Connected apps': 'Official MOE digital services and student support platforms',
+  'More teaching tools': 'Additional apps and services to enhance your teaching experience',
 }
 
 const allApps: App[] = [
@@ -128,6 +137,15 @@ const allApps: App[] = [
     category: 'More teaching tools',
     gradient: 'from-amber-400 to-amber-600',
   },
+  {
+    key: 'notebooklm',
+    name: 'NotebookLM',
+    description: 'AI-powered research and note-taking assistant',
+    icon: Sparkles,
+    category: 'More teaching tools',
+    gradient: 'from-fuchsia-400 to-fuchsia-600',
+    thirdParty: true,
+  },
 ]
 
 interface ExploreContentProps {
@@ -210,12 +228,19 @@ export function ExploreContent({ onAppClick }: ExploreContentProps = {}) {
           </p>
         </div>
       ) : (
-        <div className="space-y-6">
+        <div className="space-y-8">
           {appsByCategory.map(([category, apps]) => (
-            <div key={category} className="space-y-3">
-              <h2 className="text-xs font-medium uppercase tracking-wide text-stone-500">
-                {category}
-              </h2>
+            <div key={category} className="space-y-4">
+              <div className="space-y-1.5">
+                <h2 className="text-base font-semibold text-stone-900">
+                  {category}
+                </h2>
+                {categoryDescriptions[category] && (
+                  <p className="text-sm text-stone-600">
+                    {categoryDescriptions[category]}
+                  </p>
+                )}
+              </div>
               <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                 {apps.map((app) => {
                   const Icon = app.icon
@@ -231,7 +256,16 @@ export function ExploreContent({ onAppClick }: ExploreContentProps = {}) {
                             <Icon className="size-6 text-white" />
                           </div>
                           <div className="flex-1 space-y-0.5">
-                            <CardTitle className="text-sm font-semibold text-stone-900">{app.name}</CardTitle>
+                            <div className="flex items-center gap-2">
+                              <CardTitle className="text-sm font-semibold text-stone-900">
+                                {app.name}
+                              </CardTitle>
+                              {app.thirdParty && (
+                                <Badge variant="secondary" className="text-[10px] font-medium">
+                                  3rd party
+                                </Badge>
+                              )}
+                            </div>
                             <CardDescription className="text-xs text-stone-500 leading-relaxed">
                               {app.description}
                             </CardDescription>
