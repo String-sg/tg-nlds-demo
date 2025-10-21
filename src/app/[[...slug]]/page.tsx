@@ -46,6 +46,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { HomeContent } from '@/components/home-content'
 import { PulseContent } from '@/components/pulse-content'
+import { SchoolDashboard } from '@/components/school-dashboard'
 import { MyClasses } from '@/components/classroom/my-classes'
 import { ClassOverview } from '@/components/classroom/class-overview'
 import { StudentList } from '@/components/classroom/student-list'
@@ -426,6 +427,10 @@ const TabContent = memo(function TabContent({
         onStudentClickWithClass={handleOpenStudentFromClass}
       />
     )
+  }
+
+  if (currentUrl === 'myschool') {
+    return <SchoolDashboard onNavigate={(path) => handleNavigate(path as ClosableTabKey)} />
   }
 
   if (currentUrl === 'explore') {
