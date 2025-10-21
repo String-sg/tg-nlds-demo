@@ -251,7 +251,7 @@ export function SchoolDashboard({ onNavigate }: SchoolDashboardProps) {
                   <Users className="size-5 text-blue-600" />
                 </div>
                 <div>
-                  <CardTitle>Today's Attendance</CardTitle>
+                  <CardTitle>Today&apos;s Attendance</CardTitle>
                   <CardDescription>Real-time attendance tracking</CardDescription>
                 </div>
               </div>

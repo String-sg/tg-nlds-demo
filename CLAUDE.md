@@ -420,6 +420,27 @@ async function getData(): Promise<Post[]> {
 }
 ```
 
+### JSX Best Practices
+
+- **Always escape special characters in JSX text content** to prevent ESLint errors
+- Common characters that need escaping:
+  - Apostrophes: `'` → `&apos;` or `&#39;`
+  - Quotes: `"` → `&quot;`
+  - Less than: `<` → `&lt;`
+  - Greater than: `>` → `&gt;`
+  - Ampersand: `&` → `&amp;`
+
+```tsx
+// ❌ Bad: Unescaped apostrophe causes ESLint error
+<CardTitle>Today's Attendance</CardTitle>
+
+// ✅ Good: Properly escaped apostrophe
+<CardTitle>Today&apos;s Attendance</CardTitle>
+
+// ✅ Alternative: Use curly braces for complex strings
+<CardTitle>{"Today's Attendance"}</CardTitle>
+```
+
 ## File Structure
 
 ```
