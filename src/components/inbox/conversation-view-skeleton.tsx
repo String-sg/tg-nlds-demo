@@ -1,4 +1,5 @@
 import { Skeleton } from '@/components/ui/skeleton'
+import { ScrollArea } from '@/components/ui/scroll-area'
 
 export function ConversationViewSkeleton() {
   return (
@@ -25,7 +26,7 @@ export function ConversationViewSkeleton() {
       </div>
 
       {/* Messages Area Skeleton */}
-      <div className="flex-1 min-h-0 overflow-y-auto bg-stone-50 px-6 py-4">
+      <ScrollArea className="flex-1 min-h-0 bg-stone-50 px-6 py-4">
         <div className="space-y-6">
           {/* Date separator skeleton */}
           <div className="flex items-center justify-center">
@@ -69,7 +70,7 @@ export function ConversationViewSkeleton() {
             </div>
           </div>
         </div>
-      </div>
+      </ScrollArea>
 
       {/* Input Area Skeleton */}
       <div className="flex-shrink-0 border-t border-stone-200 bg-white p-4">

@@ -3,6 +3,7 @@
 import React from 'react'
 import { cn } from '@/lib/utils'
 import { LucideIcon } from 'lucide-react'
+import { ScrollArea } from '@/components/ui/scroll-area'
 
 export interface PageAction {
   label: string
@@ -71,9 +72,9 @@ export function PageLayout({
       )}
 
       {/* Page Content */}
-      <div className={cn('flex-1 overflow-auto', contentClassName)}>
+      <ScrollArea className={cn('flex-1', contentClassName)}>
         {children}
-      </div>
+      </ScrollArea>
     </div>
   )
 }

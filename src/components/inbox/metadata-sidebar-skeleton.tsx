@@ -1,4 +1,5 @@
 import { Skeleton } from '@/components/ui/skeleton'
+import { ScrollArea } from '@/components/ui/scroll-area'
 import {
   User,
   Clock,
@@ -10,7 +11,7 @@ import {
 
 export function MetadataSidebarSkeleton() {
   return (
-    <div className="h-full min-h-0 overflow-y-auto">
+    <ScrollArea className="h-full min-h-0">
       {/* Student Info Card Skeleton */}
       <div className="flex-shrink-0 border-b border-stone-200 bg-white p-4">
         <div className="flex items-start gap-3 mb-3">
@@ -77,6 +78,6 @@ export function MetadataSidebarSkeleton() {
           <Skeleton className="h-8 w-full" />
         </div>
       </div>
-    </div>
+    </ScrollArea>
   )
 }

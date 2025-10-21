@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { ChevronDown, ChevronRight } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
+import { ScrollArea } from '@/components/ui/scroll-area'
 import { cn } from '@/lib/utils'
 import { inboxViews, classViews, priorityViews, statusViews } from '@/lib/mock-data/inbox-data'
 import type { ViewType } from '@/types/inbox'
@@ -25,7 +26,7 @@ export function InboxSidebar({ activeView, onViewChange }: InboxSidebarProps) {
       </div>
 
       {/* Views List */}
-      <div className="flex-1 overflow-y-auto px-2 py-2">
+      <ScrollArea className="flex-1 px-2 py-2">
         {/* Main views */}
         <div className="space-y-0.5">
           {inboxViews.map((view) => (
@@ -186,7 +187,7 @@ export function InboxSidebar({ activeView, onViewChange }: InboxSidebarProps) {
             </div>
           )}
         </div>
-      </div>
+      </ScrollArea>
     </div>
   )
 }
