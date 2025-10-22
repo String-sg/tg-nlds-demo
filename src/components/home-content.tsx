@@ -229,10 +229,14 @@ export function HomeContent({ onNavigateToClassroom, onNavigateToExplore, onNavi
 
             {/* Calendar & Upcoming Classes Widget */}
             <Card className="flex h-full flex-col rounded-2xl border-stone-200 bg-white shadow-sm py-0">
-              <CardContent className="flex gap-4 items-start p-0" style={{ padding: `${widgetPadding}px` }}>
+              <button
+                onClick={() => window.location.href = '/calendar'}
+                className="flex h-full w-full cursor-pointer items-start gap-4 text-left transition-opacity hover:opacity-80"
+                style={{ padding: `${widgetPadding}px` }}
+              >
                 {/* Left: Day Display */}
-                <div className="flex flex-col">
-                  <p className="text-[10px] font-semibold uppercase tracking-wide text-red-600">
+                <div className="flex flex-1 flex-col">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-red-600">
                     {new Date().toLocaleDateString('en-US', { weekday: 'long' }).toUpperCase()}
                   </p>
                   <p className="text-5xl font-bold text-stone-900">
@@ -243,7 +247,7 @@ export function HomeContent({ onNavigateToClassroom, onNavigateToExplore, onNavi
 
                 {/* Right: Upcoming Classes */}
                 <div className="flex-1 space-y-2">
-                  <p className="text-[10px] font-medium uppercase tracking-wide text-stone-500">TOMORROW</p>
+                  <p className="text-xs font-medium uppercase tracking-wide text-stone-500">TOMORROW</p>
                   {upcomingClassesData.map((classItem, index) => (
                     <div key={index} className="bg-red-50 p-2 border-l-2 border-red-500">
                       <p className="text-xs font-semibold text-stone-900">{classItem.subject}</p>
@@ -251,14 +255,14 @@ export function HomeContent({ onNavigateToClassroom, onNavigateToExplore, onNavi
                     </div>
                   ))}
                 </div>
-              </CardContent>
+              </button>
             </Card>
 
             {/* Student Alert Widget */}
             <Card className="flex h-full flex-col rounded-2xl border-stone-200 bg-white shadow-sm py-0">
               <CardContent className="flex flex-col gap-3 items-start p-0" style={{ padding: `${widgetPadding}px` }}>
                 <div>
-                  <p className="text-[10px] font-medium uppercase tracking-wide text-stone-500">STUDENT ALERTS</p>
+                  <p className="text-xs font-medium uppercase tracking-wide text-stone-500">STUDENT ALERTS</p>
                 </div>
 
                 {/* AI Summary */}

@@ -507,7 +507,11 @@ function AssistantBody({ onStudentClick, incomingMessage, onMessageProcessed }: 
               <button
                 key={shortcut.command}
                 type="button"
-                onClick={() => handleShortcutSelect(shortcut)}
+                onClick={() => {
+                  setInput(shortcut.command)
+                  setShowShortcuts(true)
+                  setSelectedShortcutIndex(promptShortcuts.indexOf(shortcut))
+                }}
                 className="flex items-center gap-1.5 rounded-md bg-muted px-2.5 py-1.5 text-xs transition-colors hover:bg-accent"
               >
                 <span className="text-muted-foreground">/</span>
@@ -712,7 +716,6 @@ export function AssistantPanel({
         <div className="flex max-h-[calc(100vh-10rem)] min-h-[24rem] flex-col overflow-hidden p-5">
           <AssistantBody
             showHeading={showBodyHeading}
-            onStudentClick={onStudentClick}
             incomingMessage={incomingMessage}
             onMessageProcessed={onMessageProcessed}
           />
