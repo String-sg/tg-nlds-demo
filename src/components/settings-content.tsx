@@ -11,10 +11,9 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { Type, Contrast } from 'lucide-react'
 
 const FONT_SIZE_OPTIONS = [
-  { value: 14, label: 'Small' },
-  { value: 16, label: 'Medium' },
-  { value: 18, label: 'Large (Default)' },
-  { value: 20, label: 'Extra Large' },
+  { value: 16, label: 'Small' },
+  { value: 18, label: 'Default' },
+  { value: 20, label: 'Large' },
 ]
 
 export function SettingsContent() {
@@ -85,7 +84,7 @@ export function SettingsContent() {
 
             <Slider
               id="font-size-slider"
-              min={14}
+              min={16}
               max={20}
               step={2}
               value={[fontSize]}
@@ -95,9 +94,8 @@ export function SettingsContent() {
 
             <div className="flex justify-between text-xs text-muted-foreground">
               <span>Small</span>
-              <span>Medium</span>
+              <span>Default</span>
               <span>Large</span>
-              <span>XL</span>
             </div>
           </div>
 

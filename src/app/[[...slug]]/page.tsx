@@ -17,6 +17,7 @@ import {
   Inbox,
   MessageSquare,
   MoreHorizontal,
+  PanelLeft,
   PieChart,
   Plus,
   School,
@@ -737,7 +738,7 @@ const TabContent = memo(function TabContent({
 export default function Home() {
   const router = useRouter()
   const params = useParams()
-  const { state: sidebarState } = useSidebar()
+  const { state: sidebarState, toggleSidebar } = useSidebar()
 
   // Initialize activeTab from URL params to prevent hydration mismatch
   const slug = params.slug as string[] | undefined
@@ -1651,15 +1652,31 @@ export default function Home() {
     <div className="flex h-svh w-full">
       <Sidebar variant="inset" collapsible="icon">
         <SidebarContent className="gap-6">
-          <SidebarGroup className="gap-3">
-            <div className="flex h-8 w-full items-center justify-between pl-2 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0">
-              <SidebarGroupLabel className="flex-1 truncate px-0 text-xs font-semibold uppercase tracking-wide text-sidebar-foreground/60 group-data-[collapsible=icon]:mt-0 group-data-[collapsible=icon]:hidden">
+          <SidebarGroup className="group-data-[collapsible=icon]:pb-0">
+            <div className="flex h-8 items-center justify-between group-data-[collapsible=icon]:hidden">
+              <SidebarGroupLabel>
                 Tan&apos;s Space
               </SidebarGroupLabel>
-              <SidebarTrigger className="size-7 shrink-0" />
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={toggleSidebar}
+                className="size-7 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                type="button"
+              >
+                <PanelLeft className="size-4" />
+                <span className="sr-only">Toggle Sidebar</span>
+              </Button>
             </div>
-            <SidebarGroupContent>
-              {/* Main navigation items */}
+            <SidebarMenu className="hidden group-data-[collapsible=icon]:block">
+              <SidebarMenuItem>
+                <SidebarMenuButton onClick={toggleSidebar} tooltip="Toggle Sidebar">
+                  <PanelLeft className="size-4" />
+                  <span>Toggle Sidebar</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+            <SidebarGroupContent className="mt-2">
               <SidebarMenu>
                 {primaryPages.slice(0, 4).map((page) => {
                   const Icon = page.icon

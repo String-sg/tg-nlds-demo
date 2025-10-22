@@ -24,39 +24,39 @@ import { getStudentAlerts, type StudentAlert } from '@/lib/supabase/queries'
 import { useUser } from '@/contexts/user-context'
 
 const actionButtons = [
-  { 
-    key: 'marking', 
-    label: 'Attendance', 
+  {
+    key: 'marking',
+    label: 'Attendance',
     icon: Edit2,
-    gradient: 'from-blue-400 to-blue-600',
+    bgColor: 'bg-blue-500',
     iconColor: 'text-white'
   },
-  { 
-    key: 'analyse', 
-    label: 'Classroom', 
+  {
+    key: 'analyse',
+    label: 'Classroom',
     icon: Sparkle,
-    gradient: 'from-purple-400 to-purple-600',
+    bgColor: 'bg-purple-500',
     iconColor: 'text-white'
   },
-  { 
-    key: 'learn', 
-    label: 'Learn', 
+  {
+    key: 'learn',
+    label: 'Learn',
     icon: BookOpen,
-    gradient: 'from-orange-400 to-orange-600',
+    bgColor: 'bg-orange-500',
     iconColor: 'text-white'
   },
-  { 
-    key: 'communicate', 
-    label: 'Inbox', 
+  {
+    key: 'communicate',
+    label: 'Inbox',
     icon: MessageSquare,
-    gradient: 'from-green-400 to-green-600',
+    bgColor: 'bg-green-500',
     iconColor: 'text-white'
   },
-  { 
-    key: 'explore', 
-    label: 'Explore', 
+  {
+    key: 'explore',
+    label: 'Explore',
     icon: Compass,
-    gradient: 'from-cyan-400 to-cyan-600',
+    bgColor: 'bg-cyan-500',
     iconColor: 'text-white'
   },
 ]
@@ -184,11 +184,11 @@ export function HomeContent({ onNavigateToClassroom, onNavigateToExplore, onNavi
           <div
             className="grid grid-cols-1 gap-3 sm:gap-3 md:grid-cols-2"
             style={{
-              gridTemplateRows: `repeat(2, ${gridRowHeight}px)`
+              gridTemplateRows: `minmax(${gridRowHeight}px, auto) minmax(${gridRowHeight}px, auto)`
             }}
           >
             {/* Podcast Widget - Large, spans 1 column on larger screens */}
-            <Card className="flex h-full flex-col rounded-2xl border-stone-200 bg-white shadow-sm md:row-span-2 py-0">
+            <Card className="flex h-full min-h-full flex-col rounded-2xl border-stone-200 bg-white shadow-sm md:row-span-2 py-0">
               <CardContent className="flex h-full flex-col p-0" style={{ padding: `${widgetPadding}px` }}>
                 {/* Podcast Image with Waveform Overlay */}
                 <div className="relative h-32 overflow-hidden rounded-xl bg-stone-100">
@@ -228,7 +228,7 @@ export function HomeContent({ onNavigateToClassroom, onNavigateToExplore, onNavi
             </Card>
 
             {/* Calendar & Upcoming Classes Widget */}
-            <Card className="flex h-full flex-col rounded-2xl border-stone-200 bg-white shadow-sm py-0">
+            <Card className="flex h-full min-h-full flex-col rounded-2xl border-stone-200 bg-white shadow-sm py-0">
               <button
                 onClick={() => window.location.href = '/calendar'}
                 className="flex h-full w-full cursor-pointer items-start gap-4 text-left transition-opacity hover:opacity-80"
@@ -259,7 +259,22 @@ export function HomeContent({ onNavigateToClassroom, onNavigateToExplore, onNavi
             </Card>
 
             {/* Student Alert Widget */}
-            <Card className="flex h-full flex-col rounded-2xl border-stone-200 bg-white shadow-sm py-0">
+            <Card
+              className={cn(
+                "flex h-full min-h-full flex-col rounded-2xl border-stone-200 bg-white shadow-sm py-0",
+                studentAlerts && studentAlerts.length > 0 && studentAlerts[0].student_name !== 'No alerts' && "cursor-pointer transition-all hover:shadow-md hover:border-stone-300"
+              )}
+              onClick={() => {
+                if (studentAlerts && studentAlerts.length > 0 && studentAlerts[0].student_name !== 'No alerts') {
+                  const firstAlert = studentAlerts[0]
+                  if (onStudentClickWithClass && firstAlert.class_id) {
+                    onStudentClickWithClass(firstAlert.class_id, firstAlert.student_name)
+                  } else if (onStudentClick) {
+                    onStudentClick(firstAlert.student_name)
+                  }
+                }
+              }}
+            >
               <CardContent className="flex flex-col gap-3 items-start p-0" style={{ padding: `${widgetPadding}px` }}>
                 <div>
                   <p className="text-xs font-medium uppercase tracking-wide text-stone-500">STUDENT ALERTS</p>
@@ -268,39 +283,68 @@ export function HomeContent({ onNavigateToClassroom, onNavigateToExplore, onNavi
                 {/* AI Summary */}
                 <div className="flex w-full flex-col gap-3">
                   {!studentAlerts ? (
-                    // Loading state - shimmer effect
-                    <div className="space-y-2">
-                      <div className="h-3 w-full animate-pulse rounded bg-stone-200" />
-                      <div className="h-3 w-5/6 animate-pulse rounded bg-stone-200" />
-                      <div className="h-3 w-4/6 animate-pulse rounded bg-stone-200" />
+                    // Loading state - skeleton matching actual content structure
+                    <div className="space-y-2.5">
+                      <div className="rounded-lg border border-stone-200 bg-stone-50/50 p-3 space-y-2">
+                        {/* Student name and badge skeleton */}
+                        <div className="flex items-center justify-between">
+                          <div className="space-y-1.5">
+                            <div className="h-5 w-32 animate-pulse rounded bg-stone-200" />
+                            <div className="h-3 w-20 animate-pulse rounded bg-stone-200" />
+                          </div>
+                          <div className="h-5 w-24 animate-pulse rounded-full bg-stone-200" />
+                        </div>
+                        {/* Message skeleton */}
+                        <div className="space-y-1.5">
+                          <div className="h-3 w-full animate-pulse rounded bg-stone-200" />
+                          <div className="h-3 w-11/12 animate-pulse rounded bg-stone-200" />
+                          <div className="h-3 w-4/5 animate-pulse rounded bg-stone-200" />
+                        </div>
+                      </div>
                     </div>
                   ) : (
                     <>
-                      {/* AI Summary Text */}
-                      <div className="space-y-2">
-                        <p className="text-sm leading-relaxed text-stone-700">
-                          {studentAlerts.length > 0 ? (
-                            <>
-                              <span className="font-semibold text-stone-900">{studentAlerts.length} students</span> require immediate attention today. Priority cases include {studentAlerts.filter(a => a.priority === 'high').length > 0 && <span className="font-medium text-red-700">{studentAlerts.filter(a => a.priority === 'high').length} urgent</span>}{studentAlerts.filter(a => a.priority === 'high').length > 0 && studentAlerts.filter(a => a.priority === 'medium').length > 0 && ', '}{studentAlerts.filter(a => a.priority === 'medium').length > 0 && <span className="font-medium text-amber-700">{studentAlerts.filter(a => a.priority === 'medium').length} moderate</span>} interventions needed.
-                            </>
-                          ) : (
-                            'No student alerts at this time. All cases are up to date.'
-                          )}
-                        </p>
-                      </div>
+                      {/* Single Student Alert with Detailed Context */}
+                      {studentAlerts.length > 0 && studentAlerts[0].student_name !== 'No alerts' ? (
+                        <div className="space-y-2.5">
+                          {/* Student Card */}
+                          <div className="rounded-lg border border-stone-200 bg-stone-50/50 p-3 space-y-2">
+                            {/* Student Name & Class */}
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <p className="text-base font-semibold text-stone-900">
+                                  {studentAlerts[0].student_name}
+                                </p>
+                                {studentAlerts[0].class_name && (
+                                  <p className="text-xs font-medium text-stone-500">
+                                    Class {studentAlerts[0].class_name}
+                                  </p>
+                                )}
+                              </div>
+                              {studentAlerts[0].priority === 'high' && (
+                                <div className="rounded-full bg-red-100 px-2 py-0.5">
+                                  <span className="text-xs font-medium text-red-700">High Priority</span>
+                                </div>
+                              )}
+                            </div>
 
-                      {/* View Details Link */}
-                      {studentAlerts.length > 0 && (
-                        <button
-                          onClick={() => {
-                            // Navigate to classroom or cases view
-                            window.location.href = '/classroom'
-                          }}
-                          className="flex items-center gap-1 text-xs font-medium text-stone-600 transition-colors hover:text-stone-900"
-                        >
-                          View all cases
-                          <ArrowRight className="h-3 w-3" />
-                        </button>
+                            {/* Alert Message */}
+                            <p className="text-sm leading-relaxed text-stone-700">
+                              {studentAlerts[0].message}
+                            </p>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-2 rounded-lg border border-green-200 bg-green-50/50 p-3">
+                            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-green-100">
+                              <AlertCircle className="h-4 w-4 text-green-600" />
+                            </div>
+                            <p className="text-sm text-stone-700">
+                              No student alerts at this time. All cases are up to date.
+                            </p>
+                          </div>
+                        </div>
                       )}
                     </>
                   )}
@@ -405,8 +449,8 @@ export function HomeContent({ onNavigateToClassroom, onNavigateToExplore, onNavi
                         className="group relative flex flex-1 flex-col items-center justify-center gap-2 transition-all duration-200 ease-out hover:scale-105"
                       >
                         <div className={cn(
-                          "relative flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br shadow-sm transition-all group-hover:shadow-md sm:h-14 sm:w-14",
-                          action.gradient
+                          "relative flex h-12 w-12 items-center justify-center rounded-2xl shadow-sm transition-all group-hover:shadow-md sm:h-14 sm:w-14",
+                          action.bgColor
                         )}>
                           <Icon className={cn(
                             "size-5 transition-transform group-hover:scale-110 sm:size-6",

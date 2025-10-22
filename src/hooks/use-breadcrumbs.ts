@@ -169,6 +169,13 @@ export function useBreadcrumbs({
         path: 'classroom',
         isActive: true,
       })
+    } else if (currentPath === 'myschool') {
+      // Main school page
+      items.push({
+        label: 'School',
+        path: 'myschool',
+        isActive: true,
+      })
     } else if (currentPath.startsWith('classroom/')) {
       // Classroom sub-pages
       const segments = currentPath.split('/')
