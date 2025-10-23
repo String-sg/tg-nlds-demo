@@ -1802,35 +1802,46 @@ export default function Home() {
 
         <SidebarFooter>
           <div className="flex gap-2 group-data-[collapsible=icon]:flex-col group-data-[collapsible=icon]:gap-1">
-            <SidebarMenuItem className="flex-1 group-data-[collapsible=icon]:flex-none">
-              <SidebarMenuButton
-                onClick={() => handleNavigate(profileTabConfig.key)}
-                isActive={isProfileActive}
-                tooltip="View profile"
-              >
-                <div className="flex size-4 shrink-0 items-center justify-center rounded-full bg-sidebar-primary text-[10px] font-semibold text-sidebar-primary-foreground">
-                  DT
-                </div>
-                <span>Daniel Tan</span>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem className="group-data-[collapsible=icon]:flex-none">
-              <SidebarMenuButton
-                onClick={() => handleNavigate(settingsTabConfig.key)}
-                isActive={isSettingsActive}
-                tooltip="Settings"
-              >
-                <Settings className="size-4" />
-                <span>Settings</span>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
+            <SidebarMenu className="flex-1 group-data-[collapsible=icon]:flex-none">
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  onClick={() => handleNavigate(profileTabConfig.key)}
+                  isActive={isProfileActive}
+                  tooltip="View profile"
+                >
+                  <div className="flex size-4 shrink-0 items-center justify-center rounded-full bg-sidebar-primary text-[10px] font-semibold text-sidebar-primary-foreground">
+                    DT
+                  </div>
+                  <span>Daniel Tan</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => handleNavigate(settingsTabConfig.key)}
+                    className={cn(
+                      "shrink-0 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground group-data-[collapsible=icon]:w-full",
+                      isSettingsActive && "bg-sidebar-accent text-sidebar-accent-foreground"
+                    )}
+                    aria-label="Settings"
+                  >
+                    <Settings className="size-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="top">Settings</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </div>
         </SidebarFooter>
       </Sidebar>
 
       <SidebarInset className="overflow-x-clip">
         <div className="flex flex-1 min-h-0 flex-col">
-          <div className="sticky top-0 z-20 w-full max-w-full overflow-hidden rounded-t-2xl bg-background">
+          <div className="sticky top-0 z-20 w-full max-w-full overflow-hidden rounded-t-[17px] bg-background">
             <div className="w-full max-w-full">
               <div ref={tabContainerRef} className="grid grid-cols-[minmax(0,1fr)_auto] w-full max-w-full items-center gap-2" suppressHydrationWarning>
                 <div className="flex flex-nowrap items-center gap-2 overflow-x-auto overflow-y-hidden tab-scrollbar-hidden min-w-0 px-4 py-2" suppressHydrationWarning>
@@ -2202,7 +2213,7 @@ export default function Home() {
               </div>
             </div>
           </div>
-          <div className="flex flex-1 min-h-0 overflow-hidden rounded-b-[15px]">
+          <div className="flex flex-1 min-h-0 overflow-hidden rounded-b-[17px]">
             <div className="flex flex-1 min-h-0 flex-col">
               {/* All pages now handle their own scrolling via ScrollArea */}
                 <TabContent
