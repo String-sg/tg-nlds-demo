@@ -1800,73 +1800,30 @@ export default function Home() {
           </SidebarGroup>
         </SidebarContent>
 
-        <SidebarFooter className="border-t border-sidebar-border px-3 py-4">
-          <div className={cn('flex gap-2', isSidebarCollapsed && 'flex-col items-center')}>
-            <TooltipProvider delayDuration={150}>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    onClick={() => handleNavigate(profileTabConfig.key)}
-                    aria-label="Open profile"
-                    aria-pressed={isProfileActive}
-                    className={cn(
-                      'group/profile flex h-10 flex-1 items-center justify-start gap-3 rounded-xl px-1 text-left text-sidebar-foreground transition-colors focus-visible:ring-2 focus-visible:ring-sidebar-ring',
-                      'hover:bg-sidebar-accent hover:text-sidebar-accent-foreground',
-                      isProfileActive && 'bg-sidebar-accent text-sidebar-accent-foreground',
-                      'group-data-[collapsible=icon]:mx-auto group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:h-10 group-data-[collapsible=icon]:w-10 group-data-[collapsible=icon]:flex-none group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:rounded-full group-data-[collapsible=icon]:px-0 group-data-[collapsible=icon]:transition-none',
-                      'group-data-[collapsible=icon]:bg-transparent group-data-[collapsible=icon]:hover:bg-transparent group-data-[collapsible=icon]:hover:text-sidebar-foreground group-data-[collapsible=icon]:focus-visible:ring-0',
-                      isProfileActive &&
-                        'group-data-[collapsible=icon]:bg-transparent group-data-[collapsible=icon]:text-sidebar-accent-foreground',
-                    )}
-                  >
-                    <div
-                      className={cn(
-                        'flex size-8 shrink-0 items-center justify-center rounded-full bg-sidebar-foreground/15 text-sm font-semibold text-sidebar-foreground transition-colors',
-                        'group-hover/profile:bg-sidebar-accent-foreground/15 group-hover/profile:text-sidebar-accent-foreground',
-                        isProfileActive && 'bg-sidebar-accent-foreground/20 text-sidebar-accent-foreground',
-                      )}
-                    >
-                      DT
-                    </div>
-                    <span
-                      className={cn(
-                        'text-sm font-medium transition-colors group-data-[collapsible=icon]:hidden',
-                        isProfileActive && 'text-sidebar-accent-foreground',
-                      )}
-                    >
-                      Daniel Tan
-                    </span>
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent side="top" align="start" hidden={!isSidebarCollapsed}>
-                  View profile
-                </TooltipContent>
-              </Tooltip>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    onClick={() => handleNavigate(settingsTabConfig.key)}
-                    aria-label="Open settings"
-                    aria-pressed={isSettingsActive}
-                    className={cn(
-                      'group/settings flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-sidebar-foreground transition-colors focus-visible:ring-2 focus-visible:ring-sidebar-ring',
-                      'hover:bg-sidebar-accent hover:text-sidebar-accent-foreground',
-                      isSettingsActive && 'bg-sidebar-accent text-sidebar-accent-foreground',
-                      'group-data-[collapsible=icon]:mx-auto group-data-[collapsible=icon]:rounded-full',
-                    )}
-                  >
-                    <Settings className="size-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent side="top" align="end" hidden={!isSidebarCollapsed}>
-                  Settings
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+        <SidebarFooter>
+          <div className="flex gap-2 group-data-[collapsible=icon]:flex-col group-data-[collapsible=icon]:gap-1">
+            <SidebarMenuItem className="flex-1 group-data-[collapsible=icon]:flex-none">
+              <SidebarMenuButton
+                onClick={() => handleNavigate(profileTabConfig.key)}
+                isActive={isProfileActive}
+                tooltip="View profile"
+              >
+                <div className="flex size-4 shrink-0 items-center justify-center rounded-full bg-sidebar-primary text-[10px] font-semibold text-sidebar-primary-foreground">
+                  DT
+                </div>
+                <span>Daniel Tan</span>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem className="group-data-[collapsible=icon]:flex-none">
+              <SidebarMenuButton
+                onClick={() => handleNavigate(settingsTabConfig.key)}
+                isActive={isSettingsActive}
+                tooltip="Settings"
+              >
+                <Settings className="size-4" />
+                <span>Settings</span>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
           </div>
         </SidebarFooter>
       </Sidebar>
