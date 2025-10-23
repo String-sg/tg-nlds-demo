@@ -1,12 +1,16 @@
 # Supabase Implementation Summary
 
+**Last Updated**: October 23, 2025
+
 Complete Supabase database setup for the MOE Teacher-Student Management System.
 
 ## ✅ What's Been Created
 
-### 1. Database Migrations (7 files)
+### 1. Database Migrations (17 files)
 
-All migrations are in [supabase/migrations/](./supabase/migrations/)
+All migrations are in `supabase/migrations/`
+
+#### Core Schema Migrations (7 files)
 
 | Migration | Tables Created | Purpose |
 |-----------|---------------|---------|
@@ -18,7 +22,22 @@ All migrations are in [supabase/migrations/](./supabase/migrations/)
 | `20250110000005_create_reports_system.sql` | reports, report_comments | HDP reports with approval workflow |
 | `20250110000006_create_rls_policies.sql` | N/A (RLS policies only) | Row-level security for all tables |
 
-**Total: 19 tables created**
+#### Development & Enhancement Migrations (10 files)
+
+| Migration | Purpose | Type |
+|-----------|---------|------|
+| `20250110000007_add_dev_policies.sql` | Development RLS bypass | RLS Policy |
+| `20250110000008_add_remaining_dev_policies.sql` | Additional dev policies | RLS Policy |
+| `20250112000001_add_conduct_grade_to_student_overview.sql` | Add conduct_grade column | Schema Update |
+| `20250112000002_add_subject_to_academic_results.sql` | Add subject column to results | Schema Update |
+| `20250113000001_add_24_students_to_class_5a.sql` | Seed 24 students to Class 5A | Seed Data |
+| `20250122000001_add_12_case_students_primary_5a.sql` | Seed 12 case students | Seed Data |
+| `20250122000002_add_missing_data_12_case_students.sql` | Complete case student data | Seed Data |
+| `20250122000003_verify_ryan_tan_data.sql` | Verify Ryan Tan records | Data Verification |
+| `20250122000004_add_social_behaviour_data_5a.sql` | Seed social & behavior data | Seed Data |
+| `20250122120000_add_additional_cases_primary_5a.sql` | Add more test cases | Seed Data |
+
+**Total: 19 tables created, 17 migrations applied**
 
 ### 2. TypeScript Integration
 
@@ -29,18 +48,53 @@ All migrations are in [supabase/migrations/](./supabase/migrations/)
 
 ### 3. Query Helpers
 
-[src/lib/supabase/queries.ts](./src/lib/supabase/queries.ts) includes helpers for:
+[src/lib/supabase/queries.ts](./src/lib/supabase/queries.ts) includes **19 query helpers**:
 
-- **Students**: `getStudentWithGuardians`, `getStudentFullProfile`, `getFormClassStudents`
-- **Attendance**: `getStudentAttendance`, `getClassAttendanceToday`
-- **Academic**: `getStudentResultsByTerm`
-- **Private Notes**: `getStudentPrivateNotes`, `createPrivateNote`
-- **Cases**: `getStudentCases`, `getCaseWithIssues`, `createCase`, `createCaseIssue`
-- **Reports**: `getStudentReports`, `getReportWithComments`, `getReportsByTermAndStatus`
-- **Classes**: `getTeacherClasses`, `getClassDetails`
-- **Social**: `getStudentBehaviourObservations`, `getStudentFriendships`
+- **Students** (4 functions): `getStudentWithGuardians`, `getStudentFullProfile`, `getFormClassStudents`, `getStudentsForTeacher`
+- **Attendance** (2 functions): `getStudentAttendance`, `getClassAttendanceToday`
+- **Academic** (1 function): `getStudentResultsByTerm`
+- **Private Notes** (2 functions): `getStudentPrivateNotes`, `createPrivateNote`
+- **Cases** (4 functions): `getStudentCases`, `getCaseWithIssues`, `createCase`, `createCaseIssue`
+- **Reports** (3 functions): `getStudentReports`, `getReportWithComments`, `getReportsByTermAndStatus`
+- **Classes** (3 functions): `getTeacherClasses`, `getClassDetails`, `getTeacherFormClass`
+- **Social** (2 functions): `getStudentBehaviourObservations`, `getStudentFriendships`
+- **Dashboard** (1 complex function): `getStudentAlerts` - Priority-based alerts with multi-table joins
 
-### 4. Documentation
+All query functions follow the pattern:
+```typescript
+async function queryName(supabase, params...) {
+  const { data, error } = await supabase.from('table').select(...)
+  if (error) {
+    console.error('Error:', error)
+    return { data: null, error }
+  }
+  return { data, error: null }
+}
+```
+
+### 4. Data Adapters
+
+[src/lib/supabase/adapters.ts](./src/lib/supabase/adapters.ts) provides transformation functions between database types and UI types:
+
+**Purpose**: Maintain separation between database schema and UI components during gradual migration from mock data.
+
+**Available Adapters** (6 functions):
+- `mapTeacherToUser` - Database teacher → User type
+- `mapSupabaseClassToClass` - Database class → Class type
+- `mapSupabaseClassToCCAClass` - Database class → CCAClass type
+- `mapSupabaseStudentToStudent` - Database student → Student type
+- `enrichStudentWithGrades` - Add academic results to student
+- `enrichStudentWithAttendance` - Add attendance rate to student
+
+**Example Usage**:
+```typescript
+const { data: dbStudents } = await supabase.from('students').select('*')
+const uiStudents = dbStudents.map(mapSupabaseStudentToStudent)
+```
+
+This adapter pattern allows UI components to remain unchanged while migrating from mock data to Supabase.
+
+### 5. Documentation
 
 - ✅ [supabase/README.md](./supabase/README.md) - Quick reference
 - ✅ [supabase/SETUP.md](./supabase/SETUP.md) - Detailed setup instructions

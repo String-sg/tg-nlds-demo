@@ -426,8 +426,8 @@ export function HomeContent({ onNavigateToClassroom, onNavigateToExplore, onNavi
                   </div>
                 </form>
 
-                {/* Icon Dock - macOS style container */}
-                <div className="flex w-full items-center justify-center rounded-2xl border border-stone-200/80 bg-white/95 px-3 py-3 shadow-lg backdrop-blur-sm">
+                {/* Icon Dock - Card style */}
+                <div className="flex w-full items-center justify-center gap-3">
                   {actionButtons.map((action) => {
                     const Icon = action.icon
                     return (
@@ -446,18 +446,21 @@ export function HomeContent({ onNavigateToClassroom, onNavigateToExplore, onNavi
                             onNavigateToExplore?.()
                           }
                         }}
-                        className="group relative flex flex-1 flex-col items-center justify-center gap-2 transition-all duration-200 ease-out hover:scale-105"
+                        className="group relative flex flex-1 flex-col items-center gap-3 rounded-2xl border border-stone-200 bg-white px-4 py-5 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-md"
                       >
+                        {/* Icon Circle */}
                         <div className={cn(
-                          "relative flex h-12 w-12 items-center justify-center rounded-2xl shadow-sm transition-all group-hover:shadow-md sm:h-14 sm:w-14",
+                          "relative flex h-14 w-14 items-center justify-center rounded-full shadow-sm transition-all group-hover:shadow-md",
                           action.bgColor
                         )}>
                           <Icon className={cn(
-                            "size-5 transition-transform group-hover:scale-110 sm:size-6",
+                            "size-6 transition-transform group-hover:scale-110",
                             action.iconColor
                           )} />
                         </div>
-                        <span className="text-xs font-medium text-stone-600 transition-colors group-hover:text-stone-900">
+
+                        {/* Label */}
+                        <span className="text-sm font-medium text-stone-900 transition-colors">
                           {action.label}
                         </span>
                       </button>
