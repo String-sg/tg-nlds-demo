@@ -1,6 +1,6 @@
 # Current Architecture (As-Implemented)
 
-**Last Updated**: October 23, 2025
+**Last Updated**: October 23, 2025 (Navigation & Breadcrumbs Update)
 **Status**: Living Document - Updated as codebase evolves
 
 ## Table of Contents
@@ -8,6 +8,8 @@
 2. [Technology Stack](#technology-stack)
 3. [Component Architecture](#component-architecture)
 4. [Routing System](#routing-system)
+   - [Multi-Tab Navigation System](#multi-tab-navigation-system)
+   - [Breadcrumb Navigation System](#breadcrumb-navigation-system)
 5. [Data Layer](#data-layer)
 6. [State Management](#state-management)
 7. [Database Integration Status](#database-integration-status)
@@ -22,16 +24,17 @@ This document reflects the **actual current state** of the Teacher Guide system 
 
 ### Project Type
 - Single-Page Application (SPA) with server-side rendering capabilities
-- Next.js 15 App Router with dynamic routing
+- Next.js 16 App Router with dynamic routing
 - Client-heavy architecture with hybrid data sourcing
 
 ### File Statistics
 - **Components**: 57 TSX files
-- **Hooks**: 14 custom hooks
+- **Hooks**: 14 custom hooks (including useBreadcrumbs, useTabManagement)
 - **Contexts**: 6 context providers
 - **API Routes**: 4 endpoints
 - **Database Tables**: 19 Supabase tables
 - **Migration Files**: 17 migrations
+- **Main Page Component**: 2,300+ lines (multi-tab + routing implementation)
 
 ---
 
@@ -40,34 +43,40 @@ This document reflects the **actual current state** of the Teacher Guide system 
 ### Core Framework
 ```json
 {
-  "next": "15.5.4",
-  "react": "19.1.0",
-  "react-dom": "19.1.0",
-  "typescript": "5.7.3"
+  "next": "^16.0.0",
+  "react": "^19.2.0",
+  "react-dom": "^19.2.0",
+  "typescript": "^5"
 }
 ```
 
 ### UI Framework
+- **shadcn/ui**: Component library (copy-paste components, not npm package)
+- **Radix UI**: Primitives used by shadcn/ui (Dialog, Select, Tabs, etc.)
+- **Tailwind CSS**: 4.x for styling
+- **lucide-react**: Icon library
+
 ```json
 {
-  "@radix-ui/*": "Multiple packages (Dialog, Select, etc.)",
-  "tailwindcss": "4.x",
-  "lucide-react": "Latest"
+  "shadcn/ui": "Components in src/components/ui/",
+  "@radix-ui/*": "Multiple packages (primitives)",
+  "tailwindcss": "^4",
+  "lucide-react": "^0.544.0"
 }
 ```
 
 ### Database & Auth
 ```json
 {
-  "@supabase/ssr": "Latest",
-  "@supabase/supabase-js": "Latest"
+  "@supabase/ssr": "^0.7.0",
+  "@supabase/supabase-js": "^2.75.0"
 }
 ```
 
 ### Data Fetching
 ```json
 {
-  "swr": "Latest"
+  "swr": "^2.3.6"
 }
 ```
 
@@ -348,39 +357,522 @@ if (segments[0] === 'classroom') {
 | `/settings` | SettingsContent | User prefs |
 | `/assistant` | AssistantPanel | Full mode |
 
-### Tab System
+### Multi-Tab Navigation System
 
-**Persistence**:
+The application implements a **browser-tab-like navigation system** allowing users to work with multiple pages simultaneously. This is a sophisticated custom implementation built specifically for the Teacher Guide application.
+
+#### Architecture Overview
+
+**Implementation Location**: `src/app/[[...slug]]/page.tsx` (lines 752-2124)
+
+**Core Philosophy**:
+- URL is the source of truth (driven by Next.js useParams)
+- Parent-child tab relationships prevent duplicate tabs
+- Tabs persist across page refreshes via sessionStorage
+- Active tab always remains visible even during overflow
+
+#### Tab State Management
+
+**Primary State Variables** (lines 752-769):
 ```typescript
-sessionStorage.setItem('openTabs', JSON.stringify(tabs))
-sessionStorage.setItem('studentProfileTabs', JSON.stringify(map))
-sessionStorage.setItem('classroomTabs', JSON.stringify(map))
+const [openTabs, setOpenTabs] = useState<ClosableTabKey[]>([])
+const openTabsRef = useRef<ClosableTabKey[]>([])  // Ref for immediate access
+const [activeTab, setActiveTab] = useState<TabKey>(initialTab as TabKey)
+const [draggedTab, setDraggedTab] = useState<ClosableTabKey | null>(null)
+const [dragOverTab, setDragOverTab] = useState<ClosableTabKey | null>(null)
+const [studentProfileTabs, setStudentProfileTabs] = useState<Map<string, string>>(new Map())
+const [classroomTabs, setClassroomTabs] = useState<Map<string, string>>(new Map())
+const [classroomNames, setClassroomNames] = useState<Map<string, string>>(new Map())
 ```
 
-**Tab Structure**:
+**Dual State Pattern**: Both `state` and `refs` are used to prevent race conditions during rapid navigation
+
+**Three Metadata Maps**:
+1. `studentProfileTabs`: Maps student tab keys to student names
+2. `classroomTabs`: Maps classroom tab keys to encoded paths (format: "classId:className")
+3. `classroomNames`: Caches classId to className mappings for breadcrumbs
+
+#### Tab Types
+
 ```typescript
-interface Tab {
-  id: string              // Unique identifier
-  title: string           // Display name
-  content: string         // URL segment
-  isPinned: boolean       // Pin status
-  canClose: boolean       // Closable flag
+export type TabKey =
+  | 'home'
+  | 'explore'
+  | 'records'
+  | 'pulse'
+  | ClassroomTabKey
+  | `student/${string}`
+
+export type ClassroomTabKey =
+  | `classroom/${string}`
+  | `classroom/${string}/student/${string}`
+
+export type ClosableTabKey = Exclude<TabKey, 'home'>  // Home cannot be closed
+```
+
+#### Persistence (sessionStorage)
+
+**Storage Keys**:
+- `openTabs`: Array of open tab keys
+- `studentProfileTabs`: Map entries of student profile mappings
+- `classroomTabs`: Map entries of classroom tab paths
+- `classroomNames`: Map entries of cached classroom names
+
+**Initialization** (lines 826-857 - useLayoutEffect):
+```typescript
+useLayoutEffect(() => {
+  const storedTabs = sessionStorage.getItem('openTabs')
+  if (storedTabs) {
+    const parsedTabs = JSON.parse(storedTabs) as ClosableTabKey[]
+    setOpenTabs(parsedTabs)
+    openTabsRef.current = parsedTabs
+  }
+  // Restore maps...
+  setIsMounted(true)
+}, [])
+```
+
+**Debounced Persistence** (1-second debounce to avoid performance issues):
+```typescript
+useEffect(() => {
+  if (!isMounted) return
+
+  const timeoutId = setTimeout(() => {
+    sessionStorage.setItem('openTabs', JSON.stringify(openTabs))
+    sessionStorage.setItem('studentProfileTabs', JSON.stringify(Array.from(studentProfileTabs.entries())))
+    sessionStorage.setItem('classroomTabs', JSON.stringify(Array.from(classroomTabs.entries())))
+    sessionStorage.setItem('classroomNames', JSON.stringify(Array.from(classroomNames.entries())))
+  }, 1000)
+
+  return () => clearTimeout(timeoutId)
+}, [openTabs, studentProfileTabs, classroomTabs, classroomNames, isMounted])
+```
+
+#### Parent-Child Tab Hierarchy
+
+**Hierarchy Structure**:
+```
+home
+  ├─ pulse (child of home)
+inbox
+  └─ inbox/{conversationId} (child of inbox)
+classroom
+  └─ classroom/{classId} (child of classroom)
+      ├─ classroom/{classId}/students
+      ├─ classroom/{classId}/grades
+      ├─ classroom/{classId}/attendance
+      └─ classroom/{classId}/student/{studentSlug}
+student-{slug} (standalone, no parent)
+```
+
+**Smart Parent Detection** (lines 773-824):
+```typescript
+const getParentTab = (tabKey: string): string | null => {
+  if (tabKey === 'pulse') return 'home'
+  if (tabKey.startsWith('inbox/')) return 'inbox'
+  if (tabKey.startsWith('classroom/')) {
+    const parts = tabKey.split('/')
+    if (parts.length > 2) {
+      return `${parts[0]}/${parts[1]}`  // Return parent classroom
+    }
+    return 'classroom'
+  }
+  return null
+}
+
+const hasAnyParentInTabs = (tabKey: string, openTabs: ClosableTabKey[]): boolean => {
+  let currentKey = tabKey
+  while (currentKey) {
+    const parent = getParentTab(currentKey)
+    if (!parent) break
+    if (openTabs.includes(parent as ClosableTabKey)) return true
+    currentKey = parent
+  }
+  return false
 }
 ```
 
+**Behavior**: Child pages navigate within parent tabs rather than creating new tabs
+
+#### Tab Opening Logic
+
+**Primary Handler**: `handleNavigate()` (lines 1049-1077)
+
+**Tab-Specific Handlers** (lines 1244-1300):
+- `handleOpenClassroom(classId, className)`: Opens classroom tab with metadata
+- `handleOpenStudentProfile(studentName)`: Opens standalone student profile
+- `handleOpenStudentFromClass(classId, studentName)`: Opens student within classroom tab
+
+**Smart Tab Addition** (lines 1004-1021):
+```typescript
+const tabExists = currentTabsFromRef.includes(tabFromUrl as ClosableTabKey)
+
+if (!tabExists) {
+  const parentInTabsForAddition = hasAnyParentInTabs(tabFromUrl, currentTabsFromRef)
+
+  // Only add tab if no parent exists
+  if (!parentInTabsForAddition) {
+    const filteredTabs = currentTabsFromRef.filter(t => t !== (tabFromUrl as ClosableTabKey))
+    const newTabs = [...filteredTabs, tabFromUrl as ClosableTabKey]
+    openTabsRef.current = newTabs
+    setOpenTabs(newTabs)
+  }
+}
+```
+
+#### Tab Closing Logic
+
+**Handler**: `handleCloseTab()` (lines 1337-1378)
+
+**Process**:
+1. Filter out the closed tab from openTabs
+2. Mark tab as closing (prevents re-adding during navigation)
+3. **Immediately** persist to sessionStorage (no debounce)
+4. If closing the active tab, navigate to previous or next tab
+5. Clear closing marker after 500ms
+
+**Smart Active Tab Selection**:
+```typescript
+const closingIndex = currentTabs.indexOf(pageKey as ClosableTabKey)
+const newActiveTab =
+  filteredTabs[closingIndex - 1] ??  // Previous tab
+  filteredTabs[closingIndex] ??       // Same position (shifted)
+  (filteredTabs.length > 0 ? filteredTabs[filteredTabs.length - 1] : 'home')
+```
+
+#### Tab Switching & URL Sync
+
+**URL → Tab Synchronization** (lines 904-1022):
+
+The system syncs URL changes to active tab state:
+```typescript
+useEffect(() => {
+  const tabFromUrl = !currentSlug || currentSlug.length === 0 ? 'home' : currentSlug.join('/')
+
+  const parentInTabs = hasAnyParentInTabs(tabFromUrl, openTabsRef.current)
+
+  if (parentInTabs) {
+    // Child page - keep parent tab active
+    let foundParent = findParentInTabs(tabFromUrl)
+    if (foundParent && activeTab !== foundParent) {
+      setActiveTab(foundParent as TabKey)
+    }
+  } else {
+    // Top-level page - set as active tab
+    if (activeTab !== tabFromUrl) {
+      setActiveTab(tabFromUrl as TabKey)
+    }
+  }
+}, [params, activeTab, isMounted, closingTabs])
+```
+
+**Tab Click → URL Navigation** (lines 1913-1918):
+```typescript
+onClick={() => {
+  setActiveTab(tabKey)
+  const newPath = tabKey === 'home' ? '/' : `/${tabKey}`
+  router.push(newPath, { scroll: false })
+}}
+```
+
+#### Drag-and-Drop Reordering
+
+**Implementation** (lines 1578-1631):
+
+Full HTML5 drag-and-drop support:
+```typescript
+const handleDrop = (event: React.DragEvent, targetTabKey: ClosableTabKey) => {
+  event.preventDefault()
+
+  if (!draggedTab || draggedTab === targetTabKey) return
+
+  setOpenTabs((tabs) => {
+    const draggedIndex = tabs.indexOf(draggedTab)
+    const targetIndex = tabs.indexOf(targetTabKey)
+
+    const newTabs = [...tabs]
+    newTabs.splice(draggedIndex, 1)           // Remove from source
+    newTabs.splice(targetIndex, 0, draggedTab) // Insert at target
+
+    return newTabs
+  })
+}
+```
+
+**Visual Indicators**: 3px blue vertical bars appear on left/right during drag
+
+#### Responsive Tab Overflow
+
+**Intelligent Visibility Calculation** (lines 1475-1537):
+
+Calculates how many tabs can fit based on:
+- Container width
+- Gap spacing (8px)
+- Fixed element widths (New Tab button, Assistant button)
+- Minimum tab width (120px)
+
 **Features**:
-- Drag-and-drop reordering
-- Pin/unpin tabs
-- Close tabs (except Home)
-- Restore on refresh
-- URL sync
+- Ensures active tab always visible
+- Swaps hidden active tab with last visible tab if needed
+- Shows "More" dropdown for hidden tabs
+
+**Hidden Tabs Dropdown** (lines 1976-2063):
+- Displays overflow tabs in a dropdown menu
+- Click to navigate to hidden tab
+
+#### Tab Rendering
+
+**Dynamic Label Generation** (lines 1836-1932):
+
+Tab labels are computed based on tab type:
+- Student profiles: Show student name
+- Classroom tabs: Show class name (e.g., "Class 5A")
+- Nested routes: Show context (e.g., "Class 5A Students", "Class 5A Grades")
+
+**Close Button**: Appears on hover, positioned absolute right
+
+**Styling**:
+- Active tab: white background with ring border
+- Inactive tabs: muted colors, hover effects
+- Dragging tab: 30% opacity
+
+#### Content Rendering Pattern
+
+**Separation of Concerns**:
+
+```typescript
+// activeTab = currently highlighted tab in tab bar
+// currentUrl = actual URL path driving content
+
+// This allows child pages to render while parent tab stays active
+if (currentUrl === 'home') {
+  return <HomeContent />
+} else if (currentUrl.startsWith('classroom/') && currentUrl.includes('/student/')) {
+  return <StudentProfile studentName={studentName} classId={classId} />
+}
+// ... etc
+```
+
+**Key Insight**: Content is rendered based on `currentUrl`, not `activeTab`. This enables parent tabs to stay active while navigating to child pages.
+
+#### Keyboard Shortcuts
+
+**Cmd/Ctrl + K**: Toggle Assistant panel (lines 1633-1648)
+
+#### Performance Optimizations
+
+1. **Memoization**: Heavy use of `useMemo` and `useCallback`
+2. **Refs for Immediate Access**: Avoids stale closures
+3. **Debounced Persistence**: 1-second debounce for sessionStorage writes
+4. **TabContent Memoization**: Prevents unnecessary re-renders
+
+### Breadcrumb Navigation System
+
+The breadcrumb system provides context-aware navigation trails that automatically update based on the current URL and integrate seamlessly with the multi-tab system.
+
+#### Architecture Overview
+
+**Implementation Files**:
+- Hook: `src/hooks/use-breadcrumbs.ts` (313 lines)
+- UI Components:
+  - `src/components/ui/breadcrumb.tsx` (shadcn/ui primitives)
+  - `src/components/ui/breadcrumbs.tsx` (custom wrapper)
+- Integration: `src/app/[[...slug]]/page.tsx` (lines 1036-1046, 2132-2134)
+
+#### Breadcrumb Data Structure
+
+**Type Definition** (use-breadcrumbs.ts:7-13):
+```typescript
+interface BreadcrumbItem {
+  label: string           // Display text (e.g., "Home", "Classroom", "Class 5A")
+  path: string            // Route path (e.g., "home", "classroom/abc123")
+  isActive: boolean       // Current page indicator
+  isLoading?: boolean     // Loading state for skeleton
+  onClick?: () => void    // Navigation callback
+}
+```
+
+#### Hook Configuration
+
+**useBreadcrumbs Parameters**:
+```typescript
+interface UseBreadcrumbsConfig {
+  activeTab: string                        // Current active tab/path
+  classroomTabs: Map<string, string>       // Classroom route → encoded path
+  studentProfileTabs: Map<string, string>  // Student route → student name
+  classroomNames: Map<string, string>      // ClassId → class name (cache)
+  onNavigate: (path: string, replace?: boolean) => void  // Navigation handler
+}
+```
+
+#### Async Class Name Resolution
+
+**Smart Name Fetching** (use-breadcrumbs.ts:48-80):
+
+The hook fetches class names from Supabase when navigating to classroom routes:
+
+```typescript
+const fetchClassName = async (classId: string) => {
+  const supabase = createClient()
+  const { data, error } = await getClassDetails(supabase, classId)
+
+  if (!error && data) {
+    const newNames = new Map(classNames)
+    newNames.set(classId, data.name)
+    setClassNames(newNames)
+
+    // Cache in sessionStorage
+    sessionStorage.setItem('classroomNames', JSON.stringify(Array.from(newNames.entries())))
+  }
+}
+```
+
+**Loading States**: Shows `<Skeleton>` components while fetching class names
+
+#### Route Parsing & Breadcrumb Generation
+
+**Path Mapping Logic** (use-breadcrumbs.ts:90-307):
+
+The hook parses URL paths and generates appropriate breadcrumb chains:
+
+**Top-Level Pages**:
+```typescript
+// URL: /home → Breadcrumbs: [Home (active)]
+// URL: /pulse → Breadcrumbs: [Home, Pulse (active)]
+// URL: /inbox → Breadcrumbs: [Inbox (active)]
+// URL: /classroom → Breadcrumbs: [Classroom (active)]
+```
+
+**Classroom Nested Routes**:
+```typescript
+// URL: /classroom/abc123
+// Breadcrumbs: [Home, Classroom, Class Name (active)]
+
+// URL: /classroom/abc123/students
+// Breadcrumbs: [Home, Classroom, Class Name, Students (active)]
+
+// URL: /classroom/abc123/student/john-doe
+// Breadcrumbs: [Home, Classroom, Class Name, John Doe (active)]
+
+// URL: /classroom/abc123/grades
+// Breadcrumbs: [Home, Classroom, Class Name, Grade Entry (active)]
+```
+
+**Student Standalone Routes**:
+```typescript
+// URL: /student-john-doe
+// Breadcrumbs: [Students, John Doe (active)]
+```
+
+**Inbox Routes**:
+```typescript
+// URL: /inbox/conv-123
+// Breadcrumbs: [Inbox, Conversation Title (active)]
+```
+
+#### Name Resolution Priority
+
+**Multi-Source Lookup** (use-breadcrumbs.ts:202-206):
+
+For classroom names, the hook checks multiple sources in order:
+1. `classroomNames` (from props/cache)
+2. `classNames` (from async fetch)
+3. `encodedClassName` (from URL encoding)
+4. `null` (shows skeleton when still loading)
+
+```typescript
+const className =
+  classroomNamesFromProps.get(classId) ||  // Check props first
+  classNames.get(classId) ||                // Then local state
+  encodedClassName ||                       // Then URL
+  null                                      // Loading
+```
+
+#### Breadcrumb Component Features
+
+**Custom Wrapper** (breadcrumbs.tsx:28-148):
+
+1. **Back Button** (lines 68-79): Shows for 2nd level+ pages
+2. **Loading Skeletons** (lines 109-111): While breadcrumb data loads
+3. **Active State Styling**: Distinguishes current page vs clickable breadcrumbs
+4. **Click Handlers**: Execute onClick callbacks for navigation
+5. **Truncation Support**: Handles maxItems with ellipsis
+
+**shadcn/ui Primitives** (breadcrumb.tsx):
+- `Breadcrumb`: Root nav with `aria-label="breadcrumb"`
+- `BreadcrumbList`: Ordered list container
+- `BreadcrumbItem`: Individual breadcrumb wrapper
+- `BreadcrumbLink`: Clickable breadcrumb with hover effects
+- `BreadcrumbPage`: Current page with `aria-current="page"`
+- `BreadcrumbSeparator`: Chevron separator (default)
+- `BreadcrumbEllipsis`: For truncated breadcrumbs
+
+#### Integration with Tab System
+
+**Hook Usage** (page.tsx:1036-1046):
+```typescript
+const { breadcrumbs: pageBreadcrumbs, isLoading: breadcrumbsLoading } = useBreadcrumbs({
+  activeTab: currentUrl as string,
+  classroomTabs,
+  studentProfileTabs,
+  classroomNames,
+  onNavigate: useCallback((path: string, replace?: boolean) => {
+    const newPath = path === 'home' ? '/' : `/${path}`
+    router.push(newPath, { scroll: false })
+  }, [router]),
+})
+```
+
+**Rendering** (page.tsx:2132-2134):
+```typescript
+{pageBreadcrumbs && pageBreadcrumbs.length > 0 && (
+  <Breadcrumbs items={pageBreadcrumbs} isLoading={breadcrumbsLoading} />
+)}
+```
+
+#### Data Flow
+
+```
+URL Change (useParams)
+    ↓
+Page Component receives params
+    ↓
+useBreadcrumbs Hook
+    ├─ Parse pathname (useMemo)
+    ├─ Check name caches (classroomNames, studentProfileTabs)
+    ├─ Fetch async data if needed (Supabase class names)
+    └─ Return: BreadcrumbItem[] + isLoading boolean
+    ↓
+Breadcrumbs Component
+    ├─ Handle truncation (maxItems)
+    ├─ Show loading skeletons
+    ├─ Render back button (depth > 1)
+    └─ Execute onClick callbacks on navigation
+    ↓
+Router.push() updates URL → cycle repeats
+```
+
+#### Accessibility
+
+1. **Semantic HTML**: `<nav aria-label="breadcrumb">`
+2. **Current Page**: `aria-current="page"` on active breadcrumb
+3. **Separators**: `role="presentation"` and `aria-hidden="true"`
+4. **Keyboard Navigation**: Full keyboard support via native elements
+
+#### Performance Optimizations
+
+1. **Memoization**: `useMemo` prevents unnecessary breadcrumb recalculation
+2. **Caching**: sessionStorage caches classroom names across sessions
+3. **Lazy Loading**: Only fetches class names when needed
+4. **Skeleton States**: Prevents layout shift during loading
 
 ### Navigation Methods
 
-1. **Sidebar Click** → Opens new tab + navigates
-2. **In-page Link** → Updates URL + existing tab
-3. **Breadcrumb Click** → Navigates within tab
-4. **Tab Click** → Switches active tab + URL
+1. **Sidebar Click** → Opens new tab (if no parent exists) + navigates
+2. **In-page Link** → Updates URL + navigates within existing tab
+3. **Breadcrumb Click** → Navigates within current tab (no new tab)
+4. **Tab Click** → Switches active tab + updates URL
+5. **Tab Close** → Removes tab, navigates to adjacent tab or home
 
 ---
 
