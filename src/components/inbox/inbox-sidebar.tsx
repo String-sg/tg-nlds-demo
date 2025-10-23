@@ -22,7 +22,7 @@ export function InboxSidebar({ activeView, onViewChange }: InboxSidebarProps) {
     <div className="flex h-full flex-col">
       {/* Header */}
       <div className="flex-shrink-0 border-b border-stone-200 px-3 py-4">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-stone-500">Inbox</h2>
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-stone-500">Messages</h2>
       </div>
 
       {/* Views List */}

@@ -140,7 +140,7 @@
     font-size: var(--font-size-base);
   }
   body {
-    @apply text-foreground;
+    @apply text-foreground bg-stone-200;
     font-size: 1rem;
   }
   button,

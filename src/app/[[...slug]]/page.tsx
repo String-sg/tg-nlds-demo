@@ -95,11 +95,11 @@ import { getTeacherFormClass } from '@/lib/supabase/queries'
 
 const primaryPages = [
   { key: 'home', label: 'Home', icon: HomeIcon, tooltip: 'Home' },
-  { key: 'inbox', label: 'Inbox', icon: Inbox, tooltip: 'Inbox' },
-  { key: 'calendar', label: 'Calendar', icon: CalendarDays, tooltip: 'Calendar' },
+  { key: 'inbox', label: 'Messages', icon: Inbox, tooltip: 'Messages' },
+  { key: 'calendar', label: 'Timetable', icon: CalendarDays, tooltip: 'Timetable' },
   { key: 'drafts', label: 'Drafts', icon: FileText, tooltip: 'Drafts' },
-  { key: 'classroom', label: 'Classroom', icon: Users, tooltip: 'Classroom' },
-  { key: 'myschool', label: 'School', icon: School, tooltip: 'School' },
+  { key: 'classroom', label: 'My Classes', icon: Users, tooltip: 'My Classes' },
+  { key: 'myschool', label: 'My School', icon: School, tooltip: 'My School' },
   { key: 'learning', label: 'Learning', icon: BookOpen, tooltip: 'Learning' },
   { key: 'community', label: 'Community', icon: Users2, tooltip: 'Community' },
   { key: 'explore', label: 'Explore', icon: Compass, tooltip: 'Explore' },
@@ -207,7 +207,7 @@ const emptyStates: Record<TabKey, EmptyState> = {
     primaryAction: 'View all apps',
   },
   classroom: {
-    heading: 'Classroom',
+    heading: 'My Classes',
     title: 'Your classroom view',
     description:
       'View and manage your students, track attendance, grades, and conduct.',
@@ -232,7 +232,7 @@ const emptyStates: Record<TabKey, EmptyState> = {
     primaryAction: 'Compose draft',
   },
   calendar: {
-    heading: 'Calendar',
+    heading: 'Timetable',
     title: 'Your schedule looks clear',
     description:
       'Link your calendar to review upcoming meetings and plan focus time without conflicts.',
@@ -240,7 +240,7 @@ const emptyStates: Record<TabKey, EmptyState> = {
     primaryAction: 'Connect calendar',
   },
   inbox: {
-    heading: 'Inbox',
+    heading: 'Messages',
     title: 'No updates right now',
     description:
       "When teammates mention you or share docs, they'll show up here for quick triage.",
@@ -1709,9 +1709,9 @@ export default function Home() {
 
               <SidebarSeparator className="mx-0 my-2 w-full" />
 
-              {/* School management section */}
+              {/* Class Management section */}
               <SidebarGroupLabel className="mb-2">
-                School management
+                Class Management
               </SidebarGroupLabel>
               <SidebarMenu>
                 {primaryPages.slice(4, 6).map((page) => {
@@ -1843,8 +1843,8 @@ export default function Home() {
         <div className="flex flex-1 min-h-0 flex-col">
           <div className="sticky top-0 z-20 w-full max-w-full overflow-hidden rounded-t-[17px] bg-background">
             <div className="w-full max-w-full">
-              <div ref={tabContainerRef} className="grid grid-cols-[minmax(0,1fr)_auto] w-full max-w-full items-center gap-2" suppressHydrationWarning>
-                <div className="flex flex-nowrap items-center gap-2 overflow-x-auto overflow-y-hidden tab-scrollbar-hidden min-w-0 px-4 py-2" suppressHydrationWarning>
+              <div ref={tabContainerRef} className="grid grid-cols-[minmax(0,1fr)_auto] w-full max-w-full items-stretch" suppressHydrationWarning>
+                <div className="flex flex-nowrap items-center gap-2 overflow-x-auto overflow-y-hidden tab-scrollbar-hidden min-w-0 px-4 py-2 bg-stone-100" suppressHydrationWarning>
                 <TooltipProvider delayDuration={150}>
                       {visibleTabs.map((tabKey, index) => {
                     const tab = tabConfigMap[tabKey as keyof typeof tabConfigMap]
@@ -1981,7 +1981,7 @@ export default function Home() {
                 </TooltipProvider>
                 </div>
 
-                <div className="flex items-center gap-2 pr-4 py-2">
+                <div className="flex items-center gap-2 pr-4 py-2 bg-stone-100">
                   <TooltipProvider delayDuration={150}>
                   {/* More dropdown for hidden tabs */}
                   {hiddenTabs.length > 0 && (
@@ -2136,7 +2136,7 @@ export default function Home() {
             </div>
             <div className="flex flex-col bg-background">
               {/* Page Header */}
-              <div className="flex h-16 items-center gap-3 px-4">
+              <div className="flex h-16 items-center gap-3 px-4 border-b border-muted">
                 <SidebarTrigger className="md:hidden" />
                 <div className="hidden flex-1 md:flex items-center">
                   {/* Breadcrumbs */}

@@ -13,6 +13,9 @@ import {
   Calendar as CalendarIcon,
   Clock,
   AlertCircle,
+  UserCheck,
+  CheckSquare,
+  ClipboardList,
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -25,38 +28,31 @@ import { useUser } from '@/contexts/user-context'
 
 const actionButtons = [
   {
-    key: 'marking',
-    label: 'Attendance',
-    icon: Edit2,
+    key: 'attendance',
+    label: 'Daily Attendance',
+    icon: UserCheck,
     bgColor: 'bg-blue-500',
     iconColor: 'text-white'
   },
   {
-    key: 'analyse',
-    label: 'Classroom',
-    icon: Sparkle,
+    key: 'marking',
+    label: 'Marking',
+    icon: CheckSquare,
     bgColor: 'bg-purple-500',
     iconColor: 'text-white'
   },
   {
-    key: 'learn',
-    label: 'Learn',
+    key: 'lesson-planning',
+    label: 'Lesson Planning',
     icon: BookOpen,
     bgColor: 'bg-orange-500',
     iconColor: 'text-white'
   },
   {
-    key: 'communicate',
-    label: 'Inbox',
-    icon: MessageSquare,
+    key: 'record-results',
+    label: 'Record Results',
+    icon: ClipboardList,
     bgColor: 'bg-green-500',
-    iconColor: 'text-white'
-  },
-  {
-    key: 'explore',
-    label: 'Explore',
-    icon: Compass,
-    bgColor: 'bg-cyan-500',
     iconColor: 'text-white'
   },
 ]
@@ -285,7 +281,7 @@ export function HomeContent({ onNavigateToClassroom, onNavigateToExplore, onNavi
                   {!studentAlerts ? (
                     // Loading state - skeleton matching actual content structure
                     <div className="space-y-2.5">
-                      <div className="rounded-lg border border-stone-200 bg-stone-50/50 p-3 space-y-2">
+                      <div className="rounded-lg bg-stone-100/80 p-3 space-y-2">
                         {/* Student name and badge skeleton */}
                         <div className="flex items-center justify-between">
                           <div className="space-y-1.5">
@@ -308,7 +304,7 @@ export function HomeContent({ onNavigateToClassroom, onNavigateToExplore, onNavi
                       {studentAlerts.length > 0 && studentAlerts[0].student_name !== 'No alerts' ? (
                         <div className="space-y-2.5">
                           {/* Student Card */}
-                          <div className="rounded-lg border border-stone-200 bg-stone-50/50 p-3 space-y-2">
+                          <div className="rounded-lg bg-stone-100/80 p-3 space-y-2">
                             {/* Student Name & Class */}
                             <div className="flex items-center justify-between">
                               <div>
@@ -336,7 +332,7 @@ export function HomeContent({ onNavigateToClassroom, onNavigateToExplore, onNavi
                         </div>
                       ) : (
                         <div className="space-y-2">
-                          <div className="flex items-center gap-2 rounded-lg border border-green-200 bg-green-50/50 p-3">
+                          <div className="flex items-center gap-2 rounded-lg bg-green-100/60 p-3">
                             <div className="flex h-8 w-8 items-center justify-center rounded-full bg-green-100">
                               <AlertCircle className="h-4 w-4 text-green-600" />
                             </div>
@@ -434,16 +430,14 @@ export function HomeContent({ onNavigateToClassroom, onNavigateToExplore, onNavi
                       <button
                         key={action.key}
                         onClick={() => {
-                          if (action.key === 'marking') {
+                          if (action.key === 'attendance') {
                             onNavigateToAttendance?.()
-                          } else if (action.key === 'analyse') {
+                          } else if (action.key === 'marking') {
                             onNavigateToClassroom?.()
-                          } else if (action.key === 'learn') {
-                            onNavigateToLearn?.()
-                          } else if (action.key === 'communicate') {
+                          } else if (action.key === 'lesson-planning') {
                             onNavigateToInbox?.()
-                          } else if (action.key === 'explore') {
-                            onNavigateToExplore?.()
+                          } else if (action.key === 'record-results') {
+                            onNavigateToClassroom?.()
                           }
                         }}
                         className="group relative flex flex-1 flex-col items-center gap-3 rounded-2xl border border-stone-200 bg-white px-4 py-5 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-md"

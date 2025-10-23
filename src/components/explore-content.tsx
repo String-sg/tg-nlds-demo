@@ -58,7 +58,7 @@ const allApps: App[] = [
   },
   {
     key: 'calendar',
-    name: 'Calendar',
+    name: 'Timetable',
     description: 'Review meetings and plan focus time',
     icon: CalendarDays,
     category: 'Teacher workspace apps',

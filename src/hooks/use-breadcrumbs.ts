@@ -139,14 +139,14 @@ export function useBreadcrumbs({
     } else if (currentPath === 'inbox') {
       // Main inbox page
       items.push({
-        label: 'Inbox',
+        label: 'Messages',
         path: 'inbox',
         isActive: true,
       })
     } else if (currentPath.startsWith('inbox/')) {
       // Inbox conversation view
       items.push({
-        label: 'Inbox',
+        label: 'Messages',
         path: 'inbox',
         isActive: false,
         onClick: () => handleNavigate('inbox', true),
@@ -165,14 +165,14 @@ export function useBreadcrumbs({
     } else if (currentPath === 'classroom') {
       // Main classroom page
       items.push({
-        label: 'Classroom',
+        label: 'My Classes',
         path: 'classroom',
         isActive: true,
       })
     } else if (currentPath === 'myschool') {
       // Main school page
       items.push({
-        label: 'School',
+        label: 'My School',
         path: 'myschool',
         isActive: true,
       })
@@ -182,7 +182,7 @@ export function useBreadcrumbs({
 
       // Add Classroom root
       items.push({
-        label: 'Classroom',
+        label: 'My Classes',
         path: 'classroom',
         isActive: false,
         onClick: () => handleNavigate('classroom', true),

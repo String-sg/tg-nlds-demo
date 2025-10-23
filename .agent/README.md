@@ -38,6 +38,7 @@ Completed work summaries and historical records
 
 | Document | Description | Date |
 |----------|-------------|------|
+| [UI_IMPROVEMENTS_OCT_2025.md](./Archive/UI_IMPROVEMENTS_OCT_2025.md) ⭐ **NEW** | Comprehensive UI/UX improvements including navigation labels, tab bar design, and visual refinements | Oct 23, 2025 |
 | [classroom-design-update.md](./Archive/classroom-design-update.md) | Design update plan for classroom features (now complete) | Oct 10, 2025 |
 | [BREADCRUMB_FIX_SUMMARY.md](./Archive/BREADCRUMB_FIX_SUMMARY.md) | Summary of breadcrumb navigation fix | - |
 | [CLASSROOM_DESIGN_UPDATE_SUMMARY.md](./Archive/CLASSROOM_DESIGN_UPDATE_SUMMARY.md) | Summary of classroom design updates | Oct 10, 2025 |
@@ -71,16 +72,25 @@ Completed work summaries and historical records
 
 ## 📊 Documentation Statistics
 
-- **Total Documents**: 16
+- **Total Documents**: 17
 - **Active Tasks**: 2
 - **System Docs**: 5 (CURRENT_ARCHITECTURE.md fully updated with navigation systems ⭐)
 - **SOPs**: 4 (includes 2 workflow guides)
-- **Archive**: 6
+- **Archive**: 7 (includes UI improvements summary ⭐)
 - **Last Major Update**: October 23, 2025
 
 ## 🆕 Recent Changes (October 23, 2025)
 
-### Navigation & Architecture Update (Latest)
+### UI/UX Improvements (Latest)
+1. **Added UI_IMPROVEMENTS_OCT_2025.md** - Comprehensive UI refinements including:
+   - **Navigation Labels Update**: Inbox → Messages, Calendar → Timetable, Classroom → My Classes
+   - **Tab Bar Enhancement**: Added subtle `stone-100` background, matched grid heights
+   - **Sidebar Footer Redesign**: Two-column layout with icon-only settings button
+   - **Homepage Actions**: Redesigned 4 focused action buttons (Daily Attendance, Marking, Lesson Planning, Record Results)
+   - **Visual Cleanup**: Removed borders from alert cards, added `stone-200` body background for overscroll
+   - **Breadcrumb Border**: Added subtle `border-muted` separator below breadcrumbs
+
+### Navigation & Architecture Update
 1. **Updated CURRENT_ARCHITECTURE.md** - Added comprehensive documentation for:
    - **Multi-Tab Navigation System**: Browser-tab-like navigation with drag-and-drop, parent-child hierarchy, sessionStorage persistence, responsive overflow handling
    - **Breadcrumb Navigation System**: Context-aware breadcrumbs with async data fetching, smart name resolution, loading states
