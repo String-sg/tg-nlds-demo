@@ -4,6 +4,13 @@ Welcome to the `.agent` documentation folder. This directory contains all import
 
 ## 📋 Documentation Structure
 
+### 🎯 Plan
+Active implementation planning documents
+
+| Document | Description | Status |
+|----------|-------------|--------|
+| [NEXT_IMPLEMENTATION_PRIORITIES.md](./plan/NEXT_IMPLEMENTATION_PRIORITIES.md) ⭐ **NEW** | Comprehensive review of current status and prioritized roadmap for next features (Attendance, Grades, Auth, Messaging) | 🔄 Active |
+
 ### 📁 Tasks
 PRD & implementation plans for each feature
 
@@ -28,17 +35,18 @@ Best practices for executing certain tasks (e.g., how to add a schema migration,
 
 | Document | Description | Type |
 |----------|-------------|------|
-| [DATABASE_MIGRATIONS.md](./SOP/DATABASE_MIGRATIONS.md) ⭐ **NEW** | Complete guide for creating, testing, and applying database migrations | Workflow |
-| [ADDING_NEW_FEATURES.md](./SOP/ADDING_NEW_FEATURES.md) ⭐ **NEW** | Step-by-step process for implementing new features end-to-end | Workflow |
+| [DATABASE_MIGRATIONS.md](./SOP/DATABASE_MIGRATIONS.md) | Complete guide for creating, testing, and applying database migrations | Workflow |
+| [ADDING_NEW_FEATURES.md](./SOP/ADDING_NEW_FEATURES.md) | Step-by-step process for implementing new features end-to-end | Workflow |
 | [DEPLOYMENT_CHECKLIST.md](./SOP/DEPLOYMENT_CHECKLIST.md) | Step-by-step deployment checklist | Checklist |
-| [TESTING.md](./SOP/TESTING.md) | Testing results and current test coverage status | Test Report |
+| [TESTING.md](./SOP/TESTING.md) ⭐ **UPDATED** | Complete testing SOP: how to run tests, write new tests, and manage test data with Playwright | Test Guide |
 
 ### 📦 Archive
 Completed work summaries and historical records
 
 | Document | Description | Date |
 |----------|-------------|------|
-| [UI_IMPROVEMENTS_OCT_2025.md](./Archive/UI_IMPROVEMENTS_OCT_2025.md) ⭐ **NEW** | Comprehensive UI/UX improvements including navigation labels, tab bar design, and visual refinements | Oct 23, 2025 |
+| [TEST_RESULTS_OCT_2025.md](./Archive/TEST_RESULTS_OCT_2025.md) ⭐ **NEW** | Historical test results: 13 Playwright tests (100% pass rate) from October 8, 2025 | Oct 8, 2025 |
+| [UI_IMPROVEMENTS_OCT_2025.md](./Archive/UI_IMPROVEMENTS_OCT_2025.md) | Comprehensive UI/UX improvements including navigation labels, tab bar design, and visual refinements | Oct 23, 2025 |
 | [classroom-design-update.md](./Archive/classroom-design-update.md) | Design update plan for classroom features (now complete) | Oct 10, 2025 |
 | [BREADCRUMB_FIX_SUMMARY.md](./Archive/BREADCRUMB_FIX_SUMMARY.md) | Summary of breadcrumb navigation fix | - |
 | [CLASSROOM_DESIGN_UPDATE_SUMMARY.md](./Archive/CLASSROOM_DESIGN_UPDATE_SUMMARY.md) | Summary of classroom design updates | Oct 10, 2025 |
@@ -49,9 +57,10 @@ Completed work summaries and historical records
 ## 🔍 Quick Reference
 
 ### For Planning a New Feature
-1. Check **Tasks** folder for similar feature implementation plans
-2. Review **System** documentation to understand current architecture
-3. Follow **SOP** for standard procedures
+1. Start with **Plan** folder to see current priorities and roadmap
+2. Check **Tasks** folder for similar feature implementation plans
+3. Review **System** documentation to understand current architecture
+4. Follow **SOP** for standard procedures
 
 ### For Understanding the System
 1. Start with **System/DEVELOPMENT_GUIDE.md** for overall architecture
@@ -72,14 +81,33 @@ Completed work summaries and historical records
 
 ## 📊 Documentation Statistics
 
-- **Total Documents**: 17
+- **Total Documents**: 19
+- **Active Plans**: 1 (implementation roadmap ⭐)
 - **Active Tasks**: 2
-- **System Docs**: 5 (CURRENT_ARCHITECTURE.md fully updated with navigation systems ⭐)
-- **SOPs**: 4 (includes 2 workflow guides)
-- **Archive**: 7 (includes UI improvements summary ⭐)
-- **Last Major Update**: October 23, 2025
+- **System Docs**: 5 (CURRENT_ARCHITECTURE.md fully updated with navigation systems)
+- **SOPs**: 4 (includes testing guide ⭐)
+- **Archive**: 8 (includes test results from Oct 8, 2025 ⭐)
+- **Last Major Update**: October 24, 2025
 
-## 🆕 Recent Changes (October 23, 2025)
+## 🆕 Recent Changes (October 24, 2025)
+
+### Documentation Reorganization (Latest)
+1. **Added plan/ folder** - New dedicated folder for active implementation planning
+2. **Created NEXT_IMPLEMENTATION_PRIORITIES.md** - Comprehensive roadmap including:
+   - Current implementation status review (Phase 1 ✅, Phase 2 🟡)
+   - Priority rankings (P1: Auth, Attendance, Grades)
+   - Detailed 2-week sprint proposal
+   - Technical considerations and decision points
+3. **Updated TESTING.md** - Complete rewrite from test results to practical testing SOP:
+   - How to set up test environment
+   - How to run and write Playwright tests
+   - Test data management strategies
+   - Best practices and troubleshooting guide
+4. **Moved old TESTING.md to Archive** - Preserved as TEST_RESULTS_OCT_2025.md (historical record)
+
+---
+
+## 🆕 Previous Changes (October 23, 2025)
 
 ### UI/UX Improvements (Latest)
 1. **Added UI_IMPROVEMENTS_OCT_2025.md** - Comprehensive UI refinements including:
@@ -96,14 +124,12 @@ Completed work summaries and historical records
    - **Breadcrumb Navigation System**: Context-aware breadcrumbs with async data fetching, smart name resolution, loading states
    - Complete architectural details with code references, line numbers, and implementation patterns
 
-### Previous Updates
+### Earlier Updates
 1. **Added CURRENT_ARCHITECTURE.md** - Comprehensive documentation of actual implemented state
 2. **Added DATABASE_MIGRATIONS.md** - Complete migration workflow SOP
 3. **Added ADDING_NEW_FEATURES.md** - Feature development workflow guide
 4. **Updated classroom-iteration-plan.md** - Added implementation status tracking
 5. **Updated SUPABASE_IMPLEMENTATION.md** - Added 10 additional migrations and data adapters
-6. **Updated TESTING.md** - Added current status and coverage gaps
-7. **Moved classroom-design-update.md** - To Archive (implementation complete)
 
 ## 📅 Last Updated
-October 23, 2025
+October 24, 2025

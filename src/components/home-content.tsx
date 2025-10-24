@@ -55,6 +55,13 @@ const actionButtons = [
     bgColor: 'bg-green-500',
     iconColor: 'text-white'
   },
+  {
+    key: 'explore',
+    label: 'Explore',
+    icon: Compass,
+    bgColor: 'bg-cyan-500',
+    iconColor: 'text-white'
+  },
 ]
 
 // Mock data for teacher widgets
@@ -438,6 +445,8 @@ export function HomeContent({ onNavigateToClassroom, onNavigateToExplore, onNavi
                             onNavigateToInbox?.()
                           } else if (action.key === 'record-results') {
                             onNavigateToClassroom?.()
+                          } else if (action.key === 'explore') {
+                            onNavigateToExplore?.()
                           }
                         }}
                         className="group relative flex flex-1 flex-col items-center gap-3 rounded-2xl border border-stone-200 bg-white px-4 py-5 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-md"
