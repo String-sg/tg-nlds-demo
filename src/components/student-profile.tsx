@@ -29,30 +29,10 @@ export function StudentProfile({ studentName, classId, onBack, activeTab, onNavi
   if (loading) {
     return (
       <PageLayout
-        title="Loading..."
+        title={<Skeleton className="h-8 w-48" />}
         subtitle={<Skeleton className="h-4 w-64 mt-1" />}
         titlePrefix={<Skeleton className="h-16 w-16 rounded-full" />}
         titleSuffix={<Skeleton className="h-6 w-16 rounded-full" />}
-        headerContent={
-          <div className="flex items-center gap-8">
-            <div className="flex flex-col items-center gap-1">
-              <Skeleton className="h-3 w-16" />
-              <Skeleton className="h-6 w-12" />
-            </div>
-            <div className="flex flex-col items-center gap-1">
-              <Skeleton className="h-3 w-12" />
-              <Skeleton className="h-6 w-8" />
-            </div>
-            <div className="flex flex-col items-center gap-1">
-              <Skeleton className="h-3 w-12" />
-              <Skeleton className="h-6 w-8" />
-            </div>
-            <div className="flex flex-col items-center gap-1">
-              <Skeleton className="h-3 w-16" />
-              <Skeleton className="h-6 w-8" />
-            </div>
-          </div>
-        }
         contentClassName="px-6 py-6"
       >
         <div className="mx-auto w-full max-w-5xl space-y-6 pb-16">
@@ -155,34 +135,12 @@ export function StudentProfile({ studentName, classId, onBack, activeTab, onNavi
     </span>
   ) : null
 
-  const statsContent = (
-    <div className="flex items-center gap-8">
-      <div className="flex flex-col items-center gap-1">
-        <span className="text-xs text-stone-500">Attendance</span>
-        <span className="text-lg font-semibold text-stone-900">{student.attendance}%</span>
-      </div>
-      <div className="flex flex-col items-center gap-1">
-        <span className="text-xs text-stone-500">English</span>
-        <span className="text-lg font-semibold text-stone-900">{student.english}</span>
-      </div>
-      <div className="flex flex-col items-center gap-1">
-        <span className="text-xs text-stone-500">Math</span>
-        <span className="text-lg font-semibold text-stone-900">{student.math}</span>
-      </div>
-      <div className="flex flex-col items-center gap-1">
-        <span className="text-xs text-stone-500">Science</span>
-        <span className="text-lg font-semibold text-stone-900">{student.science}</span>
-      </div>
-    </div>
-  )
-
   return (
     <PageLayout
       title={student.name}
       subtitle={`Student ID: ${student.id} • Class: ${student.class}`}
       titlePrefix={avatar}
       titleSuffix={badge}
-      headerContent={statsContent}
       contentClassName="px-6 py-6"
     >
       <div className="mx-auto w-full max-w-5xl space-y-6 pb-16">

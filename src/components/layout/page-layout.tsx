@@ -15,7 +15,7 @@ export interface PageAction {
 }
 
 interface PageLayoutProps {
-  title?: string
+  title?: React.ReactNode
   subtitle?: React.ReactNode
   titlePrefix?: React.ReactNode
   titleSuffix?: React.ReactNode

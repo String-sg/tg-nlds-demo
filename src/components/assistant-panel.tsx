@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
-import { CheckIcon, ChevronDownIcon, ChevronRightIcon, Loader2Icon, MonitorIcon, PanelRightIcon, SendIcon, SquareIcon, XIcon } from 'lucide-react'
+import { CheckIcon, ChevronDownIcon, ChevronRightIcon, Loader2Icon, MonitorIcon, PanelRightIcon, SendIcon, SquareIcon, Trash2Icon, XIcon } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
@@ -18,6 +18,7 @@ import { cn, getInitials, getAvatarColor } from '@/lib/utils'
 import { useScrollToBottom } from '@/hooks/use-scroll-to-bottom'
 import { usePTMStudents } from '@/hooks/use-ptm-students'
 import { formatAttendanceRate } from '@/lib/utils/ptm-utils'
+import { useAssistant } from '@/contexts/assistant-context'
 
 type AssistantMode = 'floating' | 'sidebar'
 
@@ -354,9 +355,11 @@ function PTMResponseContent({
 }
 
 function AssistantBody({ onStudentClick, onStudentClickWithClass, incomingMessage, onMessageProcessed }: AssistantBodyProps) {
-  const [messages, setMessages] = useState<Message[]>([])
+  // Use context for persisted state
+  const { messages, setMessages, currentInput: input, setCurrentInput: setInput, clearMessages } = useAssistant()
   const { scrollRef } = useScrollToBottom({ dependencies: [messages] })
-  const [input, setInput] = useState('')
+
+  // Local state for UI interactions (not persisted)
   const [isLoading, setIsLoading] = useState(false)
   const [showShortcuts, setShowShortcuts] = useState(false)
   const [filteredShortcuts, setFilteredShortcuts] = useState(promptShortcuts)
@@ -506,7 +509,7 @@ function AssistantBody({ onStudentClick, onStudentClickWithClass, incomingMessag
 
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-4">
-      <ScrollArea className="flex-1">
+      <ScrollArea className="h-0 flex-1">
         <div className="flex flex-col gap-3">
           {messages.map((message) => (
             <div
@@ -706,14 +709,26 @@ export function AssistantPanel({
   incomingMessage,
   onMessageProcessed,
 }: AssistantPanelProps) {
+  // Get clearMessages from context
+  const { clearMessages } = useAssistant()
+
   const content = (
-    <div className={cn('flex h-full flex-col gap-4 px-2 pb-2 pt-2', className)}>
+    <div className={cn('flex h-full min-h-0 flex-col gap-4 px-2 pb-2 pt-2', className)}>
       {showHeaderControls && (
         <div className="flex items-center justify-between gap-2 px-2 py-0.5">
           <div className="flex items-center gap-2">
             <h2 className="text-base font-semibold leading-none">Assistant</h2>
           </div>
           <div className="flex items-center gap-1">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="size-8"
+              onClick={clearMessages}
+              aria-label="Clear chat history"
+            >
+              <Trash2Icon className="size-4" />
+            </Button>
             <AssistantModeSwitcher mode={mode} onModeChange={onModeChange} />
             <Button
               variant="ghost"
@@ -760,6 +775,15 @@ export function AssistantPanel({
               <SheetTitle className="text-base">Assistant</SheetTitle>
             </div>
             <div className="flex items-center gap-1.5">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="size-8"
+                onClick={clearMessages}
+                aria-label="Clear chat history"
+              >
+                <Trash2Icon className="size-4" />
+              </Button>
               <AssistantModeSwitcher mode={mode} onModeChange={onModeChange} />
               <Button
                 variant="ghost"

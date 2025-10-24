@@ -69,7 +69,7 @@ const podcastData = {
   title: "Scheduling Time For Self-Care When You Don't Have Time",
   date: 'Oct 24',
   duration: '8 min',
-  description: 'This podcast provides practical, digestible strategies for weaving self-care into highly demanding work schedules, particularly when a standard work week extends beyond 40 hours.',
+  description: 'Practical self-care strategies for teachers managing demanding schedules and workloads.',
   imageUrl: '/images/podcast-thumb-pdm.png',
 }
 
@@ -240,7 +240,7 @@ export function HomeContent({ onNavigateToClassroom, onNavigateToExplore, onNavi
                   <p className="text-xs text-stone-500">
                     {podcastData.date} • {podcastData.duration}
                   </p>
-                  <p className="text-sm text-stone-600 line-clamp-1">{podcastData.description}</p>
+                  <p className="text-sm text-stone-600 line-clamp-2">{podcastData.description}</p>
                 </div>
 
                 {/* Play Button - pushed to bottom */}

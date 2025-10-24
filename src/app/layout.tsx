@@ -6,6 +6,7 @@ import { SidebarProvider } from '@/components/ui/sidebar'
 import { SWRProvider } from '@/components/providers/swr-provider'
 import { FontSizeProvider } from '@/contexts/font-size-context'
 import { AccessibilityProvider } from '@/contexts/accessibility-context'
+import { AssistantProvider } from '@/contexts/assistant-context'
 import './globals.css'
 
 const geistSans = Geist({
@@ -61,7 +62,9 @@ export default function RootLayout({
               disableTransitionOnChange
             >
               <SWRProvider>
-                <SidebarProvider>{children}</SidebarProvider>
+                <AssistantProvider>
+                  <SidebarProvider>{children}</SidebarProvider>
+                </AssistantProvider>
               </SWRProvider>
             </ThemeProvider>
           </AccessibilityProvider>

@@ -59,6 +59,7 @@ import { InboxContent } from '@/components/messages/inbox-content'
 import { SettingsContent } from '@/components/settings-content'
 import { ThemeSwitcher } from '@/components/theme-switcher'
 import { UserProvider } from '@/contexts/user-context'
+import { useAssistant } from '@/contexts/assistant-context'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -743,6 +744,9 @@ export default function Home() {
   const params = useParams()
   const { state: sidebarState, toggleSidebar } = useSidebar()
 
+  // Use assistant context for persistent state
+  const { isOpen: isAssistantOpen, setIsOpen: setIsAssistantOpen, mode: assistantMode, setMode: setAssistantMode } = useAssistant()
+
   // Initialize activeTab from URL params to prevent hydration mismatch
   const slug = params.slug as string[] | undefined
   const initialTab = !slug || slug.length === 0 ? 'home' : slug.join('/')
@@ -755,8 +759,6 @@ export default function Home() {
   const [openTabs, setOpenTabs] = useState<ClosableTabKey[]>([])
   const openTabsRef = useRef<ClosableTabKey[]>([]) // Track current tabs in ref
   const [activeTab, setActiveTab] = useState<TabKey>(initialTab as TabKey)
-  const [assistantMode, setAssistantMode] = useState<AssistantMode>('sidebar')
-  const [isAssistantOpen, setIsAssistantOpen] = useState(false)
   const [draggedTab, setDraggedTab] = useState<ClosableTabKey | null>(null)
   const [dragOverTab, setDragOverTab] = useState<ClosableTabKey | null>(null)
   const [containerWidth, setContainerWidth] = useState(0)
