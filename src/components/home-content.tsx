@@ -66,11 +66,11 @@ const actionButtons = [
 
 // Mock data for teacher widgets
 const podcastData = {
-  title: 'Daily Teacher Brief',
-  date: 'Oct 9',
-  duration: '4 min',
-  description: 'Student performance insights, upcoming parent meetings, and classroom updates',
-  imageUrl: '/podcast-cover.jpg', // placeholder
+  title: "Scheduling Time For Self-Care When You Don't Have Time",
+  date: 'Oct 24',
+  duration: '8 min',
+  description: 'This podcast provides practical, digestible strategies for weaving self-care into highly demanding work schedules, particularly when a standard work week extends beyond 40 hours.',
+  imageUrl: '/images/podcast-thumb.png',
 }
 
 const getTodayDate = () => {
@@ -179,10 +179,8 @@ export function HomeContent({ onNavigateToClassroom, onNavigateToExplore, onNavi
   }
 
   return (
-    <div className="relative flex h-full flex-col bg-gradient-to-b from-white to-[#F5E3DF]">
-      {/* Top section with widgets - scrollable */}
-      <ScrollArea className="flex-1 pb-48">
-        <div className="mx-auto w-full max-w-5xl px-6 py-6">
+    <ScrollArea className="h-full w-full bg-gradient-to-b from-white to-[#F5E3DF]">
+      <div className="mx-auto w-full max-w-5xl px-6 py-6 space-y-6">
           {/* Teacher Widgets Section */}
           <div
             className="grid grid-cols-1 gap-3 sm:gap-3 md:grid-cols-2"
@@ -190,46 +188,6 @@ export function HomeContent({ onNavigateToClassroom, onNavigateToExplore, onNavi
               gridTemplateRows: `minmax(${gridRowHeight}px, auto) minmax(${gridRowHeight}px, auto)`
             }}
           >
-            {/* Podcast Widget - Large, spans 1 column on larger screens */}
-            <Card className="flex h-full min-h-full flex-col rounded-2xl border-stone-200 bg-white shadow-sm md:row-span-2 py-0">
-              <CardContent className="flex h-full flex-col p-0" style={{ padding: `${widgetPadding}px` }}>
-                {/* Podcast Image with Waveform Overlay */}
-                <div className="relative h-32 overflow-hidden rounded-xl bg-stone-100">
-                  {/* Placeholder for podcast image */}
-                  <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-stone-100 to-stone-200">
-                    <div className="flex items-center gap-0.5">
-                      {/* Audio waveform visual */}
-                      {[19.6, 26.0, 20.8, 33.5, 29.1, 29.3, 30.7, 19.3, 19.2, 34.2, 26.4, 30.1, 25.6, 13.9, 33.3].map((height, i) => (
-                        <div
-                          key={i}
-                          className="w-0.5 rounded-full bg-stone-600/70"
-                          style={{
-                            height: `${height}px`,
-                            animation: `pulse ${[2.8, 1.2, 2.7, 2.4, 1.1, 1.4, 2.4, 2.3, 2.8, 1.8, 1.6, 2.5, 2.8, 2.7, 2.2][i]}s ease-in-out infinite`,
-                          }}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Podcast Info */}
-                <div className="mt-3 space-y-1">
-                  <h3 className="text-base font-semibold text-stone-900 sm:text-lg">{podcastData.title}</h3>
-                  <p className="text-xs text-stone-500">
-                    {podcastData.date} • {podcastData.duration}
-                  </p>
-                  <p className="text-sm text-stone-600 line-clamp-1">{podcastData.description}</p>
-                </div>
-
-                {/* Play Button - pushed to bottom */}
-                <Button className="mt-auto h-9 w-full rounded-lg bg-stone-900 text-sm text-white hover:bg-stone-800">
-                  <Play className="mr-1.5 h-3.5 w-3.5 fill-current" />
-                  Play now
-                </Button>
-              </CardContent>
-            </Card>
-
             {/* Calendar & Upcoming Classes Widget */}
             <Card className="flex h-full min-h-full flex-col rounded-2xl border-stone-200 bg-white shadow-sm py-0">
               <button
@@ -259,6 +217,38 @@ export function HomeContent({ onNavigateToClassroom, onNavigateToExplore, onNavi
                   ))}
                 </div>
               </button>
+            </Card>
+
+            {/* Podcast Widget - Large, spans 1 column on larger screens */}
+            <Card className="flex h-full min-h-full flex-col rounded-2xl border-stone-200 bg-white shadow-sm md:row-span-2 py-0">
+              <CardContent className="flex h-full flex-col p-0" style={{ padding: `${widgetPadding}px` }}>
+                {/* Podcast Image */}
+                <div
+                  className="relative h-32 overflow-hidden rounded-xl"
+                  style={{ backgroundColor: 'oklch(85.5% .138 181.071)' }}
+                >
+                  <img
+                    src={podcastData.imageUrl}
+                    alt={podcastData.title}
+                    className="h-full w-full object-contain"
+                  />
+                </div>
+
+                {/* Podcast Info */}
+                <div className="mt-3 space-y-1">
+                  <h3 className="text-base font-semibold text-stone-900 sm:text-lg">{podcastData.title}</h3>
+                  <p className="text-xs text-stone-500">
+                    {podcastData.date} • {podcastData.duration}
+                  </p>
+                  <p className="text-sm text-stone-600 line-clamp-1">{podcastData.description}</p>
+                </div>
+
+                {/* Play Button - pushed to bottom */}
+                <Button className="mt-auto h-9 w-full rounded-lg bg-stone-900 text-sm text-white hover:bg-stone-800">
+                  <Play className="mr-1.5 h-3.5 w-3.5 fill-current" />
+                  Play now
+                </Button>
+              </CardContent>
             </Card>
 
             {/* Student Alert Widget */}
@@ -355,126 +345,115 @@ export function HomeContent({ onNavigateToClassroom, onNavigateToExplore, onNavi
               </CardContent>
             </Card>
           </div>
-        </div>
-      </ScrollArea>
 
-      {/* Fixed Bottom section with Assistant and Icon Dock - floats at bottom */}
-      <div className="absolute bottom-0 left-0 right-0">
-        <div className="mx-auto w-full max-w-5xl px-6 py-6">
-            <div className="relative">
-              {/* Glow effect backdrop */}
-              <div className="absolute inset-0 -z-10 rounded-[32px] bg-gradient-to-b from-white/20 to-[#f5e3df]/20 blur-xl" />
+          {/* Assistant and Action Buttons Section */}
+          <div className="flex flex-col gap-4 mt-14">
+            {/* Assistant Input */}
+            <form onSubmit={handleAssistantSubmit}>
+              <div className="relative">
+                {/* Outer expandable container - only visible when focused */}
+                {isInputFocused && (
+                  <div className="absolute -inset-2 rounded-2xl border border-stone-200/80 bg-stone-100 shadow-lg backdrop-blur-sm transition-all" />
+                )}
 
-              {/* Combined Assistant and Dock Layout - stacked vertically */}
-              <div className="flex flex-col gap-4">
-                {/* Assistant Input - Expandable container */}
-                <form onSubmit={handleAssistantSubmit}>
-                  <div className="relative">
-                    {/* Outer expandable container - only visible when focused */}
-                    {isInputFocused && (
-                      <div className="absolute -inset-2 rounded-2xl border border-stone-200/80 bg-stone-100 shadow-lg backdrop-blur-sm transition-all" />
-                    )}
-
-                    {/* Content wrapper */}
-                    <div className="relative">
-                      {/* Quick action suggestions - positioned above input when focused */}
-                      {isInputFocused && (
-                        <div className="relative z-10 mb-2 flex flex-wrap items-center gap-2 text-xs text-stone-600">
-                          <span className="hidden sm:inline">Try asking:</span>
-                          <button
-                            type="button"
-                            onMouseDown={(e) => {
-                              e.preventDefault()
-                              onAssistantMessage?.('Find student with needs')
-                            }}
-                            className="rounded-md border border-stone-200 bg-stone-50 px-2.5 py-1.5 font-medium text-stone-800 transition-colors hover:bg-stone-100"
-                          >
-                            &quot;Find student with needs&quot;
-                          </button>
-                          <button
-                            type="button"
-                            onMouseDown={(e) => {
-                              e.preventDefault()
-                              onAssistantMessage?.('Draft a parent email')
-                            }}
-                            className="rounded-md border border-stone-200 bg-stone-50 px-2.5 py-1.5 font-medium text-stone-800 transition-colors hover:bg-stone-100"
-                          >
-                            &quot;Draft a parent email&quot;
-                          </button>
-                        </div>
-                      )}
-
-                      {/* Input field - stays in same position */}
-                      <div className="relative">
-                        <div className="absolute left-5 top-1/2 z-10 -translate-y-1/2">
-                          <Sparkle className="size-5 text-stone-600" />
-                        </div>
-                         <Input
-                           type="text"
-                           value={assistantInput}
-                           onChange={(e) => setAssistantInput(e.target.value)}
-                           onFocus={() => setIsInputFocused(true)}
-                           onBlur={() => setIsInputFocused(false)}
-                           placeholder="Ask me about students, assignments, or lesson plans..."
-                           className={cn(
-                             'shimmer-input relative h-14 bg-white pl-14 pr-6 text-sm transition-all placeholder:text-stone-400 sm:h-16 sm:text-base',
-                             'focus-visible:ring-0 focus-visible:ring-offset-0 shadow-none',
-                             isInputFocused
-                               ? 'rounded-xl border-stone-300 focus-visible:border-stone-300'
-                               : 'rounded-2xl border-stone-200 focus-visible:border-stone-300'
-                           )}
-                         />
-                      </div>
-                    </div>
-                  </div>
-                </form>
-
-                {/* Icon Dock - Card style */}
-                <div className="flex w-full items-center justify-center gap-3">
-                  {actionButtons.map((action) => {
-                    const Icon = action.icon
-                    return (
+                {/* Content wrapper */}
+                <div className="relative">
+                  {/* Quick action suggestions - positioned above input when focused */}
+                  {isInputFocused && (
+                    <div className="relative z-10 mb-2 flex flex-wrap items-center gap-2 text-xs text-stone-600">
+                      <span className="hidden sm:inline">Try asking:</span>
                       <button
-                        key={action.key}
-                        onClick={() => {
-                          if (action.key === 'attendance') {
-                            onNavigateToAttendance?.()
-                          } else if (action.key === 'marking') {
-                            onNavigateToClassroom?.()
-                          } else if (action.key === 'lesson-planning') {
-                            onNavigateToInbox?.()
-                          } else if (action.key === 'record-results') {
-                            onNavigateToClassroom?.()
-                          } else if (action.key === 'explore') {
-                            onNavigateToExplore?.()
-                          }
+                        type="button"
+                        onMouseDown={(e) => {
+                          e.preventDefault()
+                          onAssistantMessage?.('Find student with needs')
                         }}
-                        className="group relative flex flex-1 flex-col items-center gap-3 rounded-2xl border border-stone-200 bg-white px-4 py-5 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-md"
+                        className="rounded-md border border-stone-200 bg-stone-50 px-2.5 py-1.5 font-medium text-stone-800 transition-colors hover:bg-stone-100"
                       >
-                        {/* Icon Circle */}
-                        <div className={cn(
-                          "relative flex h-14 w-14 items-center justify-center rounded-full shadow-sm transition-all group-hover:shadow-md",
-                          action.bgColor
-                        )}>
-                          <Icon className={cn(
-                            "size-6 transition-transform group-hover:scale-110",
-                            action.iconColor
-                          )} />
-                        </div>
-
-                        {/* Label */}
-                        <span className="text-sm font-medium text-stone-900 transition-colors">
-                          {action.label}
-                        </span>
+                        &quot;Find student with needs&quot;
                       </button>
-                    )
-                  })}
+                      <button
+                        type="button"
+                        onMouseDown={(e) => {
+                          e.preventDefault()
+                          onAssistantMessage?.('Draft a parent email')
+                        }}
+                        className="rounded-md border border-stone-200 bg-stone-50 px-2.5 py-1.5 font-medium text-stone-800 transition-colors hover:bg-stone-100"
+                      >
+                        &quot;Draft a parent email&quot;
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Input field - stays in same position */}
+                  <div className="relative">
+                    <div className="absolute left-5 top-1/2 z-10 -translate-y-1/2">
+                      <Sparkle className="size-5 text-stone-600" />
+                    </div>
+                    <Input
+                      type="text"
+                      value={assistantInput}
+                      onChange={(e) => setAssistantInput(e.target.value)}
+                      onFocus={() => setIsInputFocused(true)}
+                      onBlur={() => setIsInputFocused(false)}
+                      placeholder="Ask me about students, assignments, or lesson plans..."
+                      className={cn(
+                        'shimmer-input relative h-14 bg-white pl-14 pr-6 text-sm transition-all placeholder:text-stone-400 sm:h-16 sm:text-base',
+                        'focus-visible:ring-0 focus-visible:ring-offset-0 shadow-none',
+                        isInputFocused
+                          ? 'rounded-xl border-stone-300 focus-visible:border-stone-300'
+                          : 'rounded-2xl border-stone-200 focus-visible:border-stone-300'
+                      )}
+                    />
+                  </div>
                 </div>
               </div>
+            </form>
+
+            {/* Action Buttons */}
+            <div className="flex w-full items-center justify-center gap-3">
+              {actionButtons.map((action) => {
+                const Icon = action.icon
+                return (
+                  <button
+                    key={action.key}
+                    onClick={() => {
+                      if (action.key === 'attendance') {
+                        onNavigateToAttendance?.()
+                      } else if (action.key === 'marking') {
+                        onNavigateToClassroom?.()
+                      } else if (action.key === 'lesson-planning') {
+                        onNavigateToInbox?.()
+                      } else if (action.key === 'record-results') {
+                        onNavigateToClassroom?.()
+                      } else if (action.key === 'explore') {
+                        onNavigateToExplore?.()
+                      }
+                    }}
+                    className="group relative flex flex-1 flex-col items-center gap-3 rounded-2xl border border-stone-200 bg-white px-4 py-5 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-md"
+                  >
+                    {/* Icon Circle */}
+                    <div className={cn(
+                      "relative flex h-14 w-14 items-center justify-center rounded-full shadow-sm transition-all group-hover:shadow-md",
+                      action.bgColor
+                    )}>
+                      <Icon className={cn(
+                        "size-6 transition-transform group-hover:scale-110",
+                        action.iconColor
+                      )} />
+                    </div>
+
+                    {/* Label */}
+                    <span className="text-sm font-medium text-stone-900 transition-colors">
+                      {action.label}
+                    </span>
+                  </button>
+                )
+              })}
             </div>
-        </div>
+          </div>
       </div>
-    </div>
+    </ScrollArea>
   )
 }
 

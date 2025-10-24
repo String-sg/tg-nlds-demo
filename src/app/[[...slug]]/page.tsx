@@ -349,6 +349,7 @@ const TabContent = memo(function TabContent({
   handleNavigateToAttendance,
   handleNavigateToLearn,
   handleNavigateToInbox,
+  handlePulseDismiss,
   setIsAssistantOpen,
   handleAssistantModeChange,
   setClassroomTabs,
@@ -380,6 +381,7 @@ const TabContent = memo(function TabContent({
   handleNavigateToAttendance: () => void
   handleNavigateToLearn: () => void
   handleNavigateToInbox: () => void
+  handlePulseDismiss: () => void
   setIsAssistantOpen: (open: boolean) => void
   handleAssistantModeChange: (mode: AssistantMode | 'full') => void
   setClassroomTabs: React.Dispatch<React.SetStateAction<Map<string, string>>>
@@ -411,7 +413,7 @@ const TabContent = memo(function TabContent({
   }
 
   if (currentUrl === 'pulse') {
-    return <PulseContent onPrepForMeeting={() => handleNavigate('classroom')} />
+    return <PulseContent onPrepForMeeting={() => handleNavigate('classroom')} onComplete={handlePulseDismiss} />
   }
 
   if (currentUrl === 'home') {
@@ -1047,6 +1049,15 @@ export default function Home() {
 
   // Define navigation handlers before pageActions useMemo to avoid hoisting issues
   const handleNavigate = (tabKey: ClosableTabKey, navigateWithinTab: boolean = false) => {
+    // If navigating away from Pulse, mark it as seen
+    if (currentUrl === 'pulse' && tabKey !== 'pulse') {
+      try {
+        sessionStorage.setItem('hasSeenPulse', 'true')
+      } catch (error) {
+        console.error('Failed to set hasSeenPulse flag:', error)
+      }
+    }
+
     // Determine if this is a parent (top-level) page or a child page
     const isParentPage = isTopLevelTab(tabKey)
     const parentOfThisPage = getParentTab(tabKey)
@@ -1322,6 +1333,17 @@ export default function Home() {
     handleNavigate('inbox')
   }
 
+  const handlePulseDismiss = () => {
+    // Mark Pulse as seen
+    try {
+      sessionStorage.setItem('hasSeenPulse', 'true')
+    } catch (error) {
+      console.error('Failed to set hasSeenPulse flag:', error)
+    }
+    // Navigate to home
+    handleNavigate('home')
+  }
+
   const handleAssistantMessage = (message: string) => {
     setPendingAssistantMessage(message)
     setIsAssistantOpen(true)
@@ -1414,6 +1436,13 @@ export default function Home() {
         const parsedMap = new Map<string, string>(JSON.parse(storedClassroomNames))
         setClassroomNames(parsedMap)
         classroomNamesRef.current = parsedMap
+      }
+
+      // Check if user has seen Pulse - if not and on home, navigate to pulse
+      const hasSeenPulse = sessionStorage.getItem('hasSeenPulse')
+      if (!hasSeenPulse && currentUrl === 'home') {
+        // First-time user, navigate to pulse
+        router.push('/pulse')
       }
     } catch (error) {
       // If sessionStorage is corrupted or full, clear it and start fresh
@@ -1824,7 +1853,7 @@ export default function Home() {
                     size="icon"
                     onClick={() => handleNavigate(settingsTabConfig.key)}
                     className={cn(
-                      "shrink-0 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground group-data-[collapsible=icon]:w-full",
+                      "h-8 w-8 shrink-0 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground group-data-[collapsible=icon]:w-full",
                       isSettingsActive && "bg-sidebar-accent text-sidebar-accent-foreground"
                     )}
                     aria-label="Settings"
@@ -2240,6 +2269,7 @@ export default function Home() {
                   handleNavigateToAttendance={handleNavigateToAttendance}
                   handleNavigateToLearn={handleNavigateToLearn}
                   handleNavigateToInbox={handleNavigateToInbox}
+                  handlePulseDismiss={handlePulseDismiss}
                   setIsAssistantOpen={setIsAssistantOpen}
                   handleAssistantModeChange={handleAssistantModeChange}
                   setClassroomTabs={setClassroomTabs}

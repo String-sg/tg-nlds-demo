@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 
 interface PulseContentProps {
   onPrepForMeeting?: () => void
+  onComplete?: () => void
 }
 
 interface PulseItem {
@@ -58,7 +59,7 @@ const mockPulseItems: PulseItem[] = [
   },
 ]
 
-export function PulseContent({ onPrepForMeeting }: PulseContentProps) {
+export function PulseContent({ onPrepForMeeting, onComplete }: PulseContentProps) {
   const [currentIndex, setCurrentIndex] = useState(0)
   const visualGap = 24
   const scaleStep = 0.035
@@ -233,6 +234,9 @@ export function PulseContent({ onPrepForMeeting }: PulseContentProps) {
           onClick={() => {
             if (currentIndex < mockPulseItems.length - 1) {
               setCurrentIndex((prev) => prev + 1)
+            } else {
+              // On last card, call onComplete
+              onComplete?.()
             }
           }}
         >
@@ -245,6 +249,9 @@ export function PulseContent({ onPrepForMeeting }: PulseContentProps) {
           onClick={() => {
             if (currentIndex < mockPulseItems.length - 1) {
               setCurrentIndex((prev) => prev + 1)
+            } else {
+              // On last card, call onComplete
+              onComplete?.()
             }
           }}
         >
