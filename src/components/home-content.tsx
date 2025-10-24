@@ -70,7 +70,7 @@ const podcastData = {
   date: 'Oct 24',
   duration: '8 min',
   description: 'This podcast provides practical, digestible strategies for weaving self-care into highly demanding work schedules, particularly when a standard work week extends beyond 40 hours.',
-  imageUrl: '/images/podcast-thumb.png',
+  imageUrl: '/images/podcast-thumb-pdm.png',
 }
 
 const getTodayDate = () => {
@@ -224,8 +224,8 @@ export function HomeContent({ onNavigateToClassroom, onNavigateToExplore, onNavi
               <CardContent className="flex h-full flex-col p-0" style={{ padding: `${widgetPadding}px` }}>
                 {/* Podcast Image */}
                 <div
-                  className="relative h-32 overflow-hidden rounded-xl"
-                  style={{ backgroundColor: 'oklch(85.5% .138 181.071)' }}
+                  className="relative h-32 overflow-hidden rounded-xl py-4"
+                  style={{ backgroundColor: '#59ACA9' }}
                 >
                   <img
                     src={podcastData.imageUrl}
