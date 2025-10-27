@@ -62,7 +62,11 @@ export async function fetchTeacherClasses(teacherId: string) {
         studentCount: countMap.get(classData.id) || 0,
       }
     }
-    return { ...tc, studentCount: 0 }
+    // Handle unexpected data structure - add type assertion for spread
+    if (typeof tc === 'object' && tc !== null) {
+      return { ...(tc as Record<string, unknown>), studentCount: 0 }
+    }
+    return tc
   })
 
   // Separate by type

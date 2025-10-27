@@ -24,7 +24,15 @@ export function useTeacherDataQuery(email: string = 'daniel.tan@school.edu.sg') 
     queryKey: queryKeys.teachers.detail(email),
     queryFn: async () => {
       const data = await fetchTeacherByEmail(email)
-      return mapTeacherToUser(data)
+      // Type assertion: Supabase returns role as string, but we know it's one of these literal types
+      const typedData = {
+        ...data,
+        teacher_classes: data.teacher_classes?.map(tc => ({
+          ...tc,
+          role: tc.role as 'teacher' | 'form_teacher'
+        }))
+      }
+      return mapTeacherToUser(typedData)
     },
     enabled: Boolean(email),
     staleTime: 30 * 60 * 1000, // 30 minutes (teacher data rarely changes)

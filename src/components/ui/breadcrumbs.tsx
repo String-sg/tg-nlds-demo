@@ -14,7 +14,7 @@ import {
   BreadcrumbSeparator,
   BreadcrumbEllipsis,
 } from '@/components/ui/breadcrumb'
-import type { BreadcrumbItem } from '@/hooks/use-breadcrumbs'
+import type { BreadcrumbItem } from '@/hooks/queries/use-route-breadcrumbs-query'
 
 export interface BreadcrumbsProps {
   items: BreadcrumbItem[]

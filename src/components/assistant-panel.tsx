@@ -20,6 +20,7 @@ import { usePTMStudents } from '@/hooks/queries/use-ptm-students-query'
 import { formatAttendanceRate } from '@/lib/utils/ptm-utils'
 import { useAssistant } from '@/contexts/assistant-context'
 import { useUser } from '@/contexts/user-context'
+import type { PTMStudent } from '@/types/ptm'
 
 type AssistantMode = 'floating' | 'sidebar'
 
@@ -173,8 +174,8 @@ function PTMResponseContent({
   }
 
   // Split students into priority groups for pagination
-  const highPriorityStudents = students.filter(s => s.priorityLevel === 'high')
-  const mediumLowStudents = students.filter(s => s.priorityLevel !== 'high')
+  const highPriorityStudents = students.filter((s: PTMStudent) => s.priorityLevel === 'high')
+  const mediumLowStudents = students.filter((s: PTMStudent) => s.priorityLevel !== 'high')
 
   // Determine which students to show based on current page
   const studentsToShow = currentPage === 0
@@ -206,7 +207,7 @@ function PTMResponseContent({
               : `Here are ${Math.min(highPriorityStudents.length, 2)} students you should focus on:`}
           </p>
 
-          {highPriorityStudents.slice(0, 2).map((student) => (
+          {highPriorityStudents.slice(0, 2).map((student: PTMStudent) => (
             <div
               key={student.student_id}
               className={cn(
@@ -280,7 +281,7 @@ function PTMResponseContent({
               : `Students 9-${students.length}`}
           </p>
 
-          {studentsToShow.map((student) => (
+          {studentsToShow.map((student: PTMStudent) => (
             <div
               key={student.student_id}
               className={cn(

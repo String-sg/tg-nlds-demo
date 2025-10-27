@@ -11,6 +11,7 @@ import { cn, getInitials, getAvatarColor } from '@/lib/utils'
 import { PageLayout } from '@/components/layout/page-layout'
 import { ReportSlip } from '@/components/student/report-slip'
 import { useStudentProfileQuery } from '@/hooks/queries/use-student-profile-query'
+import type { StudentProfileData } from '@/types/student'
 
 interface StudentProfileProps {
   studentName: string
@@ -24,7 +25,7 @@ interface StudentProfileProps {
 
 export function StudentProfile({ studentName, classId, onBack, activeTab, onNavigate, classroomTabs, studentProfileTabs }: StudentProfileProps) {
   const router = useRouter()
-  const { data: studentData, isLoading: loading, error } = useStudentProfileQuery(studentName)
+  const { data: studentData, isLoading: loading, error } = useStudentProfileQuery(studentName) as { data: StudentProfileData | undefined; isLoading: boolean; error: Error | null }
 
   if (loading) {
     return (

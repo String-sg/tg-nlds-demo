@@ -131,7 +131,7 @@ function transformConversationToThread(conv: EnrichedConversation): Conversation
     metadata: {
       subject: conv.subject || undefined,
       priority: mapStatusToPriority(conv.status),
-      status: conv.status === 'archived' ? 'closed' : 'open',
+      status: conv.status === 'archived' ? 'archived' : 'active',
       assignee: undefined,
       team: undefined,
       tags: [],

@@ -3,7 +3,10 @@
 import { useQuery } from '@tanstack/react-query'
 import { queryKeys } from '@/lib/query-keys'
 import { fetchStudentProfile, generateStudentAISummary } from '@/lib/queries/student-queries'
-import type { StudentProfileData } from '@/hooks/use-student-profile'
+import type { StudentProfileData } from '@/types/student'
+
+// Re-export the type for convenience
+export type { StudentProfileData }
 
 /**
  * TanStack Query hook for fetching student profile
@@ -32,10 +35,10 @@ export function useStudentProfileQuery(studentName: string) {
       const aiSummary = generateStudentAISummary(profileData)
 
       // Combine into final profile
-      const fullProfile: StudentProfileData = {
+      const fullProfile = {
         ...profileData,
         ai_summary: aiSummary,
-      }
+      } as StudentProfileData
 
       return fullProfile
     },
@@ -43,7 +46,7 @@ export function useStudentProfileQuery(studentName: string) {
     staleTime: 2 * 60 * 1000, // 2 minutes (student data changes during school day)
     gcTime: 10 * 60 * 1000, // Keep in cache for 10 minutes
     retry: 2, // Retry failed requests
-    refetchOnMount: 'stale', // Only refetch if data is stale
+    refetchOnMount: true, // Refetch on mount
   })
 }
 

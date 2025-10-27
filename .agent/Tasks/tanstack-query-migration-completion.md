@@ -344,8 +344,10 @@ supabase
 
 ### Immediate
 - [x] Create task documentation (this file)
-- [ ] Update `.agent/System/CURRENT_ARCHITECTURE.md` to reflect breadcrumbs changes
-- [ ] Mark SWR migration as fully complete in system docs
+- [x] Update `.agent/System/CURRENT_ARCHITECTURE.md` to reflect breadcrumbs changes
+- [x] Mark SWR migration as fully complete in system docs
+- [x] Clean up old unused SWR-based hook files (October 27, 2025)
+- [x] Update all documentation to reflect TanStack Query migration (October 27, 2025)
 
 ### Short-term
 - [ ] Add unit tests for breadcrumb route parsing logic
@@ -375,3 +377,85 @@ supabase
 - Attendance: Realistic distribution (41%-100%) in green/amber
 - Back button visible and functional
 - Click navigation working on all breadcrumb items
+
+---
+
+## Migration Cleanup (October 27, 2025)
+
+### Completion Summary
+
+The TanStack Query migration is now **100% complete** with all cleanup tasks finished.
+
+### Actions Taken
+
+#### 1. Documentation Updates ✅
+- **CURRENT_ARCHITECTURE.md**: Comprehensively updated to reflect TanStack Query
+  - Replaced all SWR references with TanStack Query
+  - Updated Data Fetching section with correct package versions
+  - Updated Custom Hooks table with new query hook locations
+  - Replaced SWR configuration with TanStack Query configuration
+  - Updated Context Providers section (SWRProvider → QueryProvider)
+  - Updated cache section with query keys factory pattern
+  - Updated all code examples in Key Patterns section
+  - Added benefits and key differences documentation
+
+#### 2. Old Hook Files Removed ✅
+Deleted 6 unused SWR-based hook files:
+- `src/hooks/use-teacher-data.ts` (50 lines) - replaced by `use-teacher-data-query.ts`
+- `src/hooks/use-class-stats.ts` (79 lines) - replaced by `use-class-stats-query.ts`
+- `src/hooks/use-student-profile.ts` (482 lines) - replaced by `use-student-profile-query.ts`
+- `src/hooks/use-class-name.ts` - integrated into breadcrumbs query
+- `src/hooks/use-inbox-students.ts` - replaced by `use-inbox-students-query.ts`
+- `src/hooks/use-breadcrumbs.ts` (313 lines) - replaced by `use-route-breadcrumbs-query.ts`
+
+**Total Lines Removed**: 924+ lines of deprecated code
+
+#### 3. Verification ✅
+- Type check confirmed no new errors introduced
+- All components using TanStack Query hooks
+- No active SWR imports remaining in codebase
+- Application running correctly with dev server
+
+### Current State
+
+**Data Fetching**: 100% TanStack Query
+- 11 query hooks in `src/hooks/queries/`
+- 3 mutation hooks in `src/hooks/mutations/`
+- Centralized query keys in `src/lib/query-keys.ts`
+- QueryProvider configured with optimal defaults
+
+**Documentation**: 100% Updated
+- All references to SWR removed
+- TanStack Query patterns documented
+- Migration guide complete with lessons learned
+
+**Codebase**: 100% Clean
+- No unused SWR-based hooks
+- No SWR imports (except in archived docs)
+- Single source of truth for each data fetching concern
+
+### Benefits Realized
+
+1. **Better Developer Experience**
+   - Built-in DevTools for debugging queries
+   - Type-safe query keys with centralized factory
+   - Better TypeScript inference
+
+2. **Improved Performance**
+   - Parallel query execution
+   - Request deduplication
+   - Hierarchical cache invalidation
+
+3. **Enhanced Features**
+   - Optimistic updates with automatic rollback
+   - Mutation hooks with loading/error states
+   - Better conditional query support
+
+4. **Cleaner Codebase**
+   - 924+ lines of deprecated code removed
+   - Single data fetching pattern throughout
+   - Consistent hook naming and structure
+
+### Migration Complete ✅
+
+The TanStack Query migration initiated on October 27, 2025 is now fully complete with all code migrated, old files removed, and documentation updated to reflect the new architecture.

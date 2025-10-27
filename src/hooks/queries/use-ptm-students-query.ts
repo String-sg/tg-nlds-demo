@@ -3,21 +3,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { queryKeys } from '@/lib/query-keys'
 import { getPTMStudents } from '@/app/actions/ptm-actions'
-
-export interface PTMConfig {
-  includeMetrics?: {
-    attendance?: boolean
-    grades?: boolean
-    behaviour?: boolean
-    cases?: boolean
-  }
-  sortBy?: 'priority' | 'name' | 'recent'
-  filterBy?: {
-    hasCases?: boolean
-    lowAttendance?: boolean
-    failingGrades?: boolean
-  }
-}
+import type { PTMConfig } from '@/types/ptm'
 
 /**
  * TanStack Query hook for fetching PTM student data
@@ -31,9 +17,18 @@ export interface PTMConfig {
  */
 export function usePTMStudentsQuery(teacherId: string, config?: PTMConfig) {
   return useQuery({
-    queryKey: queryKeys.ptm.students(teacherId, config),
+    queryKey: [...queryKeys.ptm.all, 'students', teacherId, config] as const,
     queryFn: async () => {
-      if (!teacherId) return []
+      if (!teacherId) {
+        return {
+          students: [],
+          totalCount: 0,
+          highPriorityCount: 0,
+          mediumPriorityCount: 0,
+          lowPriorityCount: 0,
+          fetchedAt: new Date().toISOString(),
+        }
+      }
       return await getPTMStudents(teacherId, config)
     },
     enabled: Boolean(teacherId),

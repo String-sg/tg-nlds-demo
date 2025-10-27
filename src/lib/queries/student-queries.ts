@@ -184,7 +184,8 @@ export async function fetchStudentProfile(studentName: string) {
       }
     })
 
-    finalCasesData = mockCases
+    // Type cast to match database schema (mock cases have minimal fields)
+    finalCasesData = mockCases as NonNullable<typeof casesData>
   }
 
   // Calculate attendance stats
@@ -265,7 +266,7 @@ export function generateStudentAISummary(profileData: {
   academic_results: Array<{ percentage?: number | null; score?: number | null }>
   behaviour_observations: Array<{ category?: string }>
   friend_relationships: Array<{ closeness_level: string | null }>
-  overview: { is_swan?: boolean } | null
+  overview: { is_swan?: boolean | null } | null
   cases: Array<{ status?: string }>
 }) {
   const insights: string[] = []
@@ -437,6 +438,9 @@ export async function fetchStudentsInClass(classId: string) {
 
   const gradesMap = new Map<string, Array<{ subject: string; score: number }>>()
   academicData?.forEach((result) => {
+    // Skip results with null subject or score
+    if (!result.subject || result.score === null || result.score === undefined) return
+
     const current = gradesMap.get(result.student_id) || []
     current.push({ subject: result.subject, score: result.score })
     gradesMap.set(result.student_id, current)
@@ -538,23 +542,10 @@ export async function fetchStudentsInClass(classId: string) {
 
 /**
  * Fetch student alerts for home page
+ * TODO: Implement when student_alerts table is added to the schema
  */
 export async function fetchStudentAlerts(userId: string, limit: number = 3) {
-  const supabase = createClient()
-
-  // Query would depend on your actual alerts logic
-  // This is a placeholder that follows the pattern
-  const { data, error } = await supabase
-    .from('student_alerts')
-    .select('*')
-    .eq('teacher_id', userId)
-    .order('created_at', { ascending: false })
-    .limit(limit)
-
-  if (error) {
-    console.error('Error fetching student alerts:', error)
-    return []
-  }
-
-  return data || []
+  // Placeholder: student_alerts table does not exist yet
+  // Return empty array until alerts functionality is implemented
+  return []
 }

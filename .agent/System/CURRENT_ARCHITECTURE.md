@@ -76,13 +76,14 @@ This document reflects the **actual current state** of the Teacher Guide system 
 ### Data Fetching
 ```json
 {
-  "swr": "^2.3.6"
+  "@tanstack/react-query": "^5.62.11",
+  "@tanstack/react-query-devtools": "^5.62.11"
 }
 ```
 
 ### State Management
 - React Context API
-- SWR for server state
+- TanStack Query for server state
 - sessionStorage for UI state persistence
 - Local React state (useState, useReducer)
 
@@ -1089,16 +1090,25 @@ enrichStudentWithAttendance(student, attendanceRate)
 
 **Location**: `src/hooks/`
 
-**Data Fetching Hooks**:
+**Data Fetching Hooks** (TanStack Query):
 
-| Hook | Purpose | SWR | Supabase |
-|------|---------|-----|----------|
-| `useTeacherData` | Current user data | ✅ | ✅ |
-| `useClasses` | Teacher's classes | ✅ | ✅ |
-| `useStudents` | Students in class | ✅ | ✅ |
-| `useStudentProfile` | Full student data | ✅ | ✅ |
-| `useClassStats` | Class statistics | ✅ | ✅ |
-| `useReportSlip` | Report slip data | ✅ | 🟡 Mock |
+| Hook | Location | Purpose | Supabase |
+|------|----------|---------|----------|
+| `useTeacherData` | `hooks/queries/use-teacher-data-query.ts` | Current user data | ✅ |
+| `useClasses` | `hooks/queries/use-classes-query.ts` | Teacher's classes | ✅ |
+| `useStudents` | `hooks/queries/use-students-query.ts` | Students in class | ✅ |
+| `useStudentProfile` | `hooks/queries/use-student-profile-query.ts` | Full student data | ✅ |
+| `useClassStats` | `hooks/queries/use-class-stats-query.ts` | Class statistics | ✅ |
+| `usePTMStudents` | `hooks/queries/use-ptm-students-query.ts` | PTM student list | ✅ |
+| `useConversations` | `hooks/queries/use-conversations-query.ts` | Inbox conversations | 🟡 Mock |
+| `useInboxStudents` | `hooks/queries/use-inbox-students-query.ts` | Inbox student data | ✅ |
+| `useStudentAlerts` | `hooks/queries/use-student-alerts-query.ts` | Student alerts | ✅ |
+| `useRouteBreadcrumbs` | `hooks/queries/use-route-breadcrumbs-query.ts` | Breadcrumb navigation | ✅ |
+
+**Mutation Hooks** (TanStack Query):
+- `useMarkAttendance` - Mark student attendance
+- `useUpdateGrade` - Update student grades
+- `useSendMessage` - Send conversation messages
 
 **Configuration Hooks**:
 - `useFontSize` - Font size setting
@@ -1106,19 +1116,25 @@ enrichStudentWithAttendance(student, attendanceRate)
 - `useTheme` - Light/dark theme
 
 **UI Hooks**:
-- `useBreadcrumbs` - Breadcrumb navigation with caching
 - `useScrollToBottom` - Auto-scroll for chat
 - `useResizable` - Resizable panels
+- `useTabManagement` - Multi-tab navigation
 
-**SWR Configuration**:
+**TanStack Query Configuration**:
 ```typescript
 {
-  refreshInterval: 300000,    // 5 minutes
-  revalidateOnMount: true,
-  revalidateOnFocus: true,
-  revalidateOnReconnect: true
+  staleTime: 1000 * 60 * 5,      // 5 minutes
+  gcTime: 1000 * 60 * 60,         // 1 hour (garbage collection)
+  refetchOnWindowFocus: true,
+  refetchOnReconnect: true,
+  retry: 1
 }
 ```
+
+**Query Keys Factory**: `src/lib/query-keys.ts`
+- Centralized type-safe query key management
+- Hierarchical key structure for easy invalidation
+- Examples: `queryKeys.students.list(classId)`, `queryKeys.classes.detail(classId)`
 
 ---
 
@@ -1133,11 +1149,11 @@ enrichStudentWithAttendance(student, attendanceRate)
   <FontSizeProvider>
     <AccessibilityProvider>
       <ThemeProvider>
-        <SWRProvider>
+        <QueryProvider>
           <SidebarProvider>
             {children}
           </SidebarProvider>
-        </SWRProvider>
+        </QueryProvider>
       </ThemeProvider>
     </AccessibilityProvider>
   </FontSizeProvider>
@@ -1189,12 +1205,15 @@ enrichStudentWithAttendance(student, attendanceRate)
 
 **CSS Variables**: Defined in `globals.css`
 
-#### 5. SWRProvider
+#### 5. QueryProvider (`src/providers/query-provider.tsx`)
+
+**Purpose**: TanStack Query configuration and DevTools
 
 **Configuration**:
-- Global SWR settings
-- Error retry logic
-- Deduplication window
+- Global query defaults (5-minute stale time, 1-hour cache)
+- Error retry logic (1 retry)
+- Refetch on window focus and reconnect
+- React Query DevTools in development
 
 #### 6. SidebarProvider (shadcn/ui)
 
@@ -1252,22 +1271,33 @@ useEffect(() => {
 
 **Use Case**: Access current state in callbacks without stale closures
 
-#### SWR Cache
+#### TanStack Query Cache
 
-**Cache Keys**:
+**Cache Keys** (via `src/lib/query-keys.ts`):
 ```typescript
-`teacher-${email}`
-`classes-${teacherId}`
-`students-${classId}`
-`student-profile-${studentName}`
-`class-stats-${classId}`
+queryKeys.teachers.detail(email)
+queryKeys.classes.list(teacherId)
+queryKeys.students.list(classId)
+queryKeys.students.profile(studentName)
+queryKeys.classes.stats(classId)
+queryKeys.ptm.students(teacherId, config)
+queryKeys.conversations.list(teacherId)
+queryKeys.breadcrumbs.class(classId)
 ```
 
-**Revalidation**:
-- On mount: Always
-- On focus: Yes
-- On interval: Every 5 minutes
-- On reconnect: Yes
+**Cache Behavior**:
+- Stale time: 5 minutes (data considered fresh)
+- Garbage collection: 1 hour (unused data cleanup)
+- Refetch on window focus: Yes
+- Refetch on reconnect: Yes
+- Automatic retry: 1 attempt
+
+**Benefits**:
+- Hierarchical invalidation (e.g., invalidate all students vs. specific student)
+- Built-in DevTools for debugging
+- Optimistic updates support
+- Parallel query execution
+- Request deduplication
 
 ---
 
@@ -1390,20 +1420,24 @@ useEffect(() => {
 
 ### 1. Data Fetching Pattern
 
-**SWR Hook + Supabase Query**:
+**TanStack Query Hook + Supabase Query**:
 ```typescript
-// Hook: useStudents.ts
+// Hook: hooks/queries/use-students-query.ts
+import { useQuery } from '@tanstack/react-query'
+import { queryKeys } from '@/lib/query-keys'
+import { getClassStudents } from '@/lib/queries/class-queries'
+
 export function useStudents(classId: string) {
-  return useSWR(
-    classId ? `students-${classId}` : null,
-    async () => {
-      const supabase = createClient()
-      const { data, error } = await getStudentsForClass(supabase, classId)
-      if (error) throw error
-      return data
+  return useQuery({
+    queryKey: queryKeys.students.list(classId),
+    queryFn: async () => {
+      const students = await getClassStudents(classId)
+      if (!students) throw new Error('Failed to fetch students')
+      return students
     },
-    { refreshInterval: 300000 }
-  )
+    enabled: !!classId, // Only fetch if classId exists
+    staleTime: 1000 * 60 * 5, // 5 minutes
+  })
 }
 
 // Component usage
@@ -1415,6 +1449,13 @@ if (!students) return <EmptyState />
 
 return <StudentList students={students} />
 ```
+
+**Key Differences from SWR**:
+- Uses `useQuery` instead of `useSWR`
+- Query keys are centralized and type-safe
+- `enabled` option for conditional fetching
+- Built-in DevTools for debugging
+- Better TypeScript inference
 
 ### 2. Adapter Pattern
 
@@ -1507,37 +1548,80 @@ const { data } = await supabase
 
 ### 6. Conditional Queries
 
-**SWR Conditional Fetching**:
+**TanStack Query Conditional Fetching**:
 ```typescript
-const { data } = useSWR(
-  // Only fetch if classId exists
-  classId ? `students-${classId}` : null,
-  () => fetchStudents(classId)
-)
+const { data } = useQuery({
+  queryKey: queryKeys.students.list(classId),
+  queryFn: () => fetchStudents(classId),
+  enabled: !!classId, // Only fetch if classId exists
+})
 ```
 
-### 7. Optimistic UI Updates
+**Benefits**:
+- More explicit with `enabled` option
+- Prevents unnecessary query key generation
+- Better TypeScript support for conditional queries
 
-**Pattern** (not fully implemented yet):
+### 7. Optimistic UI Updates & Mutations
+
+**TanStack Query Mutation Pattern**:
 ```typescript
-const { mutate } = useSWRConfig()
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { queryKeys } from '@/lib/query-keys'
 
-async function updateStudent(id, data) {
-  // Optimistic update
-  mutate(`student-${id}`, data, false)
+export function useUpdateStudent() {
+  const queryClient = useQueryClient()
 
-  // Actual API call
-  const result = await supabase
-    .from('students')
-    .update(data)
-    .eq('id', id)
+  return useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: StudentUpdate }) => {
+      const result = await supabase
+        .from('students')
+        .update(data)
+        .eq('id', id)
 
-  // Revalidate
-  mutate(`student-${id}`)
+      if (result.error) throw result.error
+      return result.data
+    },
+    onMutate: async ({ id, data }) => {
+      // Cancel outgoing refetches
+      await queryClient.cancelQueries({ queryKey: queryKeys.students.detail(id) })
 
-  return result
+      // Snapshot previous value
+      const previousStudent = queryClient.getQueryData(queryKeys.students.detail(id))
+
+      // Optimistically update
+      queryClient.setQueryData(queryKeys.students.detail(id), data)
+
+      return { previousStudent }
+    },
+    onError: (err, variables, context) => {
+      // Rollback on error
+      if (context?.previousStudent) {
+        queryClient.setQueryData(
+          queryKeys.students.detail(variables.id),
+          context.previousStudent
+        )
+      }
+    },
+    onSuccess: (data, variables) => {
+      // Invalidate related queries
+      queryClient.invalidateQueries({ queryKey: queryKeys.students.detail(variables.id) })
+      queryClient.invalidateQueries({ queryKey: queryKeys.students.lists() })
+    },
+  })
 }
+
+// Usage in component
+const updateStudent = useUpdateStudent()
+updateStudent.mutate({ id: '123', data: { name: 'New Name' } })
 ```
+
+**Benefits**:
+- Type-safe mutation functions
+- Built-in optimistic updates with rollback
+- Automatic query invalidation
+- Error handling and retry logic
+- Loading and error states
 
 ---
 

@@ -50,7 +50,7 @@ export const queryKeys = {
    */
   ptm: {
     all: ['ptm'] as const,
-    students: (teacherId: string, config?: PTMConfig) =>
+    students: (teacherId: string, config?: PTMQueryConfig) =>
       [...queryKeys.ptm.all, 'students', teacherId, config] as const,
   },
 
@@ -90,9 +90,9 @@ export const queryKeys = {
 } as const
 
 /**
- * Type for PTM configuration
+ * Type for PTM query filter configuration
  */
-interface PTMConfig {
+interface PTMQueryConfig {
   includeMetrics?: {
     attendance?: boolean
     grades?: boolean
