@@ -42,9 +42,9 @@ import {
 } from '@/components/ui/tooltip'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { useUser } from '@/contexts/user-context'
-import { useClasses } from '@/hooks/use-classes'
-import { useStudents } from '@/hooks/use-students'
-import { useClassStats } from '@/hooks/use-class-stats'
+import { useClasses } from '@/hooks/queries/use-classes-query'
+import { useStudents } from '@/hooks/queries/use-students-query'
+import { useClassStats } from '@/hooks/queries/use-class-stats-query'
 import type { Student } from '@/types/classroom'
 import { cn, getInitials } from '@/lib/utils'
 import { PageLayout } from '@/components/layout/page-layout'
@@ -594,7 +594,7 @@ export function ClassOverview({ classId, onBack, onNavigateToGrades, onStudentCl
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        {student.status !== 'None' && (
+                        {student.status && student.status !== 'None' && (
                           <Tooltip>
                             <TooltipTrigger asChild>
                               <Badge variant="outline" className="text-xs cursor-help">

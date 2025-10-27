@@ -22,8 +22,8 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { useUser } from '@/contexts/user-context'
-import { useClasses } from '@/hooks/use-classes'
-import { useStudents } from '@/hooks/use-students'
+import { useClasses } from '@/hooks/queries/use-classes-query'
+import { useStudents } from '@/hooks/queries/use-students-query'
 import { getInitials, getAvatarColor } from '@/lib/utils'
 import { PageLayout } from '@/components/layout/page-layout'
 
@@ -337,13 +337,11 @@ export function StudentList({ classId, onBack, onStudentClick, onNavigate, class
                     <span className={getConductColor(student.conduct_grade)}>{student.conduct_grade}</span>
                   </TableCell>
                   <TableCell>
-                    {student.status !== 'None' ? (
+                    {student.status && student.status !== 'None' ? (
                       <span className={`inline-flex px-2 py-0.5 text-xs font-medium rounded-full border ${getStatusColor(student.status)}`}>
                         {student.status}
                       </span>
-                    ) : (
-                      <span className="text-stone-500">None</span>
-                    )}
+                    ) : null}
                   </TableCell>
                   <TableCell onClick={(e) => e.stopPropagation()}>
                     <DropdownMenu>

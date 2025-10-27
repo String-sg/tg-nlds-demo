@@ -12,7 +12,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
-import { useStudents } from '@/hooks/use-students'
+import { useStudents } from '@/hooks/queries/use-students-query'
 import { PageLayout } from '@/components/layout/page-layout'
 import { cn } from '@/lib/utils'
 

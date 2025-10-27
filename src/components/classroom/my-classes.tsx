@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { useUser } from '@/contexts/user-context'
-import { useClasses } from '@/hooks/use-classes'
+import { useClasses } from '@/hooks/queries/use-classes-query'
 import { cn } from '@/lib/utils'
 import type { Class, CCAClass, AINotification, OverallStatus } from '@/types/classroom'
 

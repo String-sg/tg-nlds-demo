@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext } from 'react'
 import type { User } from '@/types/classroom'
-import { useTeacherData } from '@/hooks/use-teacher-data'
+import { useTeacherData } from '@/hooks/queries/use-teacher-data-query'
 
 interface UserContextType {
   user: User | null

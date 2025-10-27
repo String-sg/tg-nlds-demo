@@ -91,7 +91,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
-import { useBreadcrumbs } from '@/hooks/use-breadcrumbs'
+import { useRouteBreadcrumbs } from '@/hooks/queries/use-route-breadcrumbs-query'
 import { Breadcrumbs } from '@/components/ui/breadcrumbs'
 import { createClient } from '@/lib/supabase/client'
 import { getTeacherFormClass } from '@/lib/supabase/queries'
@@ -1055,19 +1055,6 @@ export default function Home() {
   const isSidebarCollapsed = sidebarState === 'collapsed'
   const isAssistantSidebarOpen = assistantMode === 'sidebar' && isAssistantOpen
 
-  // Get breadcrumbs for current tab - declare after handlers are defined
-  const { breadcrumbs: pageBreadcrumbs, isLoading: breadcrumbsLoading } = useBreadcrumbs({
-    activeTab: currentUrl as string,
-    classroomTabs,
-    studentProfileTabs,
-    classroomNames,
-    // Use inline function to avoid hoisting issues
-    onNavigate: useCallback((path: string, replace?: boolean) => {
-      const newPath = path === 'home' ? '/' : `/${path}`
-      router.push(newPath, { scroll: false })
-    }, [router]),
-  })
-
   // Define navigation handlers before pageActions useMemo to avoid hoisting issues
   const handleNavigate = (tabKey: ClosableTabKey, navigateWithinTab: boolean = false) => {
     // If navigating away from Pulse, mark it as seen
@@ -1095,6 +1082,14 @@ export default function Home() {
     const newPath = tabKey === 'home' ? '/' : `/${tabKey}`
     router.push(newPath, { scroll: false })
   }
+
+  // Get breadcrumbs for current tab
+  const { breadcrumbs: pageBreadcrumbs, isLoading: breadcrumbsLoading } = useRouteBreadcrumbs({
+    currentUrl: currentUrl as string,
+    onNavigate: (path) => handleNavigate(path as ClosableTabKey),
+    studentProfileTabs,
+    classroomNames: classroomTabs,
+  })
 
   const handleOpenGrades = useCallback((classId: string) => {
     const tabKey = `classroom/${classId}/grades` as ClassroomTabKey

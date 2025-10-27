@@ -3,7 +3,6 @@ import { Geist, Geist_Mono } from 'next/font/google'
 
 import { ThemeProvider } from '@/components/theme-provider'
 import { SidebarProvider } from '@/components/ui/sidebar'
-import { SWRProvider } from '@/components/providers/swr-provider'
 import { QueryProvider } from '@/providers/query-provider'
 import { FontSizeProvider } from '@/contexts/font-size-context'
 import { AccessibilityProvider } from '@/contexts/accessibility-context'
@@ -67,11 +66,9 @@ export default function RootLayout({
               <QueryProvider>
                 <UserProvider>
                   <InboxProvider>
-                    <SWRProvider>
-                      <AssistantProvider>
-                        <SidebarProvider>{children}</SidebarProvider>
-                      </AssistantProvider>
-                    </SWRProvider>
+                    <AssistantProvider>
+                      <SidebarProvider>{children}</SidebarProvider>
+                    </AssistantProvider>
                   </InboxProvider>
                 </UserProvider>
               </QueryProvider>

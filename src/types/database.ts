@@ -254,6 +254,7 @@ export interface Database {
           housing_finance: Json | null
           is_swan: boolean
           swan_details: Json | null
+          conduct_grade: string | null
           created_at: string
           updated_at: string
         }
@@ -268,6 +269,7 @@ export interface Database {
           housing_finance?: Json | null
           is_swan?: boolean
           swan_details?: Json | null
+          conduct_grade?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -282,6 +284,7 @@ export interface Database {
           housing_finance?: Json | null
           is_swan?: boolean
           swan_details?: Json | null
+          conduct_grade?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -375,6 +378,7 @@ export interface Database {
           max_score: number | null
           percentage: number | null
           grade: string | null
+          subject: string | null
           remarks: Json | null
           created_by: string | null
           created_at: string
@@ -392,6 +396,7 @@ export interface Database {
           max_score?: number | null
           percentage?: number | null
           grade?: string | null
+          subject?: string | null
           remarks?: Json | null
           created_by?: string | null
           created_at?: string
@@ -409,6 +414,7 @@ export interface Database {
           max_score?: number | null
           percentage?: number | null
           grade?: string | null
+          subject?: string | null
           remarks?: Json | null
           created_by?: string | null
           created_at?: string

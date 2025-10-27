@@ -16,9 +16,10 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sh
 import { Textarea } from '@/components/ui/textarea'
 import { cn, getInitials, getAvatarColor } from '@/lib/utils'
 import { useScrollToBottom } from '@/hooks/use-scroll-to-bottom'
-import { usePTMStudents } from '@/hooks/use-ptm-students'
+import { usePTMStudents } from '@/hooks/queries/use-ptm-students-query'
 import { formatAttendanceRate } from '@/lib/utils/ptm-utils'
 import { useAssistant } from '@/contexts/assistant-context'
+import { useUser } from '@/contexts/user-context'
 
 type AssistantMode = 'floating' | 'sidebar'
 
@@ -122,8 +123,10 @@ function PTMResponseContent({
 }) {
   const [currentPage, setCurrentPage] = useState(0)
 
+  const { user } = useUser()
+
   // Fetch real PTM student data
-  const { students, loading, error, isEmpty, highPriorityCount, mediumPriorityCount, totalCount, formClassId } = usePTMStudents()
+  const { students, loading, error, isEmpty, highPriorityCount, mediumPriorityCount, totalCount, formClassId } = usePTMStudents(user?.user_id || '')
 
   // Handler for student clicks
   const handleStudentClick = (studentName: string) => {

@@ -10,7 +10,7 @@ import { CaseManagementTable } from '@/components/case-management-table'
 import { cn, getInitials, getAvatarColor } from '@/lib/utils'
 import { PageLayout } from '@/components/layout/page-layout'
 import { ReportSlip } from '@/components/student/report-slip'
-import { useStudentProfile } from '@/hooks/use-student-profile'
+import { useStudentProfileQuery } from '@/hooks/queries/use-student-profile-query'
 
 interface StudentProfileProps {
   studentName: string
@@ -24,7 +24,7 @@ interface StudentProfileProps {
 
 export function StudentProfile({ studentName, classId, onBack, activeTab, onNavigate, classroomTabs, studentProfileTabs }: StudentProfileProps) {
   const router = useRouter()
-  const { student: studentData, loading, error } = useStudentProfile(studentName)
+  const { data: studentData, isLoading: loading, error } = useStudentProfileQuery(studentName)
 
   if (loading) {
     return (

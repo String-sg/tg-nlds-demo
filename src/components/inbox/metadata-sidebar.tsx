@@ -14,7 +14,7 @@ import {
 } from 'lucide-react'
 import { getInitials, getAvatarColor } from '@/lib/chat/utils'
 import { useUser } from '@/contexts/user-context'
-import { useClasses } from '@/hooks/use-classes'
+import { useClasses } from '@/hooks/queries/use-classes-query'
 import { MetadataSidebarSkeleton } from './metadata-sidebar-skeleton'
 import type { ConversationGroup } from '@/types/inbox'
 
