@@ -74,7 +74,6 @@ import {
   SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
-  SidebarGroupLabel,
   SidebarInset,
   SidebarMenu,
   SidebarMenuBadge,
@@ -98,14 +97,14 @@ import { getTeacherFormClass } from '@/lib/supabase/queries'
 
 const primaryPages = [
   { key: 'home', label: 'Home', icon: HomeIcon, tooltip: 'Home' },
-  { key: 'inbox', label: 'Messages', icon: Inbox, tooltip: 'Messages' },
-  { key: 'calendar', label: 'Timetable', icon: CalendarDays, tooltip: 'Timetable' },
-  { key: 'drafts', label: 'Drafts', icon: FileText, tooltip: 'Drafts' },
   { key: 'classroom', label: 'My Classes', icon: Users, tooltip: 'My Classes' },
   { key: 'myschool', label: 'My School', icon: School, tooltip: 'My School' },
+  { key: 'teaching', label: 'Teaching', icon: GraduationCap, tooltip: 'Teaching' },
   { key: 'learning', label: 'Learning', icon: BookOpen, tooltip: 'Learning' },
   { key: 'community', label: 'Community', icon: Users2, tooltip: 'Community' },
-  { key: 'explore', label: 'Explore', icon: Compass, tooltip: 'Explore' },
+  { key: 'inbox', label: 'Messages', icon: Inbox, tooltip: 'Messages' },
+  { key: 'calendar', label: 'Timetable', icon: CalendarDays, tooltip: 'Timetable' },
+  { key: 'explore', label: 'All apps', icon: Compass, tooltip: 'All apps' },
 ] as const
 
 const newTabConfig = {
@@ -202,7 +201,7 @@ const emptyStates: Record<TabKey, EmptyState> = {
     secondaryAction: 'Invite a teammate',
   },
   explore: {
-    heading: 'Explore',
+    heading: 'All apps',
     title: 'Discover all available apps',
     description:
       'Browse through all apps and find the tools you need to enhance your workflow.',
@@ -225,14 +224,6 @@ const emptyStates: Record<TabKey, EmptyState> = {
       'Track attendance, results, and case management for your students.',
     icon: ClipboardList,
     primaryAction: 'Create record',
-  },
-  drafts: {
-    heading: 'Drafts',
-    title: 'No drafts on file',
-    description:
-      'Capture your thoughts and save them as drafts to revisit and refine later.',
-    icon: FilePen,
-    primaryAction: 'Compose draft',
   },
   calendar: {
     heading: 'Timetable',
@@ -265,6 +256,14 @@ const emptyStates: Record<TabKey, EmptyState> = {
       'View and manage school-wide information, announcements, and resources.',
     icon: School,
     primaryAction: 'View announcements',
+  },
+  teaching: {
+    heading: 'Teaching',
+    title: 'Teaching resources',
+    description:
+      'Access lesson plans, teaching materials, and classroom management tools.',
+    icon: GraduationCap,
+    primaryAction: 'Browse resources',
   },
   learning: {
     heading: 'Learning',
@@ -1697,32 +1696,89 @@ export default function Home() {
       <Sidebar variant="inset" collapsible="icon">
         <SidebarContent className="gap-6">
           <SidebarGroup className="group-data-[collapsible=icon]:pb-0">
-            <div className="flex h-8 items-center justify-between group-data-[collapsible=icon]:hidden">
-              <SidebarGroupLabel>
-                Tan&apos;s Space
-              </SidebarGroupLabel>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={toggleSidebar}
-                className="size-7 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-                type="button"
-              >
-                <PanelLeft className="size-4" />
-                <span className="sr-only">Toggle Sidebar</span>
-              </Button>
-            </div>
-            <SidebarMenu className="hidden group-data-[collapsible=icon]:block">
+            <SidebarMenu>
               <SidebarMenuItem>
                 <SidebarMenuButton onClick={toggleSidebar} tooltip="Toggle Sidebar">
                   <PanelLeft className="size-4" />
-                  <span>Toggle Sidebar</span>
+                  <span className="font-medium">Tan&apos;s Workspace</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>
             <SidebarGroupContent className="mt-2">
               <SidebarMenu>
-                {primaryPages.slice(0, 4).map((page) => {
+                {primaryPages.slice(0, 1).map((page) => {
+                  const Icon = page.icon
+
+                  return (
+                    <SidebarMenuItem key={page.key}>
+                      <SidebarMenuButton
+                        tooltip={page.tooltip}
+                        isActive={
+                          activeTab === page.key ||
+                          (page.key === 'home' && activeTab === 'pulse')
+                        }
+                        onClick={() => handleNavigate(page.key)}
+                        type="button"
+                      >
+                        <Icon className="size-4" />
+                        <span>{page.label}</span>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  )
+                })}
+              </SidebarMenu>
+
+              <SidebarSeparator className="mx-0 my-2 w-full" />
+
+              <SidebarMenu>
+                {primaryPages.slice(1, 4).map((page) => {
+                  const Icon = page.icon
+
+                  return (
+                    <SidebarMenuItem key={page.key}>
+                      <SidebarMenuButton
+                        tooltip={page.tooltip}
+                        isActive={
+                          activeTab === page.key ||
+                          (page.key === 'classroom' && typeof activeTab === 'string' && activeTab.startsWith('classroom/'))
+                        }
+                        onClick={() => handleNavigate(page.key)}
+                        type="button"
+                      >
+                        <Icon className="size-4" />
+                        <span>{page.label}</span>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  )
+                })}
+              </SidebarMenu>
+
+              <SidebarSeparator className="mx-0 my-2 w-full" />
+
+              <SidebarMenu>
+                {primaryPages.slice(4, 6).map((page) => {
+                  const Icon = page.icon
+
+                  return (
+                    <SidebarMenuItem key={page.key}>
+                      <SidebarMenuButton
+                        tooltip={page.tooltip}
+                        isActive={activeTab === page.key}
+                        onClick={() => handleNavigate(page.key)}
+                        type="button"
+                      >
+                        <Icon className="size-4" />
+                        <span>{page.label}</span>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  )
+                })}
+              </SidebarMenu>
+
+              <SidebarSeparator className="mx-0 my-2 w-full" />
+
+              <SidebarMenu>
+                {primaryPages.slice(6).map((page) => {
                   const Icon = page.icon
                   const isInbox = page.key === 'inbox'
 
@@ -1732,8 +1788,6 @@ export default function Home() {
                         tooltip={page.tooltip}
                         isActive={
                           activeTab === page.key ||
-                          (page.key === 'classroom' && typeof activeTab === 'string' && activeTab.startsWith('classroom/')) ||
-                          (page.key === 'home' && activeTab === 'pulse') ||
                           (page.key === 'inbox' && typeof activeTab === 'string' && activeTab.startsWith('inbox/'))
                         }
                         onClick={() => handleNavigate(page.key)}
@@ -1743,96 +1797,6 @@ export default function Home() {
                         <span>{page.label}</span>
                       </SidebarMenuButton>
                       {isInbox && <UnreadCountBadge />}
-                    </SidebarMenuItem>
-                  )
-                })}
-              </SidebarMenu>
-
-              <SidebarSeparator className="mx-0 my-2 w-full" />
-
-              {/* Class Management section */}
-              <SidebarGroupLabel className="mb-2">
-                Class Management
-              </SidebarGroupLabel>
-              <SidebarMenu>
-                {primaryPages.slice(4, 6).map((page) => {
-                  const Icon = page.icon
-
-                  return (
-                    <SidebarMenuItem key={page.key}>
-                      <SidebarMenuButton
-                        tooltip={page.tooltip}
-                        isActive={
-                          activeTab === page.key ||
-                          (page.key === 'classroom' && typeof activeTab === 'string' && activeTab.startsWith('classroom/')) ||
-                          (page.key === 'home' && activeTab === 'pulse')
-                        }
-                        onClick={() => handleNavigate(page.key)}
-                        type="button"
-                      >
-                        <Icon className="size-4" />
-                        <span>{page.label}</span>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  )
-                })}
-              </SidebarMenu>
-
-              <SidebarSeparator className="mx-0 my-2 w-full" />
-
-              {/* Growth section */}
-              <SidebarGroupLabel className="mb-2">
-                Growth
-              </SidebarGroupLabel>
-              <SidebarMenu>
-                {primaryPages.slice(6, 8).map((page) => {
-                  const Icon = page.icon
-
-                  return (
-                    <SidebarMenuItem key={page.key}>
-                      <SidebarMenuButton
-                        tooltip={page.tooltip}
-                        isActive={
-                          activeTab === page.key ||
-                          (page.key === 'classroom' && typeof activeTab === 'string' && activeTab.startsWith('classroom/')) ||
-                          (page.key === 'home' && activeTab === 'pulse')
-                        }
-                        onClick={() => handleNavigate(page.key)}
-                        type="button"
-                      >
-                        <Icon className="size-4" />
-                        <span>{page.label}</span>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  )
-                })}
-              </SidebarMenu>
-
-              <SidebarSeparator className="mx-0 my-2 w-full" />
-
-              {/* More section */}
-              <SidebarGroupLabel className="mb-2">
-                More
-              </SidebarGroupLabel>
-              <SidebarMenu>
-                {primaryPages.slice(8).map((page) => {
-                  const Icon = page.icon
-
-                  return (
-                    <SidebarMenuItem key={page.key}>
-                      <SidebarMenuButton
-                        tooltip={page.tooltip}
-                        isActive={
-                          activeTab === page.key ||
-                          (page.key === 'classroom' && typeof activeTab === 'string' && activeTab.startsWith('classroom/')) ||
-                          (page.key === 'home' && activeTab === 'pulse')
-                        }
-                        onClick={() => handleNavigate(page.key)}
-                        type="button"
-                      >
-                        <Icon className="size-4" />
-                        <span>{page.label}</span>
-                      </SidebarMenuButton>
                     </SidebarMenuItem>
                   )
                 })}

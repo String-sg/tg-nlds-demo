@@ -154,10 +154,10 @@ export function ConversationList({
                   )}
                 >
                   <div className="flex items-center gap-3">
-                    {/* Avatar - Show student initials */}
+                    {/* Avatar - Show parent initials */}
                     <Avatar className="h-10 w-10 flex-shrink-0">
-                      <AvatarFallback className={getAvatarColor(group.student.name)}>
-                        {getInitials(group.student.name)}
+                      <AvatarFallback className={getAvatarColor(parentName)}>
+                        {getInitials(parentName)}
                       </AvatarFallback>
                     </Avatar>
 
@@ -165,18 +165,18 @@ export function ConversationList({
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between gap-2 mb-1">
                         <div className="flex-1 min-w-0">
-                          {/* Student name as primary with priority dot */}
+                          {/* Parent name as primary with priority dot */}
                           <div className="flex items-center gap-2">
                             {group.priority === 'urgent' && (
                               <div className="h-2 w-2 flex-shrink-0 rounded-full bg-red-500" />
                             )}
                             <h3 className="text-sm font-semibold text-stone-900 truncate">
-                              {group.student.name}
+                              {parentName}
                             </h3>
                           </div>
-                          {/* Parent name and class as secondary */}
+                          {/* Student name and class as secondary */}
                           <p className="text-xs text-stone-600 truncate">
-                            {parentName} • {group.student.class}
+                            {group.student.name} • {group.student.class}
                           </p>
                         </div>
                         <span className="text-xs text-stone-500 flex-shrink-0">
@@ -184,7 +184,7 @@ export function ConversationList({
                         </span>
                       </div>
 
-                      <p className="text-sm text-stone-700 truncate">
+                      <p className="text-sm text-stone-700 line-clamp-1">
                         {latestMessage.senderRole === 'teacher' && 'You: '}
                         {latestMessage.content}
                       </p>

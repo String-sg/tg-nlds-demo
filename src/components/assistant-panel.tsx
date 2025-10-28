@@ -801,7 +801,7 @@ export function AssistantPanel({
             </div>
           </SheetHeader>
         )}
-        <div className="flex max-h-[calc(100vh-10rem)] min-h-[24rem] flex-col overflow-hidden p-5">
+        <div className="flex max-h-[calc(100vh-10rem)] min-h-[24rem] min-h-0 flex-col p-5">
           <AssistantBody
             showHeading={showBodyHeading}
             onStudentClick={onStudentClick}
