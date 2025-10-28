@@ -176,7 +176,7 @@ export function ConversationList({
                           </div>
                           {/* Student name and class as secondary */}
                           <p className="text-xs text-stone-600 truncate">
-                            {group.student.name} • {group.student.class}
+                            {group.student.name} {group.student.class}
                           </p>
                         </div>
                         <span className="text-xs text-stone-500 flex-shrink-0">
