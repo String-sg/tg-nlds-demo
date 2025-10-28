@@ -55,7 +55,7 @@ import { AcademicRecordEntry } from '@/components/classroom/academic-record-entr
 import { StudentProfile } from '@/components/student-profile'
 import { RecordsContent } from '@/components/records-content'
 import { ExploreContent } from '@/components/explore-content'
-import { InboxContent } from '@/components/messages/inbox-content'
+import { MessagesPageContent } from '@/components/messages/messages-page-content'
 import { InboxProvider } from '@/contexts/inbox-context'
 import { SettingsContent } from '@/components/settings-content'
 import { ThemeSwitcher } from '@/components/theme-switcher'
@@ -458,7 +458,7 @@ const TabContent = memo(function TabContent({
   if (currentUrl === 'inbox' || currentUrl.startsWith('inbox/')) {
     const conversationId = slug && slug.length > 1 && slug[0] === 'inbox' ? slug[1] : undefined
     return (
-      <InboxContent
+      <MessagesPageContent
         conversationId={conversationId}
         onConversationClick={handleOpenConversation}
       />

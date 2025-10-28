@@ -114,7 +114,6 @@ interface HomeContentProps {
 
 export function HomeContent({ onNavigateToClassroom, onNavigateToExplore, onNavigateToAttendance, onNavigateToLearn, onNavigateToInbox, onAssistantMessage, onStudentClick, onStudentClickWithClass, onNavigateToPulse, onEditWidgets, renderPageActions }: HomeContentProps = {}) {
   const [assistantInput, setAssistantInput] = useState('')
-  const [isInputFocused, setIsInputFocused] = useState(false)
   const [gridRowHeight] = useState(156)
   const [widgetPadding] = useState(16)
   const [studentAlerts, setStudentAlerts] = useState<StudentAlert[] | null>(null)
@@ -184,64 +183,48 @@ export function HomeContent({ onNavigateToClassroom, onNavigateToExplore, onNavi
           {/* Assistant and Action Buttons Section */}
           <div className="flex flex-col gap-4">
             {/* Assistant Input */}
-            <form onSubmit={handleAssistantSubmit}>
+            <form onSubmit={handleAssistantSubmit} className="flex flex-col gap-2">
               <div className="relative">
-                {/* Outer expandable container - only visible when focused */}
-                {isInputFocused && (
-                  <div className="absolute -inset-2 rounded-2xl border border-stone-200/80 bg-stone-100 shadow-lg backdrop-blur-sm transition-all" />
-                )}
-
-                {/* Input field - stays in same position */}
-                <div className="relative">
-                  <div className="absolute left-5 top-1/2 z-10 -translate-y-1/2">
-                    <Sparkle className="size-5 text-stone-600" />
-                  </div>
-                  <Input
-                    type="text"
-                    value={assistantInput}
-                    onChange={(e) => setAssistantInput(e.target.value)}
-                    onFocus={() => setIsInputFocused(true)}
-                    onBlur={() => setIsInputFocused(false)}
-                    placeholder="Ask me about students, assignments, or lesson plans..."
-                    className={cn(
-                      'shimmer-input relative h-14 bg-white pl-14 pr-6 text-sm transition-all placeholder:text-stone-400 sm:h-16 sm:text-base',
-                      'focus-visible:ring-0 focus-visible:ring-offset-0 shadow-none',
-                      isInputFocused
-                        ? 'rounded-xl border-stone-300 focus-visible:border-stone-300'
-                        : 'rounded-2xl border-stone-200 focus-visible:border-stone-300'
-                    )}
-                  />
+                <div className="absolute left-5 top-1/2 z-10 -translate-y-1/2">
+                  <Sparkle className="size-5 text-stone-600" />
                 </div>
+                <Input
+                  type="text"
+                  value={assistantInput}
+                  onChange={(e) => setAssistantInput(e.target.value)}
+                  placeholder="Ask me about students, assignments, or lesson plans..."
+                  className="shimmer-input h-14 bg-white pl-14 pr-6 text-sm placeholder:text-stone-400 sm:h-16 sm:text-base rounded-2xl"
+                />
+              </div>
 
-                {/* Quick action suggestions - always visible, positioned below input */}
-                <div className="absolute top-full left-0 right-0 z-20 mt-2 flex flex-wrap items-center gap-2 text-xs text-stone-600 px-2">
-                  <span className="hidden sm:inline">Try asking:</span>
-                  <button
-                    type="button"
-                    onMouseDown={(e) => {
-                      e.preventDefault()
-                      onAssistantMessage?.('Find student with needs')
-                    }}
-                    className="rounded-md border border-stone-200 bg-white px-2.5 py-1.5 font-medium text-stone-800 shadow-sm transition-colors hover:bg-stone-50"
-                  >
-                    &quot;Find student with needs&quot;
-                  </button>
-                  <button
-                    type="button"
-                    onMouseDown={(e) => {
-                      e.preventDefault()
-                      onAssistantMessage?.('Draft a parent email')
-                    }}
-                    className="rounded-md border border-stone-200 bg-white px-2.5 py-1.5 font-medium text-stone-800 shadow-sm transition-colors hover:bg-stone-50"
-                  >
-                    &quot;Draft a parent email&quot;
-                  </button>
-                </div>
+              {/* Quick action suggestions - normal flow */}
+              <div className="flex flex-wrap items-center gap-2 text-xs text-stone-600 px-2">
+                <span className="hidden sm:inline">Try asking:</span>
+                <button
+                  type="button"
+                  onMouseDown={(e) => {
+                    e.preventDefault()
+                    onAssistantMessage?.('Find student with needs')
+                  }}
+                  className="rounded-md border border-stone-200 bg-white px-2.5 py-1.5 font-medium text-stone-800 shadow-sm transition-colors hover:bg-stone-50"
+                >
+                  &quot;Find student with needs&quot;
+                </button>
+                <button
+                  type="button"
+                  onMouseDown={(e) => {
+                    e.preventDefault()
+                    onAssistantMessage?.('Draft a parent email')
+                  }}
+                  className="rounded-md border border-stone-200 bg-white px-2.5 py-1.5 font-medium text-stone-800 shadow-sm transition-colors hover:bg-stone-50"
+                >
+                  &quot;Draft a parent email&quot;
+                </button>
               </div>
             </form>
 
             {/* Action Buttons */}
-            <div className="flex w-full items-center justify-center gap-3">
+            <div className="flex w-full items-stretch justify-center gap-3">
               {actionButtons.map((action) => {
                 const Icon = action.icon
                 return (
@@ -260,11 +243,11 @@ export function HomeContent({ onNavigateToClassroom, onNavigateToExplore, onNavi
                         onNavigateToExplore?.()
                       }
                     }}
-                    className="group relative flex flex-1 flex-col items-center gap-3 rounded-2xl border border-stone-200 bg-white px-4 py-5 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-md"
+                    className="group relative flex flex-1 flex-col items-center rounded-2xl border border-stone-200 bg-white px-4 py-4 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-md"
                   >
                     {/* Icon Circle */}
                     <div className={cn(
-                      "relative flex h-14 w-14 items-center justify-center rounded-full shadow-sm transition-all group-hover:shadow-md",
+                      "relative flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-full shadow-sm transition-all group-hover:shadow-md",
                       action.bgColor
                     )}>
                       <Icon className={cn(
@@ -273,8 +256,8 @@ export function HomeContent({ onNavigateToClassroom, onNavigateToExplore, onNavi
                       )} />
                     </div>
 
-                    {/* Label */}
-                    <span className="text-sm font-medium text-stone-900 transition-colors">
+                    {/* Label - min height to accommodate 2 lines */}
+                    <span className="mt-3 text-center text-sm font-medium leading-[1.3] text-stone-900 transition-colors min-h-[2.5rem] flex items-center justify-center">
                       {action.label}
                     </span>
                   </button>
