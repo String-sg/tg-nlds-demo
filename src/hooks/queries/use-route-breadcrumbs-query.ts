@@ -149,7 +149,7 @@ function generateBreadcrumbs(
 
       case 'inbox':
         breadcrumbs.push({
-          label: 'Messages',
+          label: 'Parents & Communications',
           path: 'inbox',
           isActive: isLast,
           onClick: onNavigate && !isLast ? () => onNavigate('inbox') : undefined,
@@ -173,7 +173,7 @@ function generateBreadcrumbs(
 
       case 'calendar':
         breadcrumbs.push({
-          label: 'Calendar',
+          label: 'Timetable',
           path: 'calendar',
           isActive: isLast,
           onClick: onNavigate && !isLast ? () => onNavigate('calendar') : undefined,
@@ -249,6 +249,15 @@ function generateBreadcrumbs(
           path: 'explore',
           isActive: isLast,
           onClick: onNavigate && !isLast ? () => onNavigate('explore') : undefined,
+        })
+        break
+
+      case 'notifications':
+        breadcrumbs.push({
+          label: 'Notifications',
+          path: 'notifications',
+          isActive: isLast,
+          onClick: onNavigate && !isLast ? () => onNavigate('notifications') : undefined,
         })
         break
 

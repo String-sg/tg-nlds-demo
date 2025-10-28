@@ -110,7 +110,7 @@ const primaryPages = [
   { key: 'community', label: 'Community', icon: Users2, tooltip: 'Community' },
   { key: 'inbox', label: 'Communications', icon: Inbox, tooltip: 'Communications' },
   { key: 'announcements', label: 'Announcements', icon: MessageSquare, tooltip: 'Announcements' },
-  { key: 'inbox', label: 'Parent & communication', icon: Presentation, tooltip: 'Parent & communication' },
+  { key: 'inbox', label: 'Parents & Communications', icon: Presentation, tooltip: 'Parents & Communications' },
   { key: 'calendar', label: 'Timetable', icon: CalendarDays, tooltip: 'Timetable' },
   { key: 'forms', label: 'Forms', icon: FileText, tooltip: 'Forms' },
   { key: 'notifications', label: 'Notifications', icon: Bell, tooltip: 'Notifications' },
@@ -244,7 +244,7 @@ const emptyStates: Record<TabKey, EmptyState> = {
     primaryAction: 'Connect calendar',
   },
   inbox: {
-    heading: 'Communications',
+    heading: 'Parents & Communications',
     title: 'No updates right now',
     description:
       "When teammates mention you or share docs, they'll show up here for quick triage.",

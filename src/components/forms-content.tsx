@@ -26,6 +26,7 @@ interface Template {
   title: string
   description: string
   icon: LucideIcon
+  color: string
 }
 
 interface TemplateCategory {
@@ -42,60 +43,70 @@ const templateCategories: TemplateCategory[] = [
         title: 'CCA Selection Form',
         description: 'With allocation template to facilitate CCA allocation exercise',
         icon: Users,
+        color: 'bg-blue-500',
       },
       {
         id: 'dietary-requirements',
         title: 'Dietary Requirements',
         description: 'Gather dietary requirements from students or colleagues in the school',
         icon: Utensils,
+        color: 'bg-orange-500',
       },
       {
         id: 'item-analysis',
         title: 'Item Analysis',
         description: 'Consolidate student responses to individual assessment questions to identify learning gaps',
         icon: BarChart3,
+        color: 'bg-purple-500',
       },
       {
         id: 'marks-verification',
         title: 'Marks Verification and Reflection',
         description: 'Get your students to verify their marks and reflect on ways to improve',
         icon: BookCheck,
+        color: 'bg-green-500',
       },
       {
         id: 'mood-reflection',
         title: 'Mood Reflection Template',
         description: 'This is for CotF Schools to promote emotional literacy. Contact cotf@moe.edu.sg to use. Do not alter for data...',
         icon: Heart,
+        color: 'bg-pink-500',
       },
       {
         id: 'nomination-form',
         title: 'Nomination Form',
         description: 'Gather nominations for leadership roles or award recipients',
         icon: Award,
+        color: 'bg-amber-500',
       },
       {
         id: 'target-setting-primary',
         title: 'Target Setting (Primary)',
         description: 'Encourage students to set their desired grade for each subject or for overall academic performance',
         icon: Target,
+        color: 'bg-red-500',
       },
       {
         id: 'target-setting-secondary',
         title: 'Target Setting (Secondary)',
         description: 'Encourage students to set their desired grade for each subject or for overall academic performance',
         icon: TrendingUp,
+        color: 'bg-cyan-500',
       },
       {
         id: 'target-setting-n',
         title: "Target Setting for N' Levels",
         description: 'Encourage students to set their desired grade for each subject or for overall academic performance.',
         icon: GraduationCap,
+        color: 'bg-indigo-500',
       },
       {
         id: 'target-setting-o',
         title: "Target Setting for O' Levels",
         description: 'Encourage students to set their desired grade for each subject or for overall academic performance.',
         icon: BookOpen,
+        color: 'bg-teal-500',
       },
     ],
   },
@@ -107,18 +118,21 @@ const templateCategories: TemplateCategory[] = [
         title: 'Field Trip Consent Form',
         description: 'Gather parental consent for field trips and excursions',
         icon: FileText,
+        color: 'bg-emerald-500',
       },
       {
         id: 'activity-consent',
         title: 'Activity Consent Form',
         description: 'Permission form for school activities and events',
         icon: ClipboardCheck,
+        color: 'bg-violet-500',
       },
       {
         id: 'medical-consent',
         title: 'Medical Consent Form',
         description: 'Parental consent for medical treatment and emergency care',
         icon: UserCheck,
+        color: 'bg-rose-500',
       },
     ],
   },
@@ -130,24 +144,28 @@ const templateCategories: TemplateCategory[] = [
         title: 'Term 1 Check-in',
         description: 'Review student progress and wellbeing for Term 1',
         icon: ClipboardCheck,
+        color: 'bg-sky-500',
       },
       {
         id: 'term-2-checkin',
         title: 'Term 2 Check-in',
         description: 'Review student progress and wellbeing for Term 2',
         icon: ClipboardCheck,
+        color: 'bg-lime-500',
       },
       {
         id: 'term-3-checkin',
         title: 'Term 3 Check-in',
         description: 'Review student progress and wellbeing for Term 3',
         icon: ClipboardCheck,
+        color: 'bg-fuchsia-500',
       },
       {
         id: 'term-4-checkin',
         title: 'Term 4 Check-in',
         description: 'Review student progress and wellbeing for Term 4',
         icon: ClipboardCheck,
+        color: 'bg-yellow-500',
       },
     ],
   },
@@ -186,8 +204,8 @@ export function FormsContent() {
                       <Card key={template.id} className="group transition-shadow hover:shadow-md">
                         <CardHeader className="space-y-3 p-4">
                           <div className="flex items-start gap-3">
-                            <div className="rounded-lg bg-muted p-2">
-                              <Icon className="size-4 text-muted-foreground" />
+                            <div className={`rounded-lg p-2 ${template.color}`}>
+                              <Icon className="size-4 text-white" />
                             </div>
                           </div>
                           <div className="space-y-1">
