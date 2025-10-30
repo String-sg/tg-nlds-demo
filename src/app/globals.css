@@ -181,6 +181,17 @@
     display: none;
   }
 
+  /* Hide Next.js dev indicators completely */
+  #__next-build-watcher {
+    display: none !important;
+  }
+
+  /* Hide any Next.js dev overlay buttons */
+  button[aria-label*="Open build"],
+  button[aria-label*="build indicator"] {
+    display: none !important;
+  }
+
   .shimmer-input {
     --shimmer-color1-rgb: 255, 176, 112;
     --shimmer-color2-rgb: 160, 148, 255;

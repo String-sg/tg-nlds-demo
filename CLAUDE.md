@@ -276,6 +276,66 @@ export function Example() {
 - Keyboard navigation works by default
 - Screen reader support is built-in
 
+## Icon Usage Guidelines
+
+### Always Use lucide-react Icons
+
+**IMPORTANT**: Never use emojis for UI icons. Always use lucide-react icons instead.
+
+❌ **Bad**: Using emojis
+```tsx
+<span>⚠️</span>
+<span>💬</span>
+<span>🔔</span>
+```
+
+✅ **Good**: Using lucide-react icons
+```tsx
+import { AlertTriangle, MessageSquare, Bell } from 'lucide-react'
+
+<AlertTriangle className="size-5 text-red-500" />
+<MessageSquare className="size-5 text-blue-500" />
+<Bell className="size-5 text-stone-500" />
+```
+
+### Icon Best Practices
+
+1. **Import from lucide-react**: Always import icons from 'lucide-react' package
+2. **Consistent sizing**: Use Tailwind size utilities (`size-4`, `size-5`, `size-6`)
+3. **Semantic colors**: Apply appropriate colors based on context (red for alerts, blue for info, etc.)
+4. **Accessibility**: Icons should have proper ARIA labels when used without text
+5. **Consistent stroke width**: Lucide icons have consistent stroke width across the set
+
+### Common Icon Mappings
+
+- **Alerts/Warnings**: `AlertTriangle`, `AlertCircle`, `AlertOctagon`
+- **Messages**: `MessageSquare`, `Mail`, `Inbox`
+- **Time/Reminders**: `Clock`, `Calendar`, `Timer`
+- **Announcements**: `Megaphone`, `Volume2`, `Radio`
+- **Actions**: `Plus`, `X`, `Check`, `Trash2`, `Edit`
+- **Navigation**: `ChevronRight`, `ChevronDown`, `ArrowRight`, `Menu`
+- **Status**: `CheckCircle`, `XCircle`, `Info`, `HelpCircle`
+
+### Example: Notification Type Icons
+
+```tsx
+const getTypeIcon = (type: string) => {
+  const iconClass = 'size-5 shrink-0'
+  switch (type) {
+    case 'alert':
+      return <AlertTriangle className={cn(iconClass, 'text-red-500')} />
+    case 'message':
+      return <MessageSquare className={cn(iconClass, 'text-blue-500')} />
+    case 'reminder':
+      return <Clock className={cn(iconClass, 'text-amber-500')} />
+    case 'announcement':
+      return <Megaphone className={cn(iconClass, 'text-purple-500')} />
+    default:
+      return <Bell className={cn(iconClass, 'text-stone-500')} />
+  }
+}
+```
+
 ## Tailwind CSS 4 Guidelines
 
 ### New Syntax (v4)
@@ -711,6 +771,46 @@ export function ChatView() {
   </div>
 </ScrollArea>
 ```
+
+### Popover with ScrollArea
+
+When using Popover components with scrollable content:
+
+```tsx
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { ScrollArea } from '@/components/ui/scroll-area'
+
+<Popover>
+  <PopoverTrigger asChild>
+    <Button>Open</Button>
+  </PopoverTrigger>
+  <PopoverContent side="right" align="start" className="w-80 p-0">
+    <div className="flex flex-col h-[480px]">
+      {/* Fixed header */}
+      <div className="flex-shrink-0 border-b px-4 py-3">
+        <h3>Header</h3>
+      </div>
+
+      {/* Scrollable content */}
+      <ScrollArea className="flex-1 min-h-0">
+        {/* Content */}
+      </ScrollArea>
+
+      {/* Fixed footer */}
+      <div className="flex-shrink-0 border-t px-4 py-2">
+        <Button>Close</Button>
+      </div>
+    </div>
+  </PopoverContent>
+</Popover>
+```
+
+**Key points:**
+- Use `side="right"` or `side="bottom"` depending on trigger position
+- Parent container needs fixed height (`h-[480px]`)
+- Header and footer use `flex-shrink-0`
+- ScrollArea uses `flex-1 min-h-0` to fill remaining space
+- Remove padding from PopoverContent (`p-0`) and apply to children
 
 ## Documentation Guidelines
 
