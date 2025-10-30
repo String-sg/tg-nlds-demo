@@ -25,6 +25,7 @@ import { cn } from '@/lib/utils'
 import { createClient } from '@/lib/supabase/client'
 import { getStudentAlerts, type StudentAlert } from '@/lib/supabase/queries'
 import { useUser } from '@/contexts/user-context'
+import { TodayScheduleWidget } from '@/components/timetable/today-schedule-widget'
 
 const actionButtons = [
   {
@@ -78,11 +79,6 @@ const getTodayDate = () => {
   const options: Intl.DateTimeFormatOptions = { weekday: 'short', month: 'short', day: 'numeric' }
   return today.toLocaleDateString('en-US', options)
 }
-
-const upcomingClassesData = [
-  { time: '11:15 AM', subject: 'Math 10B', room: 'Room 204' },
-  { time: '1:00 PM', subject: 'Math 9A', room: 'Room 201' },
-]
 
 // Fallback data for when no alerts are found
 const fallbackStudentAlertsData = [
@@ -190,36 +186,10 @@ export function HomeContent({ onNavigateToClassroom, onNavigateToExplore, onNavi
               gridTemplateRows: `minmax(${gridRowHeight}px, auto) minmax(${gridRowHeight}px, auto)`
             }}
           >
-            {/* Calendar & Upcoming Classes Widget */}
-            <Card className="flex h-full min-h-full flex-col rounded-2xl border-stone-200 bg-white shadow-sm py-0">
-              <button
-                onClick={() => window.location.href = '/calendar'}
-                className="flex h-full w-full cursor-pointer items-start gap-4 text-left transition-opacity hover:opacity-80"
-                style={{ padding: `${widgetPadding}px` }}
-              >
-                {/* Left: Day Display */}
-                <div className="flex flex-1 flex-col">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-red-600">
-                    {new Date().toLocaleDateString('en-US', { weekday: 'long' }).toUpperCase()}
-                  </p>
-                  <p className="text-5xl font-bold text-stone-900">
-                    {new Date().getDate()}
-                  </p>
-                  <p className="mt-4 text-xs text-stone-400">No events today</p>
-                </div>
-
-                {/* Right: Upcoming Classes */}
-                <div className="flex-1 space-y-2">
-                  <p className="text-xs font-medium uppercase tracking-wide text-stone-500">TOMORROW</p>
-                  {upcomingClassesData.map((classItem, index) => (
-                    <div key={index} className="bg-red-50 p-2 border-l-2 border-red-500">
-                      <p className="text-xs font-semibold text-stone-900">{classItem.subject}</p>
-                      <p className="text-[10px] text-red-600">{classItem.time}</p>
-                    </div>
-                  ))}
-                </div>
-              </button>
-            </Card>
+            {/* Today's Schedule Widget */}
+            <div className="rounded-2xl">
+              {userId && <TodayScheduleWidget teacherId={userId} maxLessons={3} />}
+            </div>
 
             {/* Podcast Widget - Large, spans 1 column on larger screens */}
             <Card className="flex h-full min-h-full flex-col rounded-2xl border-stone-200 bg-white shadow-sm md:row-span-2 py-0">

@@ -73,7 +73,7 @@ See [SETUP.md](./SETUP.md) for detailed instructions.
 **TL;DR:**
 
 1. Create Supabase project at [supabase.com](https://supabase.com)
-2. Add credentials to `.env.local`:
+2. Add credentials to `.env`:
    ```env
    NEXT_PUBLIC_SUPABASE_URL=your-url
    NEXT_PUBLIC_SUPABASE_ANON_KEY=your-key

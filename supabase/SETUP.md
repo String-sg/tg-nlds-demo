@@ -21,7 +21,7 @@ This guide explains how to set up and deploy the Supabase database for the MOE T
 
 ### 2. Configure Environment Variables
 
-Create a `.env.local` file in the project root:
+Create a `.env` file in the project root:
 
 ```env
 # Supabase Configuration

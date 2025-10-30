@@ -8,12 +8,12 @@ const { Client } = require('pg');
 const fs = require('fs');
 const path = require('path');
 
-// Read connection string from .env.local
-const envContent = fs.readFileSync(path.join(__dirname, '.env.local'), 'utf8');
+// Read connection string from .env
+const envContent = fs.readFileSync(path.join(__dirname, '.env'), 'utf8');
 const postgresUrlMatch = envContent.match(/POSTGRES_URL_NON_POOLING="([^"]+)"/);
 
 if (!postgresUrlMatch) {
-  console.error('❌ Could not find POSTGRES_URL_NON_POOLING in .env.local');
+  console.error('❌ Could not find POSTGRES_URL_NON_POOLING in .env');
   process.exit(1);
 }
 
