@@ -20,6 +20,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { comingSoonToast } from '@/lib/coming-soon-toast'
 
 interface TeachingContentProps {
   defaultTab?: 'marking' | 'lesson-planning' | 'homework' | 'timetable'
@@ -148,7 +149,7 @@ export function TeachingContent({ defaultTab = 'marking', teacherId = 'teacher@e
                 Manage your teaching tasks and resources
               </p>
             </div>
-            <Button size="sm">
+            <Button size="sm" onClick={() => comingSoonToast.feature('Quick action')}>
               <Plus className="mr-2 size-4" />
               Quick action
             </Button>
@@ -215,9 +216,18 @@ export function TeachingContent({ defaultTab = 'marking', teacherId = 'teacher@e
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem>Edit</DropdownMenuItem>
-                          <DropdownMenuItem>Duplicate</DropdownMenuItem>
-                          <DropdownMenuItem className="text-red-600">Delete</DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => comingSoonToast.feature('Edit assignment')}>
+                            Edit
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => comingSoonToast.feature('Duplicate assignment')}>
+                            Duplicate
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            className="text-red-600"
+                            onClick={() => comingSoonToast.feature('Delete assignment')}
+                          >
+                            Delete
+                          </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </div>
@@ -250,6 +260,7 @@ export function TeachingContent({ defaultTab = 'marking', teacherId = 'teacher@e
                           variant="ghost"
                           size="sm"
                           className="text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 font-medium"
+                          onClick={() => comingSoonToast.feature('Assignment marking')}
                         >
                           Enter
                           <ChevronRight className="ml-1 h-4 w-4" />

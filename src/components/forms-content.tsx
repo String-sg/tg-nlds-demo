@@ -20,6 +20,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { ScrollArea } from '@/components/ui/scroll-area'
+import { comingSoonToast } from '@/lib/coming-soon-toast'
 
 interface Template {
   id: string
@@ -201,7 +202,11 @@ export function FormsContent() {
                   {category.templates.map((template) => {
                     const Icon = template.icon
                     return (
-                      <Card key={template.id} className="group transition-shadow hover:shadow-md">
+                      <Card
+                        key={template.id}
+                        className="group cursor-pointer transition-shadow hover:shadow-md"
+                        onClick={() => comingSoonToast.form(template.title)}
+                      >
                         <CardHeader className="space-y-3 p-4">
                           <div className="flex items-start gap-3">
                             <div className={`rounded-lg p-2 ${template.color}`}>
