@@ -63,6 +63,8 @@ import { MessagesPageContent } from '@/components/messages/messages-page-content
 import { AnnouncementsContent } from '@/components/messages/announcements-content'
 import { FormsContent } from '@/components/forms-content'
 import { TeachingContent } from '@/components/teaching-content'
+import { LearningContent } from '@/components/learning-content'
+import { CommunityContent } from '@/components/community-content'
 import { TimetableTabContent } from '@/components/timetable/timetable-tab-content'
 import { CalendarContent } from '@/components/calendar-content'
 import { InboxProvider } from '@/contexts/inbox-context'
@@ -507,6 +509,22 @@ const TabContent = memo(function TabContent({
       ? currentUrl.split('/')[1] as 'marking' | 'lesson-planning' | 'homework' | 'timetable'
       : undefined
     return <TeachingContent defaultTab={tabFromUrl} teacherId={user?.user_id} />
+  }
+
+  if (currentUrl === 'learning' || currentUrl.startsWith('learning/')) {
+    // Extract tab from URL (e.g., 'learning/browse' -> 'browse')
+    const tabFromUrl = currentUrl.startsWith('learning/')
+      ? currentUrl.split('/')[1] as 'my-courses' | 'browse' | 'certificates'
+      : undefined
+    return <LearningContent defaultTab={tabFromUrl} />
+  }
+
+  if (currentUrl === 'community' || currentUrl.startsWith('community/')) {
+    // Extract tab from URL (e.g., 'community/my-posts' -> 'my-posts')
+    const tabFromUrl = currentUrl.startsWith('community/')
+      ? currentUrl.split('/')[1] as 'feed' | 'my-posts' | 'saved'
+      : undefined
+    return <CommunityContent defaultTab={tabFromUrl} />
   }
 
   if (currentUrl === 'calendar') {
