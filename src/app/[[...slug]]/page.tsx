@@ -36,7 +36,6 @@ import {
   ChevronDown,
   RotateCcw,
   Sparkle,
-  Bell,
   Presentation,
   Shield,
 } from 'lucide-react'
@@ -61,13 +60,15 @@ import { StudentProfile } from '@/components/student-profile'
 import { RecordsContent } from '@/components/records-content'
 import { ExploreContent } from '@/components/explore-content'
 import { MessagesPageContent } from '@/components/messages/messages-page-content'
-import { NotificationsContent } from '@/components/messages/notifications-content'
 import { AnnouncementsContent } from '@/components/messages/announcements-content'
 import { FormsContent } from '@/components/forms-content'
 import { TeachingContent } from '@/components/teaching-content'
 import { TimetableTabContent } from '@/components/timetable/timetable-tab-content'
 import { InboxProvider } from '@/contexts/inbox-context'
 import { SettingsContent } from '@/components/settings-content'
+import { NotificationBell } from '@/components/notifications/notification-bell'
+import { mockNotifications } from '@/lib/mock-data/notifications-data'
+import type { Notification } from '@/types/notification'
 import { ThemeSwitcher } from '@/components/theme-switcher'
 import { UserProvider, useUser } from '@/contexts/user-context'
 import { UserRoleProvider, useUserRole } from '@/contexts/user-role-context'
@@ -83,12 +84,12 @@ import {
 import {
   Sidebar,
   SidebarContent,
-  SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
   SidebarInset,
   SidebarMenu,
+  SidebarMenuAction,
   SidebarMenuBadge,
   SidebarMenuButton,
   SidebarMenuItem,
@@ -119,7 +120,6 @@ const primaryPages = [
   { key: 'inbox', label: 'Parents & Communications', icon: Presentation, tooltip: 'Parents & Communications' },
   { key: 'calendar', label: 'Timetable', icon: CalendarDays, tooltip: 'Timetable' },
   { key: 'forms', label: 'Forms', icon: FileText, tooltip: 'Forms' },
-  { key: 'notifications', label: 'Notifications', icon: Bell, tooltip: 'Notifications' },
   { key: 'explore', label: 'All Apps', icon: Compass, tooltip: 'All Apps' },
 ] as const
 
@@ -263,13 +263,6 @@ const emptyStates: Record<TabKey, EmptyState> = {
     description:
       'Important updates and alerts will appear here when they are available.',
     icon: MessageSquare,
-  },
-  notifications: {
-    heading: 'Notifications',
-    title: 'No notifications yet',
-    description:
-      'You&apos;ll see notifications here when there are important updates, alerts, or messages that require your attention.',
-    icon: Bell,
   },
   recents: {
     heading: 'Recents',
@@ -551,10 +544,6 @@ const TabContent = memo(function TabContent({
 
   if (currentUrl === 'announcements') {
     return <AnnouncementsContent />
-  }
-
-  if (currentUrl === 'notifications') {
-    return <NotificationsContent />
   }
 
   if (typeof currentUrl === 'string' && currentUrl.startsWith('classroom/') && currentUrl.includes('/student/')) {
@@ -976,6 +965,9 @@ export default function Home() {
   const classroomNamesRef = useRef<Map<string, string>>(new Map()) // Ref for immediate access to class names
   const [pendingAssistantMessage, setPendingAssistantMessage] = useState<string | null>(null)
   const tabContainerRef = useRef<HTMLDivElement>(null)
+
+  // Notification state
+  const [notifications, setNotifications] = useState<Notification[]>(mockNotifications)
 
   // Helper to determine if a tab is a top-level page
   const isTopLevelTab = (tabKey: string): boolean => {
@@ -1755,6 +1747,30 @@ export default function Home() {
     router.push('/new-tab', { scroll: false })
   }
 
+  // Notification handlers
+  const handleMarkAsRead = useCallback((id: string) => {
+    setNotifications((prev) =>
+      prev.map((notif) => (notif.id === id ? { ...notif, read: true } : notif))
+    )
+  }, [])
+
+  const handleMarkAllAsRead = useCallback(() => {
+    setNotifications((prev) => prev.map((notif) => ({ ...notif, read: true })))
+  }, [])
+
+  const handleNotificationClick = useCallback(
+    (notification: Notification) => {
+      if (notification.actionUrl) {
+        const cleanUrl = notification.actionUrl.replace(/^\//, '')
+        // Only navigate if it's a valid ClosableTabKey (not 'new-tab')
+        if (cleanUrl !== 'new-tab') {
+          handleNavigate(cleanUrl as ClosableTabKey)
+        }
+      }
+    },
+    [handleNavigate]
+  )
+
   const handleAssistantButtonClick = useCallback(() => {
     if (assistantMode === 'floating') {
       setIsAssistantOpen((previous) => !previous)
@@ -1866,14 +1882,68 @@ export default function Home() {
       <Sidebar variant="inset" collapsible="icon">
         <SidebarContent className="gap-6">
           <SidebarGroup className="group-data-[collapsible=icon]:pb-0">
+            {/* 3-Column Header: Toggle | Profile | Notifications */}
             <SidebarMenu>
               <SidebarMenuItem>
-                <SidebarMenuButton onClick={toggleSidebar} tooltip="Toggle Sidebar">
-                  <PanelLeft className="size-4" />
-                  <span className="font-medium">Tan&apos;s Workspace</span>
-                </SidebarMenuButton>
+                <div className="grid grid-cols-[auto_1fr_auto] gap-2 w-full group-data-[collapsible=icon]:grid-cols-1 group-data-[collapsible=icon]:gap-0">
+
+                  {/* Column 1: Toggle Button - Icon Only */}
+                  <SidebarMenuButton
+                    onClick={toggleSidebar}
+                    tooltip="Toggle Sidebar"
+                    size="sm"
+                    className="w-8 px-0 justify-center group-data-[collapsible=icon]:w-full"
+                  >
+                    <PanelLeft className="size-4" />
+                  </SidebarMenuButton>
+
+                  {/* Column 2: Profile with Dropdown - Text Only (Expanded), Avatar (Collapsed) */}
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <SidebarMenuButton
+                        isActive={isProfileActive || isSettingsActive}
+                        tooltip="Account"
+                        size="sm"
+                        className="justify-between group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0"
+                      >
+                        {/* Expanded: Show name only */}
+                        <span className="flex-1 truncate text-left group-data-[collapsible=icon]:hidden">
+                          Daniel Tan
+                        </span>
+                        <ChevronDown className="size-3 opacity-50 group-data-[collapsible=icon]:hidden" />
+
+                        {/* Collapsed: Show avatar only */}
+                        <div className="hidden group-data-[collapsible=icon]:flex size-5 shrink-0 items-center justify-center rounded-full bg-sidebar-primary text-[10px] font-semibold text-sidebar-primary-foreground">
+                          DT
+                        </div>
+                      </SidebarMenuButton>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="start" side="right" className="w-48">
+                      <DropdownMenuItem onClick={() => handleNavigate(profileTabConfig.key)}>
+                        <User className="mr-2 size-4" />
+                        <span>Profile</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleNavigate(settingsTabConfig.key)}>
+                        <Settings className="mr-2 size-4" />
+                        <span>Settings</span>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+
+                  {/* Column 3: Notifications - Icon Only with Badge */}
+                  <NotificationBell
+                    notifications={notifications}
+                    onMarkAsRead={handleMarkAsRead}
+                    onMarkAllAsRead={handleMarkAllAsRead}
+                    onNotificationClick={handleNotificationClick}
+                    compact={true}
+                  />
+                </div>
               </SidebarMenuItem>
             </SidebarMenu>
+
+            <SidebarSeparator className="mx-0 my-2 w-full" />
+
             <SidebarGroupContent className="mt-2">
               {/* Home - No section title */}
               <SidebarMenu>
@@ -1964,7 +2034,7 @@ export default function Home() {
               <div className="space-y-1">
                 <SidebarGroupLabel className="text-xs">School Life</SidebarGroupLabel>
                 <SidebarMenu>
-                  {[primaryPages[8], primaryPages[9], primaryPages[10], primaryPages[11]].map((page) => {
+                  {[primaryPages[8], primaryPages[9], primaryPages[10]].map((page) => {
                     const Icon = page.icon
                     const isInbox = page.key === 'inbox'
 
@@ -2019,7 +2089,7 @@ export default function Home() {
 
               {/* All apps - standalone */}
               <SidebarMenu>
-                {[primaryPages[12]].map((page) => {
+                {[primaryPages.find(p => p.key === 'explore')].filter((page): page is NonNullable<typeof page> => page !== undefined).map((page) => {
                   const Icon = page.icon
 
                   return (
@@ -2040,44 +2110,6 @@ export default function Home() {
             </SidebarGroupContent>
           </SidebarGroup>
         </SidebarContent>
-
-        <SidebarFooter>
-          <div className="flex gap-2 group-data-[collapsible=icon]:flex-col group-data-[collapsible=icon]:gap-1">
-            <SidebarMenu className="flex-1 group-data-[collapsible=icon]:flex-none">
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  onClick={() => handleNavigate(profileTabConfig.key)}
-                  isActive={isProfileActive}
-                  tooltip="View profile"
-                >
-                  <div className="flex size-4 shrink-0 items-center justify-center rounded-full bg-sidebar-primary text-[10px] font-semibold text-sidebar-primary-foreground">
-                    DT
-                  </div>
-                  <span>Daniel Tan</span>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </SidebarMenu>
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => handleNavigate(settingsTabConfig.key)}
-                    className={cn(
-                      "h-8 w-8 shrink-0 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground group-data-[collapsible=icon]:w-full",
-                      isSettingsActive && "bg-sidebar-accent text-sidebar-accent-foreground"
-                    )}
-                    aria-label="Settings"
-                  >
-                    <Settings className="size-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent side="top">Settings</TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          </div>
-        </SidebarFooter>
       </Sidebar>
 
       <SidebarInset className="overflow-x-clip">
