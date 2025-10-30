@@ -88,7 +88,6 @@ export function NotificationBell({
       <PopoverTrigger asChild>
         <SidebarMenuButton
           tooltip="Notifications"
-          size="sm"
           className={cn(
             compact
               ? 'w-8 px-0 justify-center'
