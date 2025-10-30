@@ -395,6 +395,8 @@ const TabContent = memo(function TabContent({
   classroomNamesRef,
   router: routerProp,
   user,
+  selectedExploreApp,
+  setSelectedExploreApp,
 }: {
   activeTab: TabKey
   currentUrl: string
@@ -429,6 +431,8 @@ const TabContent = memo(function TabContent({
   classroomNamesRef: React.MutableRefObject<Map<string, string>>
   router: ReturnType<typeof useRouter>
   user: any
+  selectedExploreApp: string | null
+  setSelectedExploreApp: React.Dispatch<React.SetStateAction<string | null>>
 }) {
   // Account role management
   const { role, setRole } = useUserRole()
@@ -484,7 +488,12 @@ const TabContent = memo(function TabContent({
   }
 
   if (currentUrl === 'explore') {
-    return <ExploreContent onAppClick={(appKey) => handleNavigate(appKey as ClosableTabKey)} />
+    return (
+      <ExploreContent
+        onAppSelected={setSelectedExploreApp}
+        clearSelection={selectedExploreApp === null}
+      />
+    )
   }
 
   if (currentUrl === 'classroom') {
@@ -979,6 +988,7 @@ export default function Home() {
   const [classroomTabs, setClassroomTabs] = useState<Map<string, string>>(new Map())
   const [classroomNames, setClassroomNames] = useState<Map<string, string>>(new Map()) // Cache class names
   const [closingTabs, setClosingTabs] = useState<Set<string>>(new Set()) // Track tabs being closed
+  const [selectedExploreApp, setSelectedExploreApp] = useState<string | null>(null) // Track selected app in explore page
   const studentProfileTabsRef = useRef<Map<string, string>>(new Map()) // Ref for immediate access
   const classroomTabsRef = useRef<Map<string, string>>(new Map()) // Ref for immediate access
   const classroomNamesRef = useRef<Map<string, string>>(new Map()) // Ref for immediate access to class names
@@ -1278,12 +1288,22 @@ export default function Home() {
     router.push(newPath, { scroll: false })
   }
 
+  // Wrapper for breadcrumb navigation to handle explore app selection reset
+  const handleBreadcrumbNavigate = useCallback((path: string) => {
+    if (path === 'explore' && selectedExploreApp) {
+      // Clear selected app when navigating back to explore list
+      setSelectedExploreApp(null)
+    }
+    handleNavigate(path as ClosableTabKey)
+  }, [selectedExploreApp, handleNavigate])
+
   // Get breadcrumbs for current tab
   const { breadcrumbs: pageBreadcrumbs, isLoading: breadcrumbsLoading } = useRouteBreadcrumbs({
     currentUrl: currentUrl as string,
-    onNavigate: (path) => handleNavigate(path as ClosableTabKey),
+    onNavigate: handleBreadcrumbNavigate,
     studentProfileTabs,
     classroomNames: classroomTabs,
+    selectedExploreApp,
   })
 
   const handleOpenGrades = useCallback((classId: string) => {
@@ -2540,6 +2560,8 @@ export default function Home() {
                   classroomNamesRef={classroomNamesRef}
                   router={router}
                   user={user}
+                  selectedExploreApp={selectedExploreApp}
+                  setSelectedExploreApp={setSelectedExploreApp}
                 />
               </div>
             </div>

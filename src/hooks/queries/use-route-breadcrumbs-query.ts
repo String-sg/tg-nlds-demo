@@ -17,6 +17,7 @@ interface UseBreadcrumbsConfig {
   onNavigate?: (path: string, replaceTab?: boolean) => void
   studentProfileTabs?: Map<string, string>
   classroomNames?: Map<string, string>
+  selectedExploreApp?: string | null
 }
 
 /**
@@ -247,9 +248,20 @@ function generateBreadcrumbs(
         breadcrumbs.push({
           label: 'All Apps',
           path: 'explore',
-          isActive: isLast,
-          onClick: onNavigate && !isLast ? () => onNavigate('explore') : undefined,
+          isActive: isLast && !config.selectedExploreApp,
+          // Make clickable if viewing an app detail (to go back to list)
+          onClick: onNavigate && (!isLast || config.selectedExploreApp) ? () => onNavigate('explore') : undefined,
         })
+
+        // If there's a selected app, add it as another breadcrumb
+        if (config.selectedExploreApp) {
+          breadcrumbs.push({
+            label: config.selectedExploreApp,
+            path: 'explore/app',
+            isActive: true,
+            onClick: undefined, // Can't navigate directly to app detail
+          })
+        }
         break
 
       default:
