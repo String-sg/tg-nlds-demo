@@ -1,0 +1,9 @@
+{
+  "scripts": {
+    "setup": "./conductor-setup.sh",
+    "run": {
+      "command": "npm run dev",
+      "nonconcurrent": true
+    }
+  }
+}
