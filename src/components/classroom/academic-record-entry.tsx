@@ -276,14 +276,14 @@ export function AcademicRecordEntry({ classId, className, subject, onBack }: Aca
                     <th className="px-4 py-2"></th>
                     <th className="px-4 py-2"></th>
                     {ASSESSMENT_COMPONENTS.map(component => (
-                      <>
-                        <th key={`${component.id}-score`} className="px-2 py-2 text-center text-xs font-medium text-stone-500 border-l border-stone-200">
+                      <React.Fragment key={component.id}>
+                        <th className="px-2 py-2 text-center text-xs font-medium text-stone-500 border-l border-stone-200">
                           Score
                         </th>
-                        <th key={`${component.id}-pct`} className="px-2 py-2 text-center text-xs font-medium text-stone-500">
+                        <th className="px-2 py-2 text-center text-xs font-medium text-stone-500">
                           Score %
                         </th>
-                      </>
+                      </React.Fragment>
                     ))}
                     <th className="px-2 py-2 text-center text-xs font-medium text-stone-500 border-l border-stone-200 bg-blue-50">
                       Total
