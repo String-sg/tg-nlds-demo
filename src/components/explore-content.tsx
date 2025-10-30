@@ -39,7 +39,6 @@ import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/ca
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
 import { AppDetail } from '@/components/explore/app-detail'
 import { comingSoonToast } from '@/lib/coming-soon-toast'
 
@@ -1344,17 +1343,32 @@ export function ExploreContent({ onAppClick }: ExploreContentProps = {}) {
     })
   }, [filteredApps])
 
+  // If an app is selected, show the detail view
+  if (selectedApp) {
+    return (
+      <div className="h-full w-full">
+        <AppDetail
+          app={selectedApp}
+          onClose={() => {
+            console.log('Returning to app list')
+            setSelectedApp(null)
+          }}
+        />
+      </div>
+    )
+  }
+
+  // Otherwise, show the app list
   return (
-    <>
-      <ScrollArea className="h-full w-full">
-        <div className="mx-auto w-full max-w-5xl space-y-8 px-8 py-10">
-          {/* Page Header */}
-          <div className="space-y-2">
-            <h1 className="text-3xl font-bold text-stone-900">Discover</h1>
-            <p className="text-base text-stone-600">
-              Find all MOE digital solutions for educator related jobs
-            </p>
-          </div>
+    <ScrollArea className="h-full w-full">
+      <div className="mx-auto w-full max-w-5xl space-y-8 px-8 py-10">
+        {/* Page Header */}
+        <div className="space-y-2">
+          <h1 className="text-3xl font-bold text-stone-900">Discover</h1>
+          <p className="text-base text-stone-600">
+            Find all MOE digital solutions for educator related jobs
+          </p>
+        </div>
 
           {/* Search Bar */}
           <div className="space-y-3">
@@ -1468,34 +1482,5 @@ export function ExploreContent({ onAppClick }: ExploreContentProps = {}) {
           )}
         </div>
       </ScrollArea>
-
-      {/* App Detail Dialog - Outside ScrollArea for proper portal behavior */}
-      <Dialog
-        open={selectedApp !== null}
-        onOpenChange={(open) => {
-          console.log('Dialog onOpenChange:', open, 'selectedApp:', selectedApp?.name)
-          if (!open) setSelectedApp(null)
-        }}
-      >
-        <DialogContent className="h-[90vh] max-w-4xl p-0" showCloseButton={false}>
-          {/* Visually hidden title for accessibility */}
-          <DialogTitle className="sr-only">
-            {selectedApp?.name || 'App Details'}
-          </DialogTitle>
-
-          {selectedApp ? (
-            <AppDetail
-              app={selectedApp}
-              onClose={() => {
-                console.log('AppDetail onClose called')
-                setSelectedApp(null)
-              }}
-            />
-          ) : (
-            <div>No app selected</div>
-          )}
-        </DialogContent>
-      </Dialog>
-    </>
   )
 }
