@@ -25,6 +25,7 @@ import { cn } from '@/lib/utils'
 import { createClient } from '@/lib/supabase/client'
 import { getStudentAlerts, type StudentAlert } from '@/lib/supabase/queries'
 import { useUser } from '@/contexts/user-context'
+import { comingSoonToast } from '@/lib/coming-soon-toast'
 
 const actionButtons = [
   {
@@ -242,7 +243,10 @@ export function HomeContent({ onNavigateToClassroom, onNavigateToExplore, onNavi
                 </div>
 
                 {/* Play Button - pushed to bottom */}
-                <Button className="mt-auto h-9 w-full rounded-lg bg-stone-900 text-sm text-white hover:bg-stone-800">
+                <Button
+                  className="mt-auto h-9 w-full rounded-lg bg-stone-900 text-sm text-white hover:bg-stone-800"
+                  onClick={() => comingSoonToast.feature('Podcast player')}
+                >
                   <Play className="mr-1.5 h-3.5 w-3.5 fill-current" />
                   Play now
                 </Button>

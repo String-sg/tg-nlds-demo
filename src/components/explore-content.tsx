@@ -21,6 +21,7 @@ import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/ca
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { ScrollArea } from '@/components/ui/scroll-area'
+import { comingSoonToast } from '@/lib/coming-soon-toast'
 
 interface App {
   key: string
@@ -250,7 +251,10 @@ export function ExploreContent({ onAppClick }: ExploreContentProps = {}) {
                     <Card
                       key={app.key}
                       className="group cursor-pointer overflow-hidden rounded-2xl border-stone-200 bg-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
-                      onClick={() => onAppClick?.(app.key)}
+                      onClick={() => {
+                        comingSoonToast.app(app.name)
+                        onAppClick?.(app.key)
+                      }}
                     >
                       <CardHeader className="p-4">
                         <div className="flex items-start gap-3">

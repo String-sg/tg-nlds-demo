@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from 'next/font/google'
 
 import { ThemeProvider } from '@/components/theme-provider'
 import { SidebarProvider } from '@/components/ui/sidebar'
+import { Toaster } from '@/components/ui/sonner'
 import { QueryProvider } from '@/providers/query-provider'
 import { FontSizeProvider } from '@/contexts/font-size-context'
 import { AccessibilityProvider } from '@/contexts/accessibility-context'
@@ -75,6 +76,7 @@ export default function RootLayout({
                   </UserRoleProvider>
                 </UserProvider>
               </QueryProvider>
+              <Toaster />
             </ThemeProvider>
           </AccessibilityProvider>
         </FontSizeProvider>
