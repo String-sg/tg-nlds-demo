@@ -142,7 +142,7 @@ export function TeachingContent({ defaultTab = 'marking', teacherId = 'teacher@e
       {/* Header */}
       <div className="border-b bg-background px-6 py-4">
         <div className="mx-auto w-full max-w-5xl">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between mb-6">
             <div>
               <h1 className="text-2xl font-semibold tracking-tight">Teaching</h1>
               <p className="text-sm text-muted-foreground">
@@ -154,14 +154,8 @@ export function TeachingContent({ defaultTab = 'marking', teacherId = 'teacher@e
               Quick action
             </Button>
           </div>
-        </div>
-      </div>
-
-      {/* Tabs Content */}
-      <div className="flex-1 overflow-y-auto">
-        <div className="mx-auto w-full max-w-5xl px-6 py-6">
           <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-            <TabsList className="mb-6">
+            <TabsList>
               <TabsTrigger value="marking">
                 <CheckSquare className="mr-2 size-4" />
                 Marking
@@ -179,9 +173,16 @@ export function TeachingContent({ defaultTab = 'marking', teacherId = 'teacher@e
                 Timetable
               </TabsTrigger>
             </TabsList>
+          </Tabs>
+        </div>
+      </div>
 
+      {/* Tabs Content */}
+      <div className="flex-1 overflow-y-auto">
+        <div className="mx-auto w-full max-w-5xl px-6 py-6">
+          <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
             {/* Marking Tab */}
-            <TabsContent value="marking" className="space-y-6">
+            <TabsContent value="marking" className="space-y-6 mt-0">
               {/* Class Selector */}
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
@@ -396,7 +397,7 @@ export function TeachingContent({ defaultTab = 'marking', teacherId = 'teacher@e
             </TabsContent>
 
             {/* Timetable Tab */}
-            <TabsContent value="timetable" className="h-full">
+            <TabsContent value="timetable" className="h-full mt-0">
               <TimetableTabContent teacherId={teacherId} />
             </TabsContent>
           </Tabs>

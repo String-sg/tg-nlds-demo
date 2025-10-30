@@ -1885,13 +1885,12 @@ export default function Home() {
             {/* 3-Column Header: Toggle | Profile | Notifications */}
             <SidebarMenu>
               <SidebarMenuItem>
-                <div className="grid grid-cols-[auto_1fr_auto] gap-2 w-full group-data-[collapsible=icon]:grid-cols-1 group-data-[collapsible=icon]:gap-0">
+                <div className="grid grid-cols-[auto_1fr_auto] w-full group-data-[collapsible=icon]:grid-cols-1">
 
                   {/* Column 1: Toggle Button - Icon Only */}
                   <SidebarMenuButton
                     onClick={toggleSidebar}
                     tooltip="Toggle Sidebar"
-                    size="sm"
                     className="w-8 px-0 justify-center group-data-[collapsible=icon]:w-full"
                   >
                     <PanelLeft className="size-4" />
@@ -1903,7 +1902,6 @@ export default function Home() {
                       <SidebarMenuButton
                         isActive={isProfileActive || isSettingsActive}
                         tooltip="Account"
-                        size="sm"
                         className="justify-between group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0"
                       >
                         {/* Expanded: Show name only */}
@@ -1973,7 +1971,7 @@ export default function Home() {
 
               {/* Classroom management section */}
               <div className="space-y-1">
-                <SidebarGroupLabel className="text-xs">Classroom Management</SidebarGroupLabel>
+                <SidebarGroupLabel className="text-sm">Classroom Management</SidebarGroupLabel>
                 <SidebarMenu>
                   {[primaryPages[1], primaryPages[3]].map((page) => {
                     const Icon = page.icon
@@ -2004,7 +2002,7 @@ export default function Home() {
               {role === 'year-head' && (
                 <>
                   <div className="space-y-1">
-                    <SidebarGroupLabel className="text-xs">School Management</SidebarGroupLabel>
+                    <SidebarGroupLabel className="text-sm">School Management</SidebarGroupLabel>
                     <SidebarMenu>
                       {[primaryPages[2]].map((page) => {
                         const Icon = page.icon
@@ -2032,7 +2030,7 @@ export default function Home() {
 
               {/* School life section */}
               <div className="space-y-1">
-                <SidebarGroupLabel className="text-xs">School Life</SidebarGroupLabel>
+                <SidebarGroupLabel className="text-sm">School Life</SidebarGroupLabel>
                 <SidebarMenu>
                   {[primaryPages[8], primaryPages[9], primaryPages[10]].map((page) => {
                     const Icon = page.icon
@@ -2063,7 +2061,7 @@ export default function Home() {
 
               {/* Professional development section */}
               <div className="space-y-1">
-                <SidebarGroupLabel className="text-xs">Professional Development</SidebarGroupLabel>
+                <SidebarGroupLabel className="text-sm">Professional Development</SidebarGroupLabel>
                 <SidebarMenu>
                   {[primaryPages[4], primaryPages[5]].map((page) => {
                     const Icon = page.icon

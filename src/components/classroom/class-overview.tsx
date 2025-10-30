@@ -125,19 +125,16 @@ export function ClassOverview({ classId, onBack, onNavigateToGrades, onStudentCl
       <PageLayout
         title=""
         subtitle={
-          <div className="flex items-center gap-3">
-            <Skeleton className="h-12 w-12 rounded-lg" />
-            <div className="flex items-center gap-2">
-              <Skeleton className="h-8 w-40" />
-              <Skeleton className="h-6 w-20" />
-            </div>
+          <div className="space-y-2">
+            <Skeleton className="h-8 w-64" />
+            <Skeleton className="h-6 w-24" />
           </div>
         }
         contentClassName="px-6 py-6"
         headerClassName="border-b-0"
       >
         <div className="mx-auto w-full max-w-5xl space-y-6">
-          {/* Quick Pulse Skeleton */}
+          {/* Insights Skeleton */}
           <div className="space-y-3">
             <Skeleton className="h-6 w-32" />
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -227,18 +224,9 @@ export function ClassOverview({ classId, onBack, onNavigateToGrades, onStudentCl
 
   // Title with badge and info button
   const titleElement = (
-    <div className="flex items-center gap-3">
-      <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-blue-100 text-lg font-bold text-blue-700">
-        {classData.class_name}
-      </div>
+    <div className="space-y-2">
       <div className="flex items-center gap-2">
         <span className="text-2xl font-semibold">Class {classData.class_name}</span>
-        {isFormClass && (
-          <Badge variant="secondary" className="bg-blue-100 text-blue-800 border-blue-300">
-            <HomeIcon className="h-3 w-3 mr-1" />
-            Form Class
-          </Badge>
-        )}
         <Button
           variant="ghost"
           size="sm"
@@ -248,6 +236,12 @@ export function ClassOverview({ classId, onBack, onNavigateToGrades, onStudentCl
           <InfoIcon className="h-4 w-4" />
         </Button>
       </div>
+      {isFormClass && (
+        <Badge variant="secondary" className="bg-blue-100 text-blue-800 border-blue-300 w-fit">
+          <HomeIcon className="h-3 w-3 mr-1" />
+          Form Class
+        </Badge>
+      )}
     </div>
   )
 
@@ -327,10 +321,10 @@ export function ClassOverview({ classId, onBack, onNavigateToGrades, onStudentCl
         </DialogContent>
       </Dialog>
 
-      {/* Quick pulse - Natural Language Summary */}
+      {/* Insights - Natural Language Summary */}
       {stats && (
         <div className="space-y-3">
-          <h2 className="text-lg font-semibold text-stone-900">Quick pulse</h2>
+          <h2 className="text-lg font-semibold text-stone-900">Insights</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {/* Attendance */}
             <Card className="border-stone-200">
