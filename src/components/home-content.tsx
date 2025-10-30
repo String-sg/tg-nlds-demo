@@ -111,12 +111,12 @@ interface HomeContentProps {
   onAssistantMessage?: (message: string) => void
   onStudentClick?: (studentName: string) => void
   onStudentClickWithClass?: (classId: string, studentName: string) => void
-  onNavigateToPulse?: () => void
+  onNavigateToDailyRoundup?: () => void
   onEditWidgets?: () => void
   renderPageActions?: () => React.ReactNode
 }
 
-export function HomeContent({ onNavigateToClassroom, onNavigateToExplore, onNavigateToAttendance, onNavigateToRecordResults, onNavigateToLearn, onNavigateToInbox, onNavigateToTeachingMarking, onNavigateToTeachingLessonPlanning, onAssistantMessage, onStudentClick, onStudentClickWithClass, onNavigateToPulse, onEditWidgets, renderPageActions }: HomeContentProps = {}) {
+export function HomeContent({ onNavigateToClassroom, onNavigateToExplore, onNavigateToAttendance, onNavigateToRecordResults, onNavigateToLearn, onNavigateToInbox, onNavigateToTeachingMarking, onNavigateToTeachingLessonPlanning, onAssistantMessage, onStudentClick, onStudentClickWithClass, onNavigateToDailyRoundup, onEditWidgets, renderPageActions }: HomeContentProps = {}) {
   const [assistantInput, setAssistantInput] = useState('')
   const [gridRowHeight] = useState(156)
   const [widgetPadding] = useState(16)

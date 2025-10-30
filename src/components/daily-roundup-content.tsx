@@ -5,12 +5,12 @@ import { SparklesIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { comingSoonToast } from '@/lib/coming-soon-toast'
 
-interface PulseContentProps {
+interface DailyRoundupContentProps {
   onPrepForMeeting?: () => void
   onComplete?: () => void
 }
 
-interface PulseItem {
+interface DailyRoundupItem {
   id: string
   badge: string
   title: string
@@ -24,7 +24,7 @@ interface PulseItem {
   }[]
 }
 
-const mockPulseItems: PulseItem[] = [
+const mockDailyRoundupItems: DailyRoundupItem[] = [
   {
     id: '1',
     badge: 'Parents Engagement',
@@ -70,7 +70,7 @@ const mockPulseItems: PulseItem[] = [
   },
 ]
 
-export function PulseContent({ onPrepForMeeting, onComplete }: PulseContentProps) {
+export function DailyRoundupContent({ onPrepForMeeting, onComplete }: DailyRoundupContentProps) {
   const [currentIndex, setCurrentIndex] = useState(0)
   const visualGap = 24
   const scaleStep = 0.035
@@ -78,7 +78,7 @@ export function PulseContent({ onPrepForMeeting, onComplete }: PulseContentProps
   const isScrollingRef = useRef(false)
 
   // Update the first roundup item's action onClick
-  const roundupItems = mockPulseItems.map((item) => {
+  const roundupItems = mockDailyRoundupItems.map((item) => {
     if (item.id === '1') {
       return {
         ...item,
@@ -103,7 +103,7 @@ export function PulseContent({ onPrepForMeeting, onComplete }: PulseContentProps
       // Detect scroll direction
       if (e.deltaY > 0) {
         // Scroll down - next card
-        if (currentIndex < mockPulseItems.length - 1) {
+        if (currentIndex < mockDailyRoundupItems.length - 1) {
           isScrollingRef.current = true
           setCurrentIndex((prev) => prev + 1)
           setTimeout(() => {
@@ -169,7 +169,7 @@ export function PulseContent({ onPrepForMeeting, onComplete }: PulseContentProps
       <div className="absolute left-1/2 top-8 z-50 -translate-x-1/2">
         <div className="rounded-md bg-stone-100 px-2.5 py-0.5">
           <span className="text-xs font-semibold text-stone-900">
-            {mockPulseItems.length - currentIndex} left
+            {mockDailyRoundupItems.length - currentIndex} left
           </span>
         </div>
       </div>
@@ -243,7 +243,7 @@ export function PulseContent({ onPrepForMeeting, onComplete }: PulseContentProps
           size="sm"
           className="h-9 rounded-xl border-stone-300 px-4 py-2 text-sm font-medium text-stone-800"
           onClick={() => {
-            if (currentIndex < mockPulseItems.length - 1) {
+            if (currentIndex < mockDailyRoundupItems.length - 1) {
               setCurrentIndex((prev) => prev + 1)
             } else {
               // On last card, call onComplete
@@ -258,7 +258,7 @@ export function PulseContent({ onPrepForMeeting, onComplete }: PulseContentProps
           size="sm"
           className="h-9 rounded-xl bg-zinc-900 px-4 py-2 text-sm font-medium text-neutral-50 hover:bg-zinc-800"
           onClick={() => {
-            if (currentIndex < mockPulseItems.length - 1) {
+            if (currentIndex < mockDailyRoundupItems.length - 1) {
               setCurrentIndex((prev) => prev + 1)
             } else {
               // On last card, call onComplete
