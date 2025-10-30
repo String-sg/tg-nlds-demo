@@ -83,12 +83,12 @@ function generateBreadcrumbs(
         }
         break
 
-      case 'pulse':
+      case 'daily-roundup':
         breadcrumbs.push({
-          label: 'Pulse',
-          path: 'pulse',
+          label: 'Daily Roundup',
+          path: 'daily-roundup',
           isActive: isLast,
-          onClick: onNavigate && !isLast ? () => onNavigate('pulse') : undefined,
+          onClick: onNavigate && !isLast ? () => onNavigate('daily-roundup') : undefined,
         })
         break
 

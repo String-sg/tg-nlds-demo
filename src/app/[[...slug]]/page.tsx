@@ -50,7 +50,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
 import { HomeContent } from '@/components/home-content'
-import { PulseContent } from '@/components/pulse-content'
+import { DailyRoundupContent } from '@/components/daily-roundup-content'
 import { SchoolDashboard } from '@/components/school-dashboard'
 import { MyClasses } from '@/components/classroom/my-classes'
 import { ClassOverview } from '@/components/classroom/class-overview'
@@ -160,10 +160,10 @@ type SettingsTabKey = typeof settingsTabConfig['key']
 type AssistantTabKey = typeof assistantTabConfig['key']
 type StudentProfileTabKey = `student-${string}` // Dynamic student profile tabs (standalone)
 type ClassroomTabKey = `classroom/${string}` // Dynamic classroom tabs with forward slash
-type PulseTabKey = 'pulse' // Pulse is a child of Home
+type DailyRoundupTabKey = 'daily-roundup' // Daily Roundup is a child of Home
 type LegacyTabKey = 'records' | 'recents' // Legacy tab keys for backward compatibility
 type PageKey = PrimaryPageKey | ProfileTabKey | SettingsTabKey
-type ClosableTabKey = PageKey | AssistantTabKey | StudentProfileTabKey | ClassroomTabKey | PulseTabKey | LegacyTabKey
+type ClosableTabKey = PageKey | AssistantTabKey | StudentProfileTabKey | ClassroomTabKey | DailyRoundupTabKey | LegacyTabKey
 type TabKey = typeof newTabConfig['key'] | ClosableTabKey
 type PageConfig = (typeof primaryPages)[number] | typeof profileTabConfig | typeof settingsTabConfig
 type TabConfig = PageConfig | typeof newTabConfig | typeof assistantTabConfig
@@ -202,8 +202,8 @@ const emptyStates: Record<TabKey, EmptyState> = {
       'Open a page from the sidebar or start with a preselected one to jump into your workspace.',
     icon: Plus,
   },
-  pulse: {
-    heading: 'Pulse',
+  'daily-roundup': {
+    heading: 'Daily Roundup',
     title: 'No highlights yet',
     description:
       'Summaries and noteworthy updates from your team will appear here once activity picks up.',
@@ -386,7 +386,7 @@ const TabContent = memo(function TabContent({
   handleNavigateToRecordResults,
   handleNavigateToLearn,
   handleNavigateToInbox,
-  handlePulseDismiss,
+  handleDailyRoundupDismiss,
   setIsAssistantOpen,
   handleAssistantModeChange,
   setClassroomTabs,
@@ -420,7 +420,7 @@ const TabContent = memo(function TabContent({
   handleNavigateToRecordResults: () => void
   handleNavigateToLearn: () => void
   handleNavigateToInbox: () => void
-  handlePulseDismiss: () => void
+  handleDailyRoundupDismiss: () => void
   setIsAssistantOpen: (open: boolean) => void
   handleAssistantModeChange: (mode: AssistantMode | 'full') => void
   setClassroomTabs: React.Dispatch<React.SetStateAction<Map<string, string>>>
@@ -456,8 +456,8 @@ const TabContent = memo(function TabContent({
     )
   }
 
-  if (currentUrl === 'pulse') {
-    return <PulseContent onPrepForMeeting={() => handleNavigate('classroom')} onComplete={handlePulseDismiss} />
+  if (currentUrl === 'daily-roundup') {
+    return <DailyRoundupContent onPrepForMeeting={() => handleNavigate('classroom')} onComplete={handleDailyRoundupDismiss} />
   }
 
   if (currentUrl === 'home') {
@@ -471,7 +471,7 @@ const TabContent = memo(function TabContent({
         onNavigateToInbox={handleNavigateToInbox}
         onNavigateToTeachingMarking={() => handleNavigate('teaching/marking' as ClosableTabKey)}
         onNavigateToTeachingLessonPlanning={() => handleNavigate('teaching/lesson-planning' as ClosableTabKey)}
-        onNavigateToPulse={() => handleNavigate('pulse', true)}
+        onNavigateToDailyRoundup={() => handleNavigate('daily-roundup', true)}
         onAssistantMessage={handleAssistantMessage}
         onStudentClick={handleOpenStudentProfile}
         onStudentClickWithClass={handleOpenStudentFromClass}
@@ -924,8 +924,8 @@ const TabContent = memo(function TabContent({
         <Button size="sm" onClick={() => handleNavigate('home')}>
           Go Home
         </Button>
-        <Button size="sm" variant="outline" onClick={() => handleNavigate('pulse')}>
-          Open Round-up
+        <Button size="sm" variant="outline" onClick={() => handleNavigate('daily-roundup')}>
+          Open Daily Roundup
         </Button>
       </div>
     </div>
@@ -996,8 +996,8 @@ export default function Home() {
 
   // Helper to get parent tab of a child tab
   const getParentTab = (tabKey: string): string | null => {
-    if (tabKey === 'pulse') {
-      // Pulse is a child of Home
+    if (tabKey === 'daily-roundup') {
+      // Daily Roundup is a child of Home
       return 'home'
     }
     if (tabKey.startsWith('inbox/')) {
@@ -1246,18 +1246,18 @@ export default function Home() {
   const isProfileActive = activeTab === profileTabConfig.key
   const isSettingsActive = activeTab === settingsTabConfig.key
   const isAssistantTabActive = activeTab === assistantTabConfig.key
-  const isHomeActive = activeTab === 'home' || activeTab === 'pulse'
+  const isHomeActive = activeTab === 'home' || activeTab === 'daily-roundup'
   const isSidebarCollapsed = sidebarState === 'collapsed'
   const isAssistantSidebarOpen = assistantMode === 'sidebar' && isAssistantOpen
 
   // Define navigation handlers before pageActions useMemo to avoid hoisting issues
   const handleNavigate = (tabKey: ClosableTabKey, navigateWithinTab: boolean = false) => {
-    // If navigating away from Pulse, mark it as seen
-    if (currentUrl === 'pulse' && tabKey !== 'pulse') {
+    // If navigating away from Daily Roundup, mark it as seen
+    if (currentUrl === 'daily-roundup' && tabKey !== 'daily-roundup') {
       try {
-        sessionStorage.setItem('hasSeenPulse', 'true')
+        sessionStorage.setItem('hasSeenDailyRoundup', 'true')
       } catch (error) {
-        console.error('Failed to set hasSeenPulse flag:', error)
+        console.error('Failed to set hasSeenDailyRoundup flag:', error)
       }
     }
 
@@ -1306,9 +1306,9 @@ export default function Home() {
       // Home page actions
       actions = [
         {
-          label: 'Pulse',
+          label: 'Daily Roundup',
           icon: Zap,
-          onClick: () => handleNavigate('pulse', true),
+          onClick: () => handleNavigate('daily-roundup', true),
           variant: 'outline',
         },
       ]
@@ -1554,12 +1554,12 @@ export default function Home() {
     handleNavigate('inbox')
   }
 
-  const handlePulseDismiss = () => {
-    // Mark Pulse as seen
+  const handleDailyRoundupDismiss = () => {
+    // Mark Daily Roundup as seen
     try {
-      sessionStorage.setItem('hasSeenPulse', 'true')
+      sessionStorage.setItem('hasSeenDailyRoundup', 'true')
     } catch (error) {
-      console.error('Failed to set hasSeenPulse flag:', error)
+      console.error('Failed to set hasSeenDailyRoundup flag:', error)
     }
     // Navigate to home
     handleNavigate('home')
@@ -1659,11 +1659,11 @@ export default function Home() {
         classroomNamesRef.current = parsedMap
       }
 
-      // Check if user has seen Pulse - if not and on home, navigate to pulse
-      const hasSeenPulse = sessionStorage.getItem('hasSeenPulse')
-      if (!hasSeenPulse && currentUrl === 'home') {
-        // First-time user, navigate to pulse
-        router.push('/pulse')
+      // Check if user has seen Daily Roundup - if not and on home, navigate to daily-roundup
+      const hasSeenDailyRoundup = sessionStorage.getItem('hasSeenDailyRoundup')
+      if (!hasSeenDailyRoundup && currentUrl === 'home') {
+        // First-time user, navigate to daily-roundup
+        router.push('/daily-roundup')
       }
     } catch (error) {
       // If sessionStorage is corrupted or full, clear it and start fresh
@@ -1973,7 +1973,7 @@ export default function Home() {
                         tooltip={page.tooltip}
                         isActive={
                           activeTab === page.key ||
-                          (page.key === 'home' && activeTab === 'pulse')
+                          (page.key === 'home' && activeTab === 'daily-roundup')
                         }
                         onClick={() => handleNavigate(page.key)}
                         type="button"
@@ -2140,7 +2140,7 @@ export default function Home() {
                     const tab = tabConfigMap[tabKey as keyof typeof tabConfigMap]
                     const isStudentProfile = typeof tabKey === 'string' && tabKey.startsWith('student-')
                     const isClassroom = typeof tabKey === 'string' && tabKey.startsWith('classroom/')
-                    const isHomeChild = typeof tabKey === 'string' && tabKey === 'pulse'
+                    const isHomeChild = typeof tabKey === 'string' && tabKey === 'daily-roundup'
                     const studentName = isStudentProfile ? studentProfileTabs.get(tabKey) : undefined
                     // Use ref for immediate access to avoid UUID flicker
                     let classroomPath = isClassroom ? classroomTabsRef.current.get(tabKey) : undefined
@@ -2157,9 +2157,9 @@ export default function Home() {
 
                     // Parse tab labels - show child page label
                     let label = ''
-                    if (tabKey === 'pulse') {
-                      // Pulse is a child of Home, show "Pulse" in the tab
-                      label = 'Pulse'
+                    if (tabKey === 'daily-roundup') {
+                      // Daily Roundup is a child of Home, show "Daily Roundup" in the tab
+                      label = 'Daily Roundup'
                     } else if (isStudentProfile) {
                       label = studentName ?? 'Student'
                     } else if (isClassroom && classroomPath) {
@@ -2531,7 +2531,7 @@ export default function Home() {
                   handleNavigateToRecordResults={handleNavigateToRecordResults}
                   handleNavigateToLearn={handleNavigateToLearn}
                   handleNavigateToInbox={handleNavigateToInbox}
-                  handlePulseDismiss={handlePulseDismiss}
+                  handleDailyRoundupDismiss={handleDailyRoundupDismiss}
                   setIsAssistantOpen={setIsAssistantOpen}
                   handleAssistantModeChange={handleAssistantModeChange}
                   setClassroomTabs={setClassroomTabs}
