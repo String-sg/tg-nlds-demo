@@ -8,7 +8,7 @@
 'use client'
 
 import { useMemo } from 'react'
-import { Card } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { LessonCard, LessonCardSkeleton, EmptyLessonSlot } from './lesson-card'
 import type { WeekSchedule, LessonSlot, DayOfWeek } from '@/types/timetable'
@@ -65,24 +65,25 @@ export function WeeklyGridView({
   }
 
   return (
-    <div className="flex h-full flex-col">
-      {/* Week header */}
-      <div className="mb-4 flex items-center justify-between border-b pb-2">
-        <div>
-          <h2 className="text-2xl font-bold">Weekly Timetable</h2>
-          <p className="text-sm text-muted-foreground">
-            {formatDate(schedule.weekStart, 'MMM d')} -{' '}
-            {formatDate(schedule.weekEnd, 'MMM d, yyyy')}
-          </p>
+    <Card className="flex h-full flex-col">
+      <CardHeader className="flex-shrink-0 border-b">
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle>Weekly Timetable</CardTitle>
+            <p className="text-sm text-muted-foreground mt-1">
+              {formatDate(schedule.weekStart, 'MMM d')} -{' '}
+              {formatDate(schedule.weekEnd, 'MMM d, yyyy')}
+            </p>
+          </div>
+          <div className="text-sm text-muted-foreground">
+            {schedule.totalLessons} lesson{schedule.totalLessons !== 1 ? 's' : ''} this week
+          </div>
         </div>
-        <div className="text-sm text-muted-foreground">
-          {schedule.totalLessons} lesson{schedule.totalLessons !== 1 ? 's' : ''} this week
-        </div>
-      </div>
+      </CardHeader>
 
-      {/* Grid container */}
-      <ScrollArea className="flex-1">
-        <div className="min-w-[800px]">
+      <CardContent className="flex-1 min-h-0 p-0">
+        <ScrollArea className="h-full">
+          <div className="min-w-[800px] p-6">
           {/* Day headers */}
           <div className="sticky top-0 z-10 grid grid-cols-[80px_repeat(5,1fr)] gap-px bg-background pb-2">
             {/* Empty corner for time column */}
@@ -90,7 +91,8 @@ export function WeeklyGridView({
 
             {/* Day headers */}
             {WEEKDAYS.map((day, index) => {
-              const dayDate = schedule.days[day]?.date
+              const daySchedule = schedule.days.find(d => d.dayOfWeek === day)
+              const dayDate = daySchedule?.date
               const isToday = dayDate ? isDateToday(dayDate) : false
 
               return (
@@ -123,7 +125,8 @@ export function WeeklyGridView({
                 <div
                   key={slot.time}
                   className={cn(
-                    'flex items-center justify-end border-b bg-background pr-2 text-xs text-muted-foreground',
+                    'relative flex items-center justify-end bg-background pr-2 text-xs text-muted-foreground',
+                    'after:absolute after:inset-x-0 after:bottom-0 after:h-px after:bg-border after:z-0',
                     idx === 0 ? 'h-16' : 'h-24'
                   )}
                 >
@@ -134,7 +137,7 @@ export function WeeklyGridView({
 
             {/* Day columns */}
             {WEEKDAYS.map((day) => {
-              const daySchedule = schedule.days[day]
+              const daySchedule = schedule.days.find(d => d.dayOfWeek === day)
               const isToday = daySchedule?.date ? isDateToday(daySchedule.date) : false
 
               return (
@@ -160,7 +163,8 @@ export function WeeklyGridView({
                       <div
                         key={slot.time}
                         className={cn(
-                          'relative border-b bg-background',
+                          'relative bg-background overflow-visible',
+                          'after:absolute after:inset-x-0 after:bottom-0 after:h-px after:bg-border after:z-0',
                           idx === 0 ? 'h-16' : 'h-24',
                           isToday && 'bg-blue-50/50'
                         )}
@@ -174,7 +178,7 @@ export function WeeklyGridView({
                             return (
                               <div
                                 key={lesson.id}
-                                className="absolute inset-x-0 top-0 p-1"
+                                className="absolute inset-x-0 top-0 px-1 overflow-visible z-10"
                                 style={{
                                   // Calculate height based on lesson duration
                                   height: `${calculateLessonHeight(lesson.startTime, lesson.endTime, 30)}px`,
@@ -194,7 +198,7 @@ export function WeeklyGridView({
                         {idx === 0 &&
                           daySchedule &&
                           daySchedule.lessons.length === 0 && (
-                            <div className="absolute inset-x-0 top-8 p-1">
+                            <div className="absolute inset-x-0 top-8 px-1">
                               <EmptyLessonSlot />
                             </div>
                           )}
@@ -213,9 +217,10 @@ export function WeeklyGridView({
               )
             })}
           </div>
-        </div>
-      </ScrollArea>
-    </div>
+          </div>
+        </ScrollArea>
+      </CardContent>
+    </Card>
   )
 }
 
@@ -235,7 +240,8 @@ function calculateLessonHeight(startTime: string, endTime: string, slotMinutes: 
   const heightPerSlot = 96
   const height = (durationMin / slotMinutes) * heightPerSlot
 
-  return Math.max(height - 8, 80) // Subtract padding, min height 80px
+  // Minimum height ensures readability with minimal card design
+  return Math.max(height, 64) // Min 64px for class name + time
 }
 
 /**
@@ -273,35 +279,40 @@ function CurrentTimeIndicator({
  */
 function WeeklyGridSkeleton() {
   return (
-    <div className="flex h-full flex-col">
-      {/* Header skeleton */}
-      <div className="mb-4 space-y-2 border-b pb-2">
-        <div className="h-8 w-48 animate-pulse rounded bg-muted" />
-        <div className="h-4 w-32 animate-pulse rounded bg-muted" />
-      </div>
-
-      {/* Grid skeleton */}
-      <div className="flex-1">
-        <div className="grid grid-cols-[80px_repeat(5,1fr)] gap-px">
-          {/* Time column */}
-          <div className="space-y-px">
-            {Array.from({ length: 16 }).map((_, i) => (
-              <div key={i} className="h-24 animate-pulse bg-muted" />
-            ))}
+    <Card className="flex h-full flex-col">
+      <CardHeader className="flex-shrink-0 border-b">
+        <div className="flex items-center justify-between">
+          <div className="space-y-2">
+            <div className="h-7 w-48 animate-pulse rounded bg-muted" />
+            <div className="h-4 w-32 animate-pulse rounded bg-muted" />
           </div>
+          <div className="h-5 w-24 animate-pulse rounded bg-muted" />
+        </div>
+      </CardHeader>
 
-          {/* Day columns */}
-          {Array.from({ length: 5 }).map((_, dayIdx) => (
-            <div key={dayIdx} className="space-y-px">
-              {Array.from({ length: 16 }).map((_, slotIdx) => (
-                <div key={slotIdx} className="h-24 bg-background p-1">
-                  {slotIdx % 3 === 0 && <LessonCardSkeleton variant="grid" />}
-                </div>
+      <CardContent className="flex-1 min-h-0 p-0">
+        <div className="h-full p-6">
+          <div className="grid grid-cols-[80px_repeat(5,1fr)] gap-px">
+            {/* Time column */}
+            <div className="space-y-px">
+              {Array.from({ length: 16 }).map((_, i) => (
+                <div key={i} className="h-24 animate-pulse bg-muted" />
               ))}
             </div>
-          ))}
+
+            {/* Day columns */}
+            {Array.from({ length: 5 }).map((_, dayIdx) => (
+              <div key={dayIdx} className="space-y-px">
+                {Array.from({ length: 16 }).map((_, slotIdx) => (
+                  <div key={slotIdx} className="h-24 bg-background p-1">
+                    {slotIdx % 3 === 0 && <LessonCardSkeleton variant="grid" />}
+                  </div>
+                ))}
+              </div>
+            ))}
+          </div>
         </div>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   )
 }
