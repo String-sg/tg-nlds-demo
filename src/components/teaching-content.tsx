@@ -1,11 +1,12 @@
 'use client'
 
 import { useState } from 'react'
-import { CheckSquare, ClipboardList, BookOpen, Plus, GraduationCap, ChevronRight, MoreVertical, Clock } from 'lucide-react'
+import { CheckSquare, ClipboardList, BookOpen, Plus, GraduationCap, ChevronRight, MoreVertical, Clock, CalendarDays } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { TimetableTabContent } from './timetable/timetable-tab-content'
 import {
   Select,
   SelectContent,
@@ -21,7 +22,8 @@ import {
 } from '@/components/ui/dropdown-menu'
 
 interface TeachingContentProps {
-  defaultTab?: 'marking' | 'lesson-planning' | 'homework'
+  defaultTab?: 'marking' | 'lesson-planning' | 'homework' | 'timetable'
+  teacherId?: string
 }
 
 // Dummy assignment data
@@ -119,12 +121,12 @@ const dummyAssignments: Assignment[] = [
   }
 ]
 
-export function TeachingContent({ defaultTab = 'marking' }: TeachingContentProps = {}) {
-  const [activeTab, setActiveTab] = useState<'marking' | 'lesson-planning' | 'homework'>(defaultTab)
+export function TeachingContent({ defaultTab = 'marking', teacherId = 'teacher@example.com' }: TeachingContentProps = {}) {
+  const [activeTab, setActiveTab] = useState<'marking' | 'lesson-planning' | 'homework' | 'timetable'>(defaultTab)
   const [selectedClass, setSelectedClass] = useState<string>('5A')
 
   const handleTabChange = (value: string) => {
-    if (value === 'marking' || value === 'lesson-planning' || value === 'homework') {
+    if (value === 'marking' || value === 'lesson-planning' || value === 'homework' || value === 'timetable') {
       setActiveTab(value)
     }
   }
@@ -170,6 +172,10 @@ export function TeachingContent({ defaultTab = 'marking' }: TeachingContentProps
               <TabsTrigger value="homework">
                 <BookOpen className="mr-2 size-4" />
                 Homework
+              </TabsTrigger>
+              <TabsTrigger value="timetable">
+                <CalendarDays className="mr-2 size-4" />
+                Timetable
               </TabsTrigger>
             </TabsList>
 
@@ -376,6 +382,11 @@ export function TeachingContent({ defaultTab = 'marking' }: TeachingContentProps
                   </CardContent>
                 </Card>
               </div>
+            </TabsContent>
+
+            {/* Timetable Tab */}
+            <TabsContent value="timetable" className="h-full">
+              <TimetableTabContent teacherId={teacherId} />
             </TabsContent>
           </Tabs>
         </div>

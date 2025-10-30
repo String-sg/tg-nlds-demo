@@ -87,6 +87,24 @@ export const queryKeys = {
     all: ['inbox'] as const,
     students: (teacherId: string) => [...queryKeys.inbox.all, 'students', teacherId] as const,
   },
+
+  /**
+   * Timetable-related queries
+   */
+  timetable: {
+    all: ['timetable'] as const,
+    teacher: (teacherId: string) => [...queryKeys.timetable.all, 'teacher', teacherId] as const,
+    teacherWeek: (teacherId: string, weekStart: Date) =>
+      [...queryKeys.timetable.teacher(teacherId), 'week', weekStart.toISOString()] as const,
+    teacherDay: (teacherId: string, date: Date) =>
+      [...queryKeys.timetable.teacher(teacherId), 'day', date.toISOString()] as const,
+    teacherMonth: (teacherId: string, monthDate: Date) =>
+      [...queryKeys.timetable.teacher(teacherId), 'month', monthDate.toISOString()] as const,
+    classSchedule: (classId: string) =>
+      [...queryKeys.timetable.all, 'class', classId] as const,
+    teacherStats: (teacherId: string) =>
+      [...queryKeys.timetable.teacher(teacherId), 'stats'] as const,
+  },
 } as const
 
 /**

@@ -80,9 +80,9 @@ The app is deployed on Vercel with Supabase as the database. Follow these steps:
 **Local Development:**
 ```bash
 # Copy environment template
-cp .env.local.example .env.local
+cp .env.example .env
 
-# Add your Supabase credentials to .env.local
+# Add your Supabase credentials to .env
 # Then start dev server
 npm run dev
 ```

@@ -65,6 +65,7 @@ import { NotificationsContent } from '@/components/messages/notifications-conten
 import { AnnouncementsContent } from '@/components/messages/announcements-content'
 import { FormsContent } from '@/components/forms-content'
 import { TeachingContent } from '@/components/teaching-content'
+import { TimetableTabContent } from '@/components/timetable/timetable-tab-content'
 import { InboxProvider } from '@/contexts/inbox-context'
 import { SettingsContent } from '@/components/settings-content'
 import { ThemeSwitcher } from '@/components/theme-switcher'
@@ -397,6 +398,7 @@ const TabContent = memo(function TabContent({
   openTabsRef,
   classroomNamesRef,
   router: routerProp,
+  user,
 }: {
   activeTab: TabKey
   currentUrl: string
@@ -430,6 +432,7 @@ const TabContent = memo(function TabContent({
   openTabsRef: React.MutableRefObject<ClosableTabKey[]>
   classroomNamesRef: React.MutableRefObject<Map<string, string>>
   router: ReturnType<typeof useRouter>
+  user: any
 }) {
   // Account role management
   const { role, setRole } = useUserRole()
@@ -507,9 +510,13 @@ const TabContent = memo(function TabContent({
   if (currentUrl === 'teaching' || currentUrl.startsWith('teaching/')) {
     // Extract tab from URL (e.g., 'teaching/marking' -> 'marking')
     const tabFromUrl = currentUrl.startsWith('teaching/')
-      ? currentUrl.split('/')[1] as 'marking' | 'lesson-planning' | 'homework'
+      ? currentUrl.split('/')[1] as 'marking' | 'lesson-planning' | 'homework' | 'timetable'
       : undefined
-    return <TeachingContent defaultTab={tabFromUrl} />
+    return <TeachingContent defaultTab={tabFromUrl} teacherId={user?.user_id} />
+  }
+
+  if (currentUrl === 'calendar') {
+    return <TimetableTabContent teacherId={user?.user_id} />
   }
 
   if (currentUrl === 'inbox' || currentUrl.startsWith('inbox/')) {
@@ -2463,6 +2470,7 @@ export default function Home() {
                   openTabsRef={openTabsRef}
                   classroomNamesRef={classroomNamesRef}
                   router={router}
+                  user={user}
                 />
               </div>
             </div>
