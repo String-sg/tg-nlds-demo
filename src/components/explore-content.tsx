@@ -1423,7 +1423,6 @@ export function ExploreContent({ onAppClick }: ExploreContentProps = {}) {
                             e.stopPropagation()
                             console.log('Card clicked:', app.name)
                             setSelectedApp(app)
-                            onAppClick?.(app.key)
                           }}
                           onKeyDown={(e) => {
                             if (e.key === 'Enter' || e.key === ' ') {
@@ -1431,7 +1430,6 @@ export function ExploreContent({ onAppClick }: ExploreContentProps = {}) {
                               e.stopPropagation()
                               console.log('Card activated via keyboard:', app.name)
                               setSelectedApp(app)
-                              onAppClick?.(app.key)
                             }
                           }}
                         >

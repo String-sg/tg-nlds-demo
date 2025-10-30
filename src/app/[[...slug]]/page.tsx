@@ -484,7 +484,7 @@ const TabContent = memo(function TabContent({
   }
 
   if (currentUrl === 'explore') {
-    return <ExploreContent onAppClick={(appKey) => handleNavigate(appKey as ClosableTabKey)} />
+    return <ExploreContent />
   }
 
   if (currentUrl === 'classroom') {
