@@ -195,7 +195,7 @@ export function HomeContent({ onNavigateToClassroom, onNavigateToExplore, onNavi
             <Card className="rounded-2xl border-stone-200 bg-white shadow-sm py-0">
               <CardContent className="flex gap-4 items-start p-0" style={{ padding: `${widgetPadding}px` }}>
                 {/* Left: Day Display */}
-                <div className="flex flex-col">
+                <div className="flex flex-col flex-1">
                   <p className="text-[10px] font-semibold uppercase tracking-wide text-red-600">
                     {new Date().toLocaleDateString('en-US', { weekday: 'long' }).toUpperCase()}
                   </p>
