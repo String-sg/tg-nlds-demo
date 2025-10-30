@@ -11,7 +11,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { Search, MessageSquare, Filter } from 'lucide-react'
+import { Search, MessageSquare, Filter, Plus } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { getInitials, getAvatarColor } from '@/lib/chat/utils'
 import { ConversationListSkeleton } from './conversation-list-skeleton'
@@ -66,10 +66,40 @@ export function ConversationList({
     }
   }
 
+  const getPriorityLabel = (priority: Priority) => {
+    switch (priority) {
+      case 'urgent':
+        return 'Urgent'
+      case 'follow-up':
+        return 'Follow Up'
+      case 'active':
+        return 'Active'
+      case 'resolved':
+        return 'Resolved'
+    }
+  }
+
+  // Group conversations by priority when filter is 'all'
+  const groupedConversations = priorityFilter === 'all'
+    ? (['urgent', 'follow-up', 'active', 'resolved'] as Priority[]).map(priority => ({
+        priority,
+        conversations: conversationGroups.filter(group => group.priority === priority)
+      })).filter(group => group.conversations.length > 0)
+    : [{ priority: priorityFilter, conversations: conversationGroups }]
+
   return (
     <div className="flex h-full min-h-0 flex-col">
       {/* Header */}
       <div className="flex-shrink-0 border-b border-stone-200 p-4">
+        {/* Title */}
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="text-lg font-semibold text-stone-900">Chat</h2>
+          <Button size="sm" className="gap-2">
+            <Plus className="size-4" />
+            New Chat
+          </Button>
+        </div>
+
         {/* Search and Filter */}
         <div className="flex items-center gap-2">
           <div className="relative flex-1">
@@ -128,69 +158,85 @@ export function ConversationList({
             </p>
           </div>
         ) : (
-          <div className="divide-y divide-stone-100">
-            {conversationGroups.map((group) => {
-              const latestThread = group.threads[0]
-              const latestMessage = latestThread.messages[latestThread.messages.length - 1]
-              const isActive = latestThread.id === activeConversationId
-
-              // Get parent name for subtitle
-              const parentParticipant = latestThread.participants.find((p) => p.role === 'parent')
-              const parentName = latestThread.type === 'group'
-                ? latestThread.groupName || 'Group Chat'
-                : parentParticipant?.name || 'Unknown'
-
-              return (
-                <div
-                  key={latestThread.id}
-                  onClick={() => onConversationClick(latestThread.id)}
-                  className={cn(
-                    'cursor-pointer border-l-2 px-4 py-3 transition-colors hover:bg-stone-50',
-                    isActive
-                      ? 'border-l-stone-900 bg-stone-50'
-                      : 'border-l-transparent'
-                  )}
-                >
-                  <div className="flex items-center gap-3">
-                    {/* Avatar - Show parent initials */}
-                    <Avatar className="h-10 w-10 flex-shrink-0">
-                      <AvatarFallback className={getAvatarColor(parentName)}>
-                        {getInitials(parentName)}
-                      </AvatarFallback>
-                    </Avatar>
-
-                    {/* Content */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-start justify-between gap-2 mb-1">
-                        <div className="flex-1 min-w-0">
-                          {/* Parent name as primary with priority dot */}
-                          <div className="flex items-center gap-2">
-                            {group.priority === 'urgent' && (
-                              <div className="h-2 w-2 flex-shrink-0 rounded-full bg-red-500" />
-                            )}
-                            <h3 className="text-sm font-semibold text-stone-900 truncate">
-                              {parentName}
-                            </h3>
-                          </div>
-                          {/* Student name and class as secondary */}
-                          <p className="text-xs text-stone-600 truncate">
-                            {group.student.name} {group.student.class}
-                          </p>
-                        </div>
-                        <span className="text-xs text-stone-500 flex-shrink-0">
-                          {formatTime(latestMessage.sentAt)}
-                        </span>
-                      </div>
-
-                      <p className="text-sm text-stone-700 line-clamp-1">
-                        {latestMessage.senderRole === 'teacher' && 'You: '}
-                        {latestMessage.content}
-                      </p>
-                    </div>
+          <div>
+            {groupedConversations.map((section, sectionIndex) => (
+              <div key={section.priority}>
+                {/* Section Header - only show when filter is 'all' */}
+                {priorityFilter === 'all' && (
+                  <div className="bg-stone-50 px-4 py-2 border-b border-stone-200">
+                    <h3 className="text-xs font-semibold uppercase tracking-wide text-stone-600">
+                      {getPriorityLabel(section.priority)}
+                    </h3>
                   </div>
+                )}
+
+                {/* Conversations in this section */}
+                <div className="divide-y divide-stone-100">
+                  {section.conversations.map((group) => {
+                    const latestThread = group.threads[0]
+                    const latestMessage = latestThread.messages[latestThread.messages.length - 1]
+                    const isActive = latestThread.id === activeConversationId
+
+                    // Get parent name for subtitle
+                    const parentParticipant = latestThread.participants.find((p) => p.role === 'parent')
+                    const parentName = latestThread.type === 'group'
+                      ? latestThread.groupName || 'Group Chat'
+                      : parentParticipant?.name || 'Unknown'
+
+                    return (
+                      <div
+                        key={latestThread.id}
+                        onClick={() => onConversationClick(latestThread.id)}
+                        className={cn(
+                          'cursor-pointer border-l-2 px-4 py-3 transition-colors hover:bg-stone-50',
+                          isActive
+                            ? 'border-l-stone-900 bg-stone-50'
+                            : 'border-l-transparent'
+                        )}
+                      >
+                        <div className="flex items-center gap-3">
+                          {/* Avatar - Show parent initials */}
+                          <Avatar className="h-10 w-10 flex-shrink-0">
+                            <AvatarFallback className={getAvatarColor(parentName)}>
+                              {getInitials(parentName)}
+                            </AvatarFallback>
+                          </Avatar>
+
+                          {/* Content */}
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-start justify-between gap-2 mb-1">
+                              <div className="flex-1 min-w-0">
+                                {/* Parent name as primary with priority dot */}
+                                <div className="flex items-center gap-2">
+                                  {group.priority === 'urgent' && (
+                                    <div className="h-2 w-2 flex-shrink-0 rounded-full bg-red-500" />
+                                  )}
+                                  <h3 className="text-sm font-semibold text-stone-900 truncate">
+                                    {parentName}
+                                  </h3>
+                                </div>
+                                {/* Student name and class as secondary */}
+                                <p className="text-xs text-stone-600 truncate">
+                                  {group.student.name} {group.student.class}
+                                </p>
+                              </div>
+                              <span className="text-xs text-stone-500 flex-shrink-0">
+                                {formatTime(latestMessage.sentAt)}
+                              </span>
+                            </div>
+
+                            <p className="text-sm text-stone-700 line-clamp-1">
+                              {latestMessage.senderRole === 'teacher' && 'You: '}
+                              {latestMessage.content}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    )
+                  })}
                 </div>
-              )
-            })}
+              </div>
+            ))}
           </div>
         )}
       </ScrollArea>

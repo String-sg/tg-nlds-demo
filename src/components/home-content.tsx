@@ -25,7 +25,7 @@ import { cn } from '@/lib/utils'
 import { createClient } from '@/lib/supabase/client'
 import { getStudentAlerts, type StudentAlert } from '@/lib/supabase/queries'
 import { useUser } from '@/contexts/user-context'
-import { TodayScheduleWidget } from '@/components/timetable/today-schedule-widget'
+import { comingSoonToast } from '@/lib/coming-soon-toast'
 
 const actionButtons = [
   {
@@ -80,6 +80,11 @@ const getTodayDate = () => {
   return today.toLocaleDateString('en-US', options)
 }
 
+const upcomingClassesData = [
+  { time: '11:15 AM', subject: 'Math 10B', room: 'Room 204' },
+  { time: '1:00 PM', subject: 'Math 9A', room: 'Room 201' },
+]
+
 // Fallback data for when no alerts are found
 const fallbackStudentAlertsData = [
   {
@@ -106,12 +111,12 @@ interface HomeContentProps {
   onAssistantMessage?: (message: string) => void
   onStudentClick?: (studentName: string) => void
   onStudentClickWithClass?: (classId: string, studentName: string) => void
-  onNavigateToPulse?: () => void
+  onNavigateToDailyRoundup?: () => void
   onEditWidgets?: () => void
   renderPageActions?: () => React.ReactNode
 }
 
-export function HomeContent({ onNavigateToClassroom, onNavigateToExplore, onNavigateToAttendance, onNavigateToRecordResults, onNavigateToLearn, onNavigateToInbox, onNavigateToTeachingMarking, onNavigateToTeachingLessonPlanning, onAssistantMessage, onStudentClick, onStudentClickWithClass, onNavigateToPulse, onEditWidgets, renderPageActions }: HomeContentProps = {}) {
+export function HomeContent({ onNavigateToClassroom, onNavigateToExplore, onNavigateToAttendance, onNavigateToRecordResults, onNavigateToLearn, onNavigateToInbox, onNavigateToTeachingMarking, onNavigateToTeachingLessonPlanning, onAssistantMessage, onStudentClick, onStudentClickWithClass, onNavigateToDailyRoundup, onEditWidgets, renderPageActions }: HomeContentProps = {}) {
   const [assistantInput, setAssistantInput] = useState('')
   const [gridRowHeight] = useState(156)
   const [widgetPadding] = useState(16)
@@ -186,10 +191,32 @@ export function HomeContent({ onNavigateToClassroom, onNavigateToExplore, onNavi
               gridTemplateRows: `minmax(${gridRowHeight}px, auto) minmax(${gridRowHeight}px, auto)`
             }}
           >
-            {/* Today's Schedule Widget */}
-            <div className="rounded-2xl">
-              {userId && <TodayScheduleWidget teacherId={userId} maxLessons={3} />}
-            </div>
+            {/* Calendar & Upcoming Classes Widget */}
+            <Card className="rounded-2xl border-stone-200 bg-white shadow-sm py-0">
+              <CardContent className="flex gap-4 items-start p-0" style={{ padding: `${widgetPadding}px` }}>
+                {/* Left: Day Display */}
+                <div className="flex flex-col">
+                  <p className="text-[10px] font-semibold uppercase tracking-wide text-red-600">
+                    {new Date().toLocaleDateString('en-US', { weekday: 'long' }).toUpperCase()}
+                  </p>
+                  <p className="text-5xl font-bold text-stone-900">
+                    {new Date().getDate()}
+                  </p>
+                  <p className="mt-4 text-xs text-stone-400">No events today</p>
+                </div>
+
+                {/* Right: Upcoming Classes */}
+                <div className="flex-1 space-y-2">
+                  <p className="text-[10px] font-medium uppercase tracking-wide text-stone-500">TOMORROW</p>
+                  {upcomingClassesData.map((classItem, index) => (
+                    <div key={index} className="bg-red-50 p-2 border-l-2 border-red-500">
+                      <p className="text-xs font-semibold text-stone-900">{classItem.subject}</p>
+                      <p className="text-[10px] text-red-600">{classItem.time}</p>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
 
             {/* Podcast Widget - Large, spans 1 column on larger screens */}
             <Card className="flex h-full min-h-full flex-col rounded-2xl border-stone-200 bg-white shadow-sm md:row-span-2 py-0">
@@ -216,7 +243,10 @@ export function HomeContent({ onNavigateToClassroom, onNavigateToExplore, onNavi
                 </div>
 
                 {/* Play Button - pushed to bottom */}
-                <Button className="mt-auto h-9 w-full rounded-lg bg-stone-900 text-sm text-white hover:bg-stone-800">
+                <Button
+                  className="mt-auto h-9 w-full rounded-lg bg-stone-900 text-sm text-white hover:bg-stone-800"
+                  onClick={() => comingSoonToast.feature('Podcast player')}
+                >
                   <Play className="mr-1.5 h-3.5 w-3.5 fill-current" />
                   Play now
                 </Button>

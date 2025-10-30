@@ -36,7 +36,6 @@ import {
   ChevronDown,
   RotateCcw,
   Sparkle,
-  Bell,
   Presentation,
   Shield,
 } from 'lucide-react'
@@ -51,7 +50,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
 import { HomeContent } from '@/components/home-content'
-import { PulseContent } from '@/components/pulse-content'
+import { DailyRoundupContent } from '@/components/daily-roundup-content'
 import { SchoolDashboard } from '@/components/school-dashboard'
 import { MyClasses } from '@/components/classroom/my-classes'
 import { ClassOverview } from '@/components/classroom/class-overview'
@@ -61,13 +60,18 @@ import { StudentProfile } from '@/components/student-profile'
 import { RecordsContent } from '@/components/records-content'
 import { ExploreContent } from '@/components/explore-content'
 import { MessagesPageContent } from '@/components/messages/messages-page-content'
-import { NotificationsContent } from '@/components/messages/notifications-content'
 import { AnnouncementsContent } from '@/components/messages/announcements-content'
 import { FormsContent } from '@/components/forms-content'
 import { TeachingContent } from '@/components/teaching-content'
+import { LearningContent } from '@/components/learning-content'
+import { CommunityContent } from '@/components/community-content'
 import { TimetableTabContent } from '@/components/timetable/timetable-tab-content'
+import { CalendarContent } from '@/components/calendar-content'
 import { InboxProvider } from '@/contexts/inbox-context'
 import { SettingsContent } from '@/components/settings-content'
+import { NotificationBell } from '@/components/notifications/notification-bell'
+import { mockNotifications } from '@/lib/mock-data/notifications-data'
+import type { Notification } from '@/types/notification'
 import { ThemeSwitcher } from '@/components/theme-switcher'
 import { UserProvider, useUser } from '@/contexts/user-context'
 import { UserRoleProvider, useUserRole } from '@/contexts/user-role-context'
@@ -83,12 +87,12 @@ import {
 import {
   Sidebar,
   SidebarContent,
-  SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
   SidebarInset,
   SidebarMenu,
+  SidebarMenuAction,
   SidebarMenuBadge,
   SidebarMenuButton,
   SidebarMenuItem,
@@ -119,7 +123,6 @@ const primaryPages = [
   { key: 'inbox', label: 'Parents & Communications', icon: Presentation, tooltip: 'Parents & Communications' },
   { key: 'calendar', label: 'Timetable', icon: CalendarDays, tooltip: 'Timetable' },
   { key: 'forms', label: 'Forms', icon: FileText, tooltip: 'Forms' },
-  { key: 'notifications', label: 'Notifications', icon: Bell, tooltip: 'Notifications' },
   { key: 'explore', label: 'All Apps', icon: Compass, tooltip: 'All Apps' },
 ] as const
 
@@ -157,10 +160,10 @@ type SettingsTabKey = typeof settingsTabConfig['key']
 type AssistantTabKey = typeof assistantTabConfig['key']
 type StudentProfileTabKey = `student-${string}` // Dynamic student profile tabs (standalone)
 type ClassroomTabKey = `classroom/${string}` // Dynamic classroom tabs with forward slash
-type PulseTabKey = 'pulse' // Pulse is a child of Home
+type DailyRoundupTabKey = 'daily-roundup' // Daily Roundup is a child of Home
 type LegacyTabKey = 'records' | 'recents' // Legacy tab keys for backward compatibility
 type PageKey = PrimaryPageKey | ProfileTabKey | SettingsTabKey
-type ClosableTabKey = PageKey | AssistantTabKey | StudentProfileTabKey | ClassroomTabKey | PulseTabKey | LegacyTabKey
+type ClosableTabKey = PageKey | AssistantTabKey | StudentProfileTabKey | ClassroomTabKey | DailyRoundupTabKey | LegacyTabKey
 type TabKey = typeof newTabConfig['key'] | ClosableTabKey
 type PageConfig = (typeof primaryPages)[number] | typeof profileTabConfig | typeof settingsTabConfig
 type TabConfig = PageConfig | typeof newTabConfig | typeof assistantTabConfig
@@ -199,8 +202,8 @@ const emptyStates: Record<TabKey, EmptyState> = {
       'Open a page from the sidebar or start with a preselected one to jump into your workspace.',
     icon: Plus,
   },
-  pulse: {
-    heading: 'Pulse',
+  'daily-roundup': {
+    heading: 'Daily Roundup',
     title: 'No highlights yet',
     description:
       'Summaries and noteworthy updates from your team will appear here once activity picks up.',
@@ -263,13 +266,6 @@ const emptyStates: Record<TabKey, EmptyState> = {
     description:
       'Important updates and alerts will appear here when they are available.',
     icon: MessageSquare,
-  },
-  notifications: {
-    heading: 'Notifications',
-    title: 'No notifications yet',
-    description:
-      'You&apos;ll see notifications here when there are important updates, alerts, or messages that require your attention.',
-    icon: Bell,
   },
   recents: {
     heading: 'Recents',
@@ -390,7 +386,7 @@ const TabContent = memo(function TabContent({
   handleNavigateToRecordResults,
   handleNavigateToLearn,
   handleNavigateToInbox,
-  handlePulseDismiss,
+  handleDailyRoundupDismiss,
   setIsAssistantOpen,
   handleAssistantModeChange,
   setClassroomTabs,
@@ -399,6 +395,8 @@ const TabContent = memo(function TabContent({
   classroomNamesRef,
   router: routerProp,
   user,
+  selectedExploreApp,
+  setSelectedExploreApp,
 }: {
   activeTab: TabKey
   currentUrl: string
@@ -424,7 +422,7 @@ const TabContent = memo(function TabContent({
   handleNavigateToRecordResults: () => void
   handleNavigateToLearn: () => void
   handleNavigateToInbox: () => void
-  handlePulseDismiss: () => void
+  handleDailyRoundupDismiss: () => void
   setIsAssistantOpen: (open: boolean) => void
   handleAssistantModeChange: (mode: AssistantMode | 'full') => void
   setClassroomTabs: React.Dispatch<React.SetStateAction<Map<string, string>>>
@@ -433,6 +431,8 @@ const TabContent = memo(function TabContent({
   classroomNamesRef: React.MutableRefObject<Map<string, string>>
   router: ReturnType<typeof useRouter>
   user: any
+  selectedExploreApp: string | null
+  setSelectedExploreApp: React.Dispatch<React.SetStateAction<string | null>>
 }) {
   // Account role management
   const { role, setRole } = useUserRole()
@@ -460,8 +460,8 @@ const TabContent = memo(function TabContent({
     )
   }
 
-  if (currentUrl === 'pulse') {
-    return <PulseContent onPrepForMeeting={() => handleNavigate('classroom')} onComplete={handlePulseDismiss} />
+  if (currentUrl === 'daily-roundup') {
+    return <DailyRoundupContent onPrepForMeeting={() => handleNavigate('classroom')} onComplete={handleDailyRoundupDismiss} />
   }
 
   if (currentUrl === 'home') {
@@ -475,7 +475,7 @@ const TabContent = memo(function TabContent({
         onNavigateToInbox={handleNavigateToInbox}
         onNavigateToTeachingMarking={() => handleNavigate('teaching/marking' as ClosableTabKey)}
         onNavigateToTeachingLessonPlanning={() => handleNavigate('teaching/lesson-planning' as ClosableTabKey)}
-        onNavigateToPulse={() => handleNavigate('pulse', true)}
+        onNavigateToDailyRoundup={() => handleNavigate('daily-roundup', true)}
         onAssistantMessage={handleAssistantMessage}
         onStudentClick={handleOpenStudentProfile}
         onStudentClickWithClass={handleOpenStudentFromClass}
@@ -488,7 +488,12 @@ const TabContent = memo(function TabContent({
   }
 
   if (currentUrl === 'explore') {
-    return <ExploreContent onAppClick={(appKey) => handleNavigate(appKey as ClosableTabKey)} />
+    return (
+      <ExploreContent
+        onAppSelected={setSelectedExploreApp}
+        clearSelection={selectedExploreApp === null}
+      />
+    )
   }
 
   if (currentUrl === 'classroom') {
@@ -515,26 +520,58 @@ const TabContent = memo(function TabContent({
     return <TeachingContent defaultTab={tabFromUrl} teacherId={user?.user_id} />
   }
 
+  if (currentUrl === 'learning' || currentUrl.startsWith('learning/')) {
+    // Extract tab from URL (e.g., 'learning/browse' -> 'browse')
+    const tabFromUrl = currentUrl.startsWith('learning/')
+      ? currentUrl.split('/')[1] as 'my-courses' | 'browse' | 'certificates'
+      : undefined
+    return <LearningContent defaultTab={tabFromUrl} />
+  }
+
+  if (currentUrl === 'community' || currentUrl.startsWith('community/')) {
+    // Extract tab from URL (e.g., 'community/my-posts' -> 'my-posts')
+    const tabFromUrl = currentUrl.startsWith('community/')
+      ? currentUrl.split('/')[1] as 'feed' | 'my-posts' | 'saved'
+      : undefined
+    return <CommunityContent defaultTab={tabFromUrl} />
+  }
+
   if (currentUrl === 'calendar') {
-    return <TimetableTabContent teacherId={user?.user_id} />
+    return <CalendarContent teacherId={user?.user_id} />
   }
 
   if (currentUrl === 'inbox' || currentUrl.startsWith('inbox/')) {
-    const conversationId = slug && slug.length > 1 && slug[0] === 'inbox' ? slug[1] : undefined
+    const parts = slug || []
+    let tabName: 'chat' | 'announcements' | 'meetings' = 'chat'
+    let conversationId: string | undefined
+
+    if (parts.length >= 2) {
+      const secondPart = parts[1]
+      if (secondPart === 'announcements' || secondPart === 'meetings') {
+        // /inbox/announcements or /inbox/meetings
+        tabName = secondPart
+      } else if (secondPart === 'chat') {
+        // /inbox/chat or /inbox/chat/{conversationId}
+        tabName = 'chat'
+        conversationId = parts[2] // third segment is conversationId
+      } else {
+        // /inbox/{conversationId} - assume it's a conversation ID for chat tab
+        tabName = 'chat'
+        conversationId = secondPart
+      }
+    }
+
     return (
       <MessagesPageContent
         conversationId={conversationId}
         onConversationClick={handleOpenConversation}
+        defaultTab={tabName}
       />
     )
   }
 
   if (currentUrl === 'announcements') {
     return <AnnouncementsContent />
-  }
-
-  if (currentUrl === 'notifications') {
-    return <NotificationsContent />
   }
 
   if (typeof currentUrl === 'string' && currentUrl.startsWith('classroom/') && currentUrl.includes('/student/')) {
@@ -896,8 +933,8 @@ const TabContent = memo(function TabContent({
         <Button size="sm" onClick={() => handleNavigate('home')}>
           Go Home
         </Button>
-        <Button size="sm" variant="outline" onClick={() => handleNavigate('pulse')}>
-          Open Round-up
+        <Button size="sm" variant="outline" onClick={() => handleNavigate('daily-roundup')}>
+          Open Daily Roundup
         </Button>
       </div>
     </div>
@@ -951,11 +988,15 @@ export default function Home() {
   const [classroomTabs, setClassroomTabs] = useState<Map<string, string>>(new Map())
   const [classroomNames, setClassroomNames] = useState<Map<string, string>>(new Map()) // Cache class names
   const [closingTabs, setClosingTabs] = useState<Set<string>>(new Set()) // Track tabs being closed
+  const [selectedExploreApp, setSelectedExploreApp] = useState<string | null>(null) // Track selected app in explore page
   const studentProfileTabsRef = useRef<Map<string, string>>(new Map()) // Ref for immediate access
   const classroomTabsRef = useRef<Map<string, string>>(new Map()) // Ref for immediate access
   const classroomNamesRef = useRef<Map<string, string>>(new Map()) // Ref for immediate access to class names
   const [pendingAssistantMessage, setPendingAssistantMessage] = useState<string | null>(null)
   const tabContainerRef = useRef<HTMLDivElement>(null)
+
+  // Notification state
+  const [notifications, setNotifications] = useState<Notification[]>(mockNotifications)
 
   // Helper to determine if a tab is a top-level page
   const isTopLevelTab = (tabKey: string): boolean => {
@@ -965,8 +1006,8 @@ export default function Home() {
 
   // Helper to get parent tab of a child tab
   const getParentTab = (tabKey: string): string | null => {
-    if (tabKey === 'pulse') {
-      // Pulse is a child of Home
+    if (tabKey === 'daily-roundup') {
+      // Daily Roundup is a child of Home
       return 'home'
     }
     if (tabKey.startsWith('inbox/')) {
@@ -1215,18 +1256,18 @@ export default function Home() {
   const isProfileActive = activeTab === profileTabConfig.key
   const isSettingsActive = activeTab === settingsTabConfig.key
   const isAssistantTabActive = activeTab === assistantTabConfig.key
-  const isHomeActive = activeTab === 'home' || activeTab === 'pulse'
+  const isHomeActive = activeTab === 'home' || activeTab === 'daily-roundup'
   const isSidebarCollapsed = sidebarState === 'collapsed'
   const isAssistantSidebarOpen = assistantMode === 'sidebar' && isAssistantOpen
 
   // Define navigation handlers before pageActions useMemo to avoid hoisting issues
   const handleNavigate = (tabKey: ClosableTabKey, navigateWithinTab: boolean = false) => {
-    // If navigating away from Pulse, mark it as seen
-    if (currentUrl === 'pulse' && tabKey !== 'pulse') {
+    // If navigating away from Daily Roundup, mark it as seen
+    if (currentUrl === 'daily-roundup' && tabKey !== 'daily-roundup') {
       try {
-        sessionStorage.setItem('hasSeenPulse', 'true')
+        sessionStorage.setItem('hasSeenDailyRoundup', 'true')
       } catch (error) {
-        console.error('Failed to set hasSeenPulse flag:', error)
+        console.error('Failed to set hasSeenDailyRoundup flag:', error)
       }
     }
 
@@ -1247,12 +1288,22 @@ export default function Home() {
     router.push(newPath, { scroll: false })
   }
 
+  // Wrapper for breadcrumb navigation to handle explore app selection reset
+  const handleBreadcrumbNavigate = useCallback((path: string) => {
+    if (path === 'explore' && selectedExploreApp) {
+      // Clear selected app when navigating back to explore list
+      setSelectedExploreApp(null)
+    }
+    handleNavigate(path as ClosableTabKey)
+  }, [selectedExploreApp, handleNavigate])
+
   // Get breadcrumbs for current tab
   const { breadcrumbs: pageBreadcrumbs, isLoading: breadcrumbsLoading } = useRouteBreadcrumbs({
     currentUrl: currentUrl as string,
-    onNavigate: (path) => handleNavigate(path as ClosableTabKey),
+    onNavigate: handleBreadcrumbNavigate,
     studentProfileTabs,
     classroomNames: classroomTabs,
+    selectedExploreApp,
   })
 
   const handleOpenGrades = useCallback((classId: string) => {
@@ -1275,9 +1326,9 @@ export default function Home() {
       // Home page actions
       actions = [
         {
-          label: 'Pulse',
+          label: 'Daily Roundup',
           icon: Zap,
-          onClick: () => handleNavigate('pulse', true),
+          onClick: () => handleNavigate('daily-roundup', true),
           variant: 'outline',
         },
       ]
@@ -1523,12 +1574,12 @@ export default function Home() {
     handleNavigate('inbox')
   }
 
-  const handlePulseDismiss = () => {
-    // Mark Pulse as seen
+  const handleDailyRoundupDismiss = () => {
+    // Mark Daily Roundup as seen
     try {
-      sessionStorage.setItem('hasSeenPulse', 'true')
+      sessionStorage.setItem('hasSeenDailyRoundup', 'true')
     } catch (error) {
-      console.error('Failed to set hasSeenPulse flag:', error)
+      console.error('Failed to set hasSeenDailyRoundup flag:', error)
     }
     // Navigate to home
     handleNavigate('home')
@@ -1628,11 +1679,11 @@ export default function Home() {
         classroomNamesRef.current = parsedMap
       }
 
-      // Check if user has seen Pulse - if not and on home, navigate to pulse
-      const hasSeenPulse = sessionStorage.getItem('hasSeenPulse')
-      if (!hasSeenPulse && currentUrl === 'home') {
-        // First-time user, navigate to pulse
-        router.push('/pulse')
+      // Check if user has seen Daily Roundup - if not and on home, navigate to daily-roundup
+      const hasSeenDailyRoundup = sessionStorage.getItem('hasSeenDailyRoundup')
+      if (!hasSeenDailyRoundup && currentUrl === 'home') {
+        // First-time user, navigate to daily-roundup
+        router.push('/daily-roundup')
       }
     } catch (error) {
       // If sessionStorage is corrupted or full, clear it and start fresh
@@ -1734,6 +1785,30 @@ export default function Home() {
     setActiveTab(newTabConfig.key)
     router.push('/new-tab', { scroll: false })
   }
+
+  // Notification handlers
+  const handleMarkAsRead = useCallback((id: string) => {
+    setNotifications((prev) =>
+      prev.map((notif) => (notif.id === id ? { ...notif, read: true } : notif))
+    )
+  }, [])
+
+  const handleMarkAllAsRead = useCallback(() => {
+    setNotifications((prev) => prev.map((notif) => ({ ...notif, read: true })))
+  }, [])
+
+  const handleNotificationClick = useCallback(
+    (notification: Notification) => {
+      if (notification.actionUrl) {
+        const cleanUrl = notification.actionUrl.replace(/^\//, '')
+        // Only navigate if it's a valid ClosableTabKey (not 'new-tab')
+        if (cleanUrl !== 'new-tab') {
+          handleNavigate(cleanUrl as ClosableTabKey)
+        }
+      }
+    },
+    [handleNavigate]
+  )
 
   const handleAssistantButtonClick = useCallback(() => {
     if (assistantMode === 'floating') {
@@ -1846,14 +1921,66 @@ export default function Home() {
       <Sidebar variant="inset" collapsible="icon">
         <SidebarContent className="gap-6">
           <SidebarGroup className="group-data-[collapsible=icon]:pb-0">
+            {/* 3-Column Header: Toggle | Profile | Notifications */}
             <SidebarMenu>
               <SidebarMenuItem>
-                <SidebarMenuButton onClick={toggleSidebar} tooltip="Toggle Sidebar">
-                  <PanelLeft className="size-4" />
-                  <span className="font-medium">Tan&apos;s Workspace</span>
-                </SidebarMenuButton>
+                <div className="grid grid-cols-[auto_1fr_auto] w-full group-data-[collapsible=icon]:grid-cols-1">
+
+                  {/* Column 1: Toggle Button - Icon Only */}
+                  <SidebarMenuButton
+                    onClick={toggleSidebar}
+                    tooltip="Toggle Sidebar"
+                    className="w-8 px-0 justify-center group-data-[collapsible=icon]:w-full"
+                  >
+                    <PanelLeft className="size-4" />
+                  </SidebarMenuButton>
+
+                  {/* Column 2: Profile with Dropdown - Text Only (Expanded), Avatar (Collapsed) */}
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <SidebarMenuButton
+                        isActive={isProfileActive || isSettingsActive}
+                        tooltip="Account"
+                        className="justify-between group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0"
+                      >
+                        {/* Expanded: Show name only */}
+                        <span className="flex-1 truncate text-left group-data-[collapsible=icon]:hidden">
+                          Daniel Tan
+                        </span>
+                        <ChevronDown className="size-3 opacity-50 group-data-[collapsible=icon]:hidden" />
+
+                        {/* Collapsed: Show avatar only */}
+                        <div className="hidden group-data-[collapsible=icon]:flex size-5 shrink-0 items-center justify-center rounded-full bg-sidebar-primary text-[10px] font-semibold text-sidebar-primary-foreground">
+                          DT
+                        </div>
+                      </SidebarMenuButton>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="start" side="right" className="w-48">
+                      <DropdownMenuItem onClick={() => handleNavigate(profileTabConfig.key)}>
+                        <User className="mr-2 size-4" />
+                        <span>Profile</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleNavigate(settingsTabConfig.key)}>
+                        <Settings className="mr-2 size-4" />
+                        <span>Settings</span>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+
+                  {/* Column 3: Notifications - Icon Only with Badge */}
+                  <NotificationBell
+                    notifications={notifications}
+                    onMarkAsRead={handleMarkAsRead}
+                    onMarkAllAsRead={handleMarkAllAsRead}
+                    onNotificationClick={handleNotificationClick}
+                    compact={true}
+                  />
+                </div>
               </SidebarMenuItem>
             </SidebarMenu>
+
+            <SidebarSeparator className="mx-0 my-2 w-full" />
+
             <SidebarGroupContent className="mt-2">
               {/* Home - No section title */}
               <SidebarMenu>
@@ -1866,7 +1993,7 @@ export default function Home() {
                         tooltip={page.tooltip}
                         isActive={
                           activeTab === page.key ||
-                          (page.key === 'home' && activeTab === 'pulse')
+                          (page.key === 'home' && activeTab === 'daily-roundup')
                         }
                         onClick={() => handleNavigate(page.key)}
                         type="button"
@@ -1883,7 +2010,7 @@ export default function Home() {
 
               {/* Classroom management section */}
               <div className="space-y-1">
-                <SidebarGroupLabel className="text-xs">Classroom Management</SidebarGroupLabel>
+                <SidebarGroupLabel className="text-sm">Classroom Management</SidebarGroupLabel>
                 <SidebarMenu>
                   {[primaryPages[1], primaryPages[3]].map((page) => {
                     const Icon = page.icon
@@ -1914,7 +2041,7 @@ export default function Home() {
               {role === 'year-head' && (
                 <>
                   <div className="space-y-1">
-                    <SidebarGroupLabel className="text-xs">School Management</SidebarGroupLabel>
+                    <SidebarGroupLabel className="text-sm">School Management</SidebarGroupLabel>
                     <SidebarMenu>
                       {[primaryPages[2]].map((page) => {
                         const Icon = page.icon
@@ -1942,9 +2069,9 @@ export default function Home() {
 
               {/* School life section */}
               <div className="space-y-1">
-                <SidebarGroupLabel className="text-xs">School Life</SidebarGroupLabel>
+                <SidebarGroupLabel className="text-sm">School Life</SidebarGroupLabel>
                 <SidebarMenu>
-                  {[primaryPages[8], primaryPages[9], primaryPages[10], primaryPages[11]].map((page) => {
+                  {[primaryPages[8], primaryPages[9], primaryPages[10]].map((page) => {
                     const Icon = page.icon
                     const isInbox = page.key === 'inbox'
 
@@ -1973,7 +2100,7 @@ export default function Home() {
 
               {/* Professional development section */}
               <div className="space-y-1">
-                <SidebarGroupLabel className="text-xs">Professional Development</SidebarGroupLabel>
+                <SidebarGroupLabel className="text-sm">Professional Development</SidebarGroupLabel>
                 <SidebarMenu>
                   {[primaryPages[4], primaryPages[5]].map((page) => {
                     const Icon = page.icon
@@ -1999,7 +2126,7 @@ export default function Home() {
 
               {/* All apps - standalone */}
               <SidebarMenu>
-                {[primaryPages[12]].map((page) => {
+                {[primaryPages.find(p => p.key === 'explore')].filter((page): page is NonNullable<typeof page> => page !== undefined).map((page) => {
                   const Icon = page.icon
 
                   return (
@@ -2020,44 +2147,6 @@ export default function Home() {
             </SidebarGroupContent>
           </SidebarGroup>
         </SidebarContent>
-
-        <SidebarFooter>
-          <div className="flex gap-2 group-data-[collapsible=icon]:flex-col group-data-[collapsible=icon]:gap-1">
-            <SidebarMenu className="flex-1 group-data-[collapsible=icon]:flex-none">
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  onClick={() => handleNavigate(profileTabConfig.key)}
-                  isActive={isProfileActive}
-                  tooltip="View profile"
-                >
-                  <div className="flex size-4 shrink-0 items-center justify-center rounded-full bg-sidebar-primary text-[10px] font-semibold text-sidebar-primary-foreground">
-                    DT
-                  </div>
-                  <span>Daniel Tan</span>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </SidebarMenu>
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => handleNavigate(settingsTabConfig.key)}
-                    className={cn(
-                      "h-8 w-8 shrink-0 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground group-data-[collapsible=icon]:w-full",
-                      isSettingsActive && "bg-sidebar-accent text-sidebar-accent-foreground"
-                    )}
-                    aria-label="Settings"
-                  >
-                    <Settings className="size-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent side="top">Settings</TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          </div>
-        </SidebarFooter>
       </Sidebar>
 
       <SidebarInset className="overflow-x-clip">
@@ -2071,7 +2160,7 @@ export default function Home() {
                     const tab = tabConfigMap[tabKey as keyof typeof tabConfigMap]
                     const isStudentProfile = typeof tabKey === 'string' && tabKey.startsWith('student-')
                     const isClassroom = typeof tabKey === 'string' && tabKey.startsWith('classroom/')
-                    const isHomeChild = typeof tabKey === 'string' && tabKey === 'pulse'
+                    const isHomeChild = typeof tabKey === 'string' && tabKey === 'daily-roundup'
                     const studentName = isStudentProfile ? studentProfileTabs.get(tabKey) : undefined
                     // Use ref for immediate access to avoid UUID flicker
                     let classroomPath = isClassroom ? classroomTabsRef.current.get(tabKey) : undefined
@@ -2088,9 +2177,9 @@ export default function Home() {
 
                     // Parse tab labels - show child page label
                     let label = ''
-                    if (tabKey === 'pulse') {
-                      // Pulse is a child of Home, show "Pulse" in the tab
-                      label = 'Pulse'
+                    if (tabKey === 'daily-roundup') {
+                      // Daily Roundup is a child of Home, show "Daily Roundup" in the tab
+                      label = 'Daily Roundup'
                     } else if (isStudentProfile) {
                       label = studentName ?? 'Student'
                     } else if (isClassroom && classroomPath) {
@@ -2462,7 +2551,7 @@ export default function Home() {
                   handleNavigateToRecordResults={handleNavigateToRecordResults}
                   handleNavigateToLearn={handleNavigateToLearn}
                   handleNavigateToInbox={handleNavigateToInbox}
-                  handlePulseDismiss={handlePulseDismiss}
+                  handleDailyRoundupDismiss={handleDailyRoundupDismiss}
                   setIsAssistantOpen={setIsAssistantOpen}
                   handleAssistantModeChange={handleAssistantModeChange}
                   setClassroomTabs={setClassroomTabs}
@@ -2471,6 +2560,8 @@ export default function Home() {
                   classroomNamesRef={classroomNamesRef}
                   router={router}
                   user={user}
+                  selectedExploreApp={selectedExploreApp}
+                  setSelectedExploreApp={setSelectedExploreApp}
                 />
               </div>
             </div>

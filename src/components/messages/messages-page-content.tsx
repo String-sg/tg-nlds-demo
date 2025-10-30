@@ -1,17 +1,23 @@
 'use client'
 
-import { InboxContent } from './inbox-content'
+import { InboxTabContainer } from './inbox-tab-container'
 
 interface MessagesPageContentProps {
   conversationId?: string
   onConversationClick: (conversationId: string) => void
+  defaultTab?: 'chat' | 'announcements' | 'meetings'
 }
 
 export function MessagesPageContent({
   conversationId,
   onConversationClick,
+  defaultTab = 'chat',
 }: MessagesPageContentProps) {
   return (
-    <InboxContent conversationId={conversationId} onConversationClick={onConversationClick} />
+    <InboxTabContainer
+      conversationId={conversationId}
+      onConversationClick={onConversationClick}
+      defaultTab={defaultTab}
+    />
   )
 }

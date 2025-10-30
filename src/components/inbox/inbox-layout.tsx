@@ -42,7 +42,7 @@ export function InboxLayout({ conversationId, onConversationClick }: InboxLayout
   }
 
   return (
-    <div className="flex h-full w-full border-t border-stone-200 bg-stone-50">
+    <div className="flex h-full w-full bg-stone-50">
       {/* Left Panel - Conversation List - 360px fixed */}
       <div className="w-[360px] min-h-0 flex-shrink-0 border-r border-stone-200 bg-white">
         <ConversationList
