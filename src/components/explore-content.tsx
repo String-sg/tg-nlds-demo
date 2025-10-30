@@ -15,6 +15,18 @@ import {
   Languages,
   Check,
   Sparkles,
+  Users,
+  Briefcase,
+  School,
+  Building2,
+  DollarSign,
+  TrendingUp,
+  Globe,
+  Shield,
+  MonitorSmartphone,
+  Video,
+  MessageCircle,
+  Bot,
   type LucideIcon,
 } from 'lucide-react'
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -60,9 +72,12 @@ interface App {
 }
 
 const categoryDescriptions: Record<string, string> = {
-  'Teacher workspace apps': 'Core tools for teaching, classroom management, and professional development',
-  'Connected apps': 'Official MOE digital services and student support platforms',
-  'More teaching tools': 'Additional apps and services to enhance your teaching experience',
+  'Recommended for you': "Because it's an exam period",
+  'Classes and students': 'Tools for classroom management, student assessment, and academic support',
+  'Parents and communications': 'Connect with parents and manage school-home communication',
+  'School life & Admin': 'Administrative tools and school management systems',
+  'Growth and community': 'Professional development and community engagement platforms',
+  'Digital innovation and enhancements': 'Cutting-edge digital tools and productivity enhancers',
 }
 
 const allApps: App[] = [
@@ -574,7 +589,14 @@ export function ExploreContent({ onAppClick }: ExploreContentProps = {}) {
   }, [searchQuery])
 
   const appsByCategory = useMemo(() => {
-    const categoryOrder = ['Teacher workspace apps', 'Connected apps', 'More teaching tools']
+    const categoryOrder = [
+      'Recommended for you',
+      'Classes and students',
+      'Parents and communications',
+      'School life & Admin',
+      'Growth and community',
+      'Digital innovation and enhancements',
+    ]
     const grouped = new Map<string, App[]>()
 
     filteredApps.forEach((app) => {
