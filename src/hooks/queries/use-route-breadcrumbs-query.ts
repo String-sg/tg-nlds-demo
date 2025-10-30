@@ -252,15 +252,6 @@ function generateBreadcrumbs(
         })
         break
 
-      case 'notifications':
-        breadcrumbs.push({
-          label: 'Notifications',
-          path: 'notifications',
-          isActive: isLast,
-          onClick: onNavigate && !isLast ? () => onNavigate('notifications') : undefined,
-        })
-        break
-
       default:
         // Unknown segment - skip
         break
