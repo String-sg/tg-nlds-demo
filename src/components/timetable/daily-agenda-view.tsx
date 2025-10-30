@@ -97,39 +97,41 @@ export function DailyAgendaView({
   const hasLessons = daySchedule.lessons.length > 0
 
   return (
-    <div className="flex h-full flex-col">
-      {/* Header */}
-      <div className="mb-4 flex items-center justify-between border-b pb-4">
-        <div>
-          <h2 className="text-2xl font-bold">
-            {getRelativeDayName(daySchedule.date)}
-          </h2>
-          <p className="text-sm text-muted-foreground">
-            {formatDate(daySchedule.date, 'EEEE, MMMM d, yyyy')}
-          </p>
-        </div>
+    <Card className="flex h-full flex-col">
+      <CardHeader className="flex-shrink-0 border-b">
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle>
+              {getRelativeDayName(daySchedule.date)}
+            </CardTitle>
+            <p className="text-sm text-muted-foreground mt-1">
+              {formatDate(daySchedule.date, 'EEEE, MMMM d, yyyy')}
+            </p>
+          </div>
 
-        {/* Date navigation */}
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => onDateChange?.('prev')}
-          >
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => onDateChange?.('next')}
-          >
-            <ChevronRight className="h-4 w-4" />
-          </Button>
+          {/* Date navigation */}
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => onDateChange?.('prev')}
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => onDateChange?.('next')}
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
-      </div>
+      </CardHeader>
 
-      {/* Content */}
-      <ScrollArea className="flex-1">
+      <CardContent className="flex-1 min-h-0 p-0">
+        <ScrollArea className="h-full">
+          <div className="p-6">
         {!hasLessons ? (
           <EmptyDayState date={daySchedule.date} />
         ) : (
@@ -217,8 +219,10 @@ export function DailyAgendaView({
             </Card>
           </div>
         )}
-      </ScrollArea>
-    </div>
+          </div>
+        </ScrollArea>
+      </CardContent>
+    </Card>
   )
 }
 
@@ -248,26 +252,28 @@ function EmptyDayState({ date }: { date: Date }) {
  */
 function DailyAgendaSkeleton() {
   return (
-    <div className="flex h-full flex-col">
-      {/* Header skeleton */}
-      <div className="mb-4 flex items-center justify-between border-b pb-4">
-        <div className="space-y-2">
-          <div className="h-8 w-32 animate-pulse rounded bg-muted" />
-          <div className="h-4 w-48 animate-pulse rounded bg-muted" />
+    <Card className="flex h-full flex-col">
+      <CardHeader className="flex-shrink-0 border-b">
+        <div className="flex items-center justify-between">
+          <div className="space-y-2">
+            <div className="h-7 w-32 animate-pulse rounded bg-muted" />
+            <div className="h-4 w-48 animate-pulse rounded bg-muted" />
+          </div>
+          <div className="flex gap-2">
+            <div className="h-10 w-10 animate-pulse rounded bg-muted" />
+            <div className="h-10 w-10 animate-pulse rounded bg-muted" />
+          </div>
         </div>
-        <div className="flex gap-2">
-          <div className="h-10 w-10 animate-pulse rounded bg-muted" />
-          <div className="h-10 w-10 animate-pulse rounded bg-muted" />
-        </div>
-      </div>
+      </CardHeader>
 
-      {/* Lessons skeleton */}
-      <div className="space-y-3">
-        {Array.from({ length: 4 }).map((_, i) => (
-          <LessonCardSkeleton key={i} variant="agenda" />
-        ))}
-      </div>
-    </div>
+      <CardContent className="flex-1 min-h-0 p-0">
+        <div className="space-y-3 p-6">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <LessonCardSkeleton key={i} variant="agenda" />
+          ))}
+        </div>
+      </CardContent>
+    </Card>
   )
 }
 

@@ -64,6 +64,7 @@ import { AnnouncementsContent } from '@/components/messages/announcements-conten
 import { FormsContent } from '@/components/forms-content'
 import { TeachingContent } from '@/components/teaching-content'
 import { TimetableTabContent } from '@/components/timetable/timetable-tab-content'
+import { CalendarContent } from '@/components/calendar-content'
 import { InboxProvider } from '@/contexts/inbox-context'
 import { SettingsContent } from '@/components/settings-content'
 import { NotificationBell } from '@/components/notifications/notification-bell'
@@ -509,7 +510,7 @@ const TabContent = memo(function TabContent({
   }
 
   if (currentUrl === 'calendar') {
-    return <TimetableTabContent teacherId={user?.user_id} />
+    return <CalendarContent teacherId={user?.user_id} />
   }
 
   if (currentUrl === 'inbox' || currentUrl.startsWith('inbox/')) {

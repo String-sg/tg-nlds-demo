@@ -26,9 +26,10 @@ import { fetchTeacherClassesWithSchedule } from '@/lib/queries/timetable-queries
 
 export interface TimetableTabContentProps {
   teacherId: string
+  showControls?: boolean // Whether to show view controls and export button (default: true)
 }
 
-export function TimetableTabContent({ teacherId }: TimetableTabContentProps) {
+export function TimetableTabContent({ teacherId, showControls = true }: TimetableTabContentProps) {
   const [view, setView] = useState<TimetableView>('week')
   const [weekStart, setWeekStart] = useState(getWeekStart())
   const [selectedDate, setSelectedDate] = useState(new Date())
@@ -72,57 +73,51 @@ export function TimetableTabContent({ teacherId }: TimetableTabContentProps) {
   return (
     <div className="flex h-full flex-col space-y-4">
       {/* Controls */}
-      <div className="flex items-center justify-between">
-        {/* View selector */}
-        <Tabs value={view} onValueChange={(v) => setView(v as TimetableView)}>
-          <TabsList>
-            <TabsTrigger value="week">
-              <LayoutGrid className="mr-2 h-4 w-4" />
-              Week
-            </TabsTrigger>
-            <TabsTrigger value="day">
-              <List className="mr-2 h-4 w-4" />
-              Day
-            </TabsTrigger>
-            <TabsTrigger value="month">
-              <CalendarDays className="mr-2 h-4 w-4" />
-              Month
-            </TabsTrigger>
-          </TabsList>
-        </Tabs>
+      {showControls && (
+        <div className="flex items-center justify-between">
+          {/* View selector */}
+          <Tabs value={view} onValueChange={(v) => setView(v as TimetableView)}>
+            <TabsList>
+              <TabsTrigger value="week">
+                <LayoutGrid className="mr-2 h-4 w-4" />
+                Week
+              </TabsTrigger>
+              <TabsTrigger value="day">
+                <List className="mr-2 h-4 w-4" />
+                Day
+              </TabsTrigger>
+              <TabsTrigger value="month">
+                <CalendarDays className="mr-2 h-4 w-4" />
+                Month
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
 
-        {/* Export button */}
-        {view === 'week' && weekSchedule && (
-          <ExportPDFButton
-            weekSchedule={weekSchedule}
-            teacherName={teacherName}
-          />
-        )}
-      </div>
+          {/* Export button */}
+          {view === 'week' && weekSchedule && (
+            <ExportPDFButton
+              weekSchedule={weekSchedule}
+              teacherName={teacherName}
+            />
+          )}
+        </div>
+      )}
 
       {/* Content */}
       <div className="flex-1 min-h-0">
-        {view === 'week' && (
-          <Card className="h-full p-6">
-            {weekSchedule && (
-              <WeeklyGridView
-                schedule={weekSchedule}
-                isLoading={isLoadingWeek}
-              />
-            )}
-          </Card>
+        {view === 'week' && weekSchedule && (
+          <WeeklyGridView
+            schedule={weekSchedule}
+            isLoading={isLoadingWeek}
+          />
         )}
 
-        {view === 'day' && (
-          <Card className="h-full p-6">
-            {daySchedule && (
-              <DailyAgendaView
-                daySchedule={daySchedule}
-                isLoading={isLoadingDay}
-                onDateChange={handleDateChange}
-              />
-            )}
-          </Card>
+        {view === 'day' && daySchedule && (
+          <DailyAgendaView
+            daySchedule={daySchedule}
+            isLoading={isLoadingDay}
+            onDateChange={handleDateChange}
+          />
         )}
 
         {view === 'month' && (

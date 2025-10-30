@@ -7,12 +7,14 @@
 
 'use client'
 
+import { useState } from 'react'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Clock, MapPin, Users, AlertTriangle } from 'lucide-react'
 import type { LessonSlot } from '@/types/timetable'
 import { cn } from '@/lib/utils'
 import { formatTimeRange, formatDuration } from '@/lib/timetable/date-utils'
+import { LessonDetailPopover } from './lesson-detail-popover'
 
 export interface LessonCardProps {
   lesson: LessonSlot
@@ -31,55 +33,64 @@ export function LessonCard({
   onClick,
   className,
 }: LessonCardProps) {
-  // Grid variant: Compact card for weekly grid view
+  // Grid variant: Minimal card for weekly grid view with popover
   if (variant === 'grid') {
-    return (
+    const [open, setOpen] = useState(false)
+
+    const cardContent = (
       <Card
         className={cn(
-          'h-full cursor-pointer border-l-4 p-2 transition-all hover:shadow-md',
+          'h-full cursor-pointer rounded-md border-0 !border-l-0 p-1.5 transition-all hover:shadow-md',
           lesson.color,
-          hasConflict && 'border-red-500 bg-red-50',
+          hasConflict && '!border-l-2 border-red-500 bg-red-50',
           isUpNext && 'ring-2 ring-blue-500',
           className
         )}
-        onClick={onClick}
       >
-        <div className="flex h-full flex-col gap-1">
-          {/* Class name */}
-          <div className="text-sm font-semibold leading-tight line-clamp-2">
+        <div className="flex h-full flex-col justify-between gap-0.5">
+          {/* Class name - single line, truncated */}
+          <div className="text-sm font-semibold leading-tight truncate">
             {lesson.className}
           </div>
 
-          {/* Time */}
-          <div className="flex items-center gap-1 text-xs text-muted-foreground">
-            <Clock className="h-3 w-3" />
-            <span>{lesson.startTime}</span>
+          {/* Bottom section: time and optional conflict indicator */}
+          <div className="flex items-center justify-between gap-1">
+            <div className="text-[10px] text-muted-foreground">
+              {lesson.startTime}
+            </div>
+
+            {/* Conflict indicator - minimal */}
+            {hasConflict && (
+              <AlertTriangle className="h-3 w-3 text-red-500 shrink-0" />
+            )}
           </div>
 
-          {/* Location */}
-          {lesson.location && (
-            <div className="flex items-center gap-1 text-xs text-muted-foreground">
-              <MapPin className="h-3 w-3" />
-              <span className="truncate">{lesson.location}</span>
-            </div>
-          )}
-
-          {/* Conflict indicator */}
-          {hasConflict && (
-            <Badge variant="destructive" className="w-fit text-xs">
-              <AlertTriangle className="mr-1 h-3 w-3" />
-              Conflict
-            </Badge>
-          )}
-
-          {/* Up next indicator */}
+          {/* Up next indicator - minimal badge */}
           {isUpNext && (
-            <Badge variant="default" className="w-fit text-xs">
-              Up Next
-            </Badge>
+            <div className="mt-0.5">
+              <Badge variant="default" className="text-[10px] px-1 py-0 h-4">
+                Up Next
+              </Badge>
+            </div>
           )}
         </div>
       </Card>
+    )
+
+    return (
+      <LessonDetailPopover
+        lesson={lesson}
+        hasConflict={hasConflict}
+        open={open}
+        onOpenChange={(newOpen) => {
+          setOpen(newOpen)
+          if (!newOpen && onClick) {
+            onClick()
+          }
+        }}
+      >
+        {cardContent}
+      </LessonDetailPopover>
     )
   }
 
@@ -88,7 +99,7 @@ export function LessonCard({
     return (
       <Card
         className={cn(
-          'cursor-pointer border-l-4 transition-all hover:shadow-md',
+          'cursor-pointer rounded-md border-l-4 transition-all hover:shadow-md',
           lesson.color,
           hasConflict && 'border-red-500 bg-red-50',
           isUpNext && 'ring-2 ring-blue-500',
@@ -152,7 +163,7 @@ export function LessonCard({
   return (
     <Card
       className={cn(
-        'cursor-pointer border-l-4 transition-all hover:shadow-sm',
+        'cursor-pointer rounded-md border-l-4 transition-all hover:shadow-sm',
         lesson.color,
         hasConflict && 'border-red-500 bg-red-50',
         className
@@ -193,11 +204,11 @@ export function EmptyLessonSlot({ className }: { className?: string }) {
   return (
     <div
       className={cn(
-        'flex h-full items-center justify-center rounded-md border border-dashed border-muted-foreground/25 bg-muted/10',
+        'flex h-full items-center justify-center rounded-md border border-dashed border-muted-foreground/20 bg-muted/5',
         className
       )}
     >
-      <span className="text-xs text-muted-foreground/50">Free</span>
+      <span className="text-[10px] text-muted-foreground/50">Free</span>
     </div>
   )
 }
@@ -208,11 +219,10 @@ export function EmptyLessonSlot({ className }: { className?: string }) {
 export function LessonCardSkeleton({ variant = 'grid' }: { variant?: 'grid' | 'agenda' | 'compact' }) {
   if (variant === 'grid') {
     return (
-      <Card className="h-full animate-pulse p-2">
-        <div className="flex h-full flex-col gap-2">
+      <Card className="h-full animate-pulse rounded-md p-1.5">
+        <div className="flex h-full flex-col justify-between gap-0.5">
           <div className="h-4 w-3/4 rounded bg-muted" />
-          <div className="h-3 w-1/2 rounded bg-muted" />
-          <div className="h-3 w-2/3 rounded bg-muted" />
+          <div className="h-3 w-1/3 rounded bg-muted" />
         </div>
       </Card>
     )
@@ -220,7 +230,7 @@ export function LessonCardSkeleton({ variant = 'grid' }: { variant?: 'grid' | 'a
 
   if (variant === 'agenda') {
     return (
-      <Card className="animate-pulse p-4">
+      <Card className="animate-pulse rounded-md p-4">
         <div className="flex items-center gap-4">
           <div className="flex flex-col gap-2">
             <div className="h-4 w-12 rounded bg-muted" />
@@ -238,7 +248,7 @@ export function LessonCardSkeleton({ variant = 'grid' }: { variant?: 'grid' | 'a
   }
 
   return (
-    <Card className="animate-pulse p-3">
+    <Card className="animate-pulse rounded-md p-3">
       <div className="flex items-center gap-3">
         <div className="h-4 w-20 rounded bg-muted" />
         <div className="h-4 flex-1 rounded bg-muted" />
