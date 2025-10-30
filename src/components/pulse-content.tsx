@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { SparklesIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { comingSoonToast } from '@/lib/coming-soon-toast'
 
 interface PulseContentProps {
   onPrepForMeeting?: () => void
@@ -43,7 +44,12 @@ const mockPulseItems: PulseItem[] = [
     description:
       'Review weekly performance data for all students. Three students need additional support in mathematics.',
     actions: [
-      { label: 'Analyze Performance', icon: SparklesIcon, variant: 'outline' },
+      {
+        label: 'Analyze Performance',
+        icon: SparklesIcon,
+        variant: 'outline',
+        onClick: () => comingSoonToast.feature('Performance analysis'),
+      },
     ],
   },
   {
@@ -54,7 +60,12 @@ const mockPulseItems: PulseItem[] = [
     description:
       'Prepare documentation for two reported bullying cases requiring follow-up interviews.',
     actions: [
-      { label: 'Prepare Documentation', icon: SparklesIcon, variant: 'outline' },
+      {
+        label: 'Prepare Documentation',
+        icon: SparklesIcon,
+        variant: 'outline',
+        onClick: () => comingSoonToast.feature('Documentation preparation'),
+      },
     ],
   },
 ]

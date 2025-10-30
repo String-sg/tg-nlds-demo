@@ -21,6 +21,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { cn } from '@/lib/utils'
+import { comingSoonToast } from '@/lib/coming-soon-toast'
 
 // Mock data for dashboard widgets
 const dashboardData = {
@@ -149,7 +150,7 @@ export function SchoolDashboard({ onNavigate }: SchoolDashboardProps) {
               {getTodayDate()}
             </p>
           </div>
-          <Button variant="outline" size="sm">
+          <Button variant="outline" size="sm" onClick={() => comingSoonToast.report()}>
             <ArrowRight className="mr-2 size-4" />
             View Full Reports
           </Button>
@@ -195,7 +196,12 @@ export function SchoolDashboard({ onNavigate }: SchoolDashboardProps) {
                   </div>
                 </div>
                 <div className="flex items-center gap-2 pt-1">
-                  <Button variant="ghost" size="sm" className="h-8 gap-1.5 text-xs">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 gap-1.5 text-xs"
+                    onClick={() => comingSoonToast.feature('AI detailed analysis')}
+                  >
                     View detailed analysis
                     <ChevronRight className="size-3.5" />
                   </Button>
@@ -288,7 +294,12 @@ export function SchoolDashboard({ onNavigate }: SchoolDashboardProps) {
                   <span className="font-medium">{dashboardData.attendance.late}</span>
                 </div>
               </div>
-              <Button variant="outline" size="sm" className="w-full">
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full"
+                onClick={() => comingSoonToast.report()}
+              >
                 View Attendance Details
               </Button>
             </CardContent>
@@ -328,7 +339,12 @@ export function SchoolDashboard({ onNavigate }: SchoolDashboardProps) {
                   <span className="font-medium">{dashboardData.health.resolved}</span>
                 </div>
               </div>
-              <Button variant="outline" size="sm" className="w-full">
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full"
+                onClick={() => comingSoonToast.report()}
+              >
                 View Health Records
               </Button>
             </CardContent>
@@ -368,7 +384,12 @@ export function SchoolDashboard({ onNavigate }: SchoolDashboardProps) {
                   <span className="font-medium">{dashboardData.programme.completionRate}%</span>
                 </div>
               </div>
-              <Button variant="outline" size="sm" className="w-full">
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full"
+                onClick={() => comingSoonToast.management('Programme')}
+              >
                 Manage Programs
               </Button>
             </CardContent>
@@ -402,7 +423,12 @@ export function SchoolDashboard({ onNavigate }: SchoolDashboardProps) {
                   <span className="font-medium">{dashboardData.custody.pendingVerification}</span>
                 </div>
               </div>
-              <Button variant="outline" size="sm" className="w-full">
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full"
+                onClick={() => comingSoonToast.feature('Guardian updates review')}
+              >
                 Review Updates
               </Button>
             </CardContent>
@@ -442,7 +468,12 @@ export function SchoolDashboard({ onNavigate }: SchoolDashboardProps) {
                   <span className="font-medium">{dashboardData.moeFas.pending}</span>
                 </div>
               </div>
-              <Button variant="outline" size="sm" className="w-full">
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full"
+                onClick={() => comingSoonToast.feature('MOE-FAS application review')}
+              >
                 Review Applications
               </Button>
             </CardContent>
@@ -483,7 +514,12 @@ export function SchoolDashboard({ onNavigate }: SchoolDashboardProps) {
                   </span>
                 </div>
               </div>
-              <Button variant="outline" size="sm" className="w-full">
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full"
+                onClick={() => comingSoonToast.feature('Admin updates')}
+              >
                 View All Updates
               </Button>
             </CardContent>
@@ -526,7 +562,12 @@ export function SchoolDashboard({ onNavigate }: SchoolDashboardProps) {
                   ))}
                 </div>
               </div>
-              <Button variant="outline" size="sm" className="w-full">
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full"
+                onClick={() => comingSoonToast.management('MTL')}
+              >
                 Manage MTL
               </Button>
             </CardContent>
@@ -572,7 +613,12 @@ export function SchoolDashboard({ onNavigate }: SchoolDashboardProps) {
                   <span className="font-medium">{dashboardData.incidents.categories.academic}</span>
                 </div>
               </div>
-              <Button variant="outline" size="sm" className="w-full">
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full"
+                onClick={() => comingSoonToast.feature('Incident management')}
+              >
                 View All Incidents
               </Button>
             </CardContent>
