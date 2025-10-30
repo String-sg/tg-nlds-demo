@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { cn } from '@/lib/utils'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { CaseManagementTable } from '@/components/case-management-table'
+import { comingSoonToast } from '@/lib/coming-soon-toast'
 
 type RecordTab = 'attendance' | 'results' | 'cases'
 
@@ -25,7 +26,14 @@ export function RecordsContent() {
             <button
               key={tab.key}
               type="button"
-              onClick={() => setActiveTab(tab.key)}
+              onClick={() => {
+                setActiveTab(tab.key)
+                if (tab.key === 'attendance') {
+                  comingSoonToast.feature('Attendance records')
+                } else if (tab.key === 'results') {
+                  comingSoonToast.feature('Results entry')
+                }
+              }}
               className={cn(
                 'relative px-1 py-4 text-sm font-medium transition-colors',
                 activeTab === tab.key
