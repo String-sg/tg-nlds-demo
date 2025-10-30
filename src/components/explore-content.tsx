@@ -369,7 +369,7 @@ Integrated with school counseling services, All Ears ensures that student welfar
   },
   {
     key: 'parents-gateway',
-    name: 'PG Messagees',
+    name: 'PG Messages',
     tagline: 'Connecting parents and schools seamlessly',
     description: 'One-stop mobile app for school-home partnership',
     fullDescription: `Parents Gateway is a comprehensive mobile platform co-developed by Singapore's Ministry of Education (MOE) and the Government Technology Agency (GovTech), officially launched on January 2, 2019. The app replaces traditional paper-based communications between schools and parents, providing a centralized digital platform for all school-related administrative tasks and communications.
@@ -377,7 +377,7 @@ Integrated with school counseling services, All Ears ensures that student welfar
 Using Singpass authentication, parents can manage their children's school matters even if they attend different schools or are in different classes. The platform serves mainstream MOE kindergartens, primary schools, secondary schools, junior colleges, and selected polytechnics.
 
 The app enables parents to receive school announcements and updates via push notifications with multimedia attachments, view and respond to consent forms, book Parent-Teacher meeting slots, declare travel plans, and access parenting resources. With calendar integration and secure authentication, Parents Gateway strengthens school-home partnership to support children in their educational journey.`,
-    icon: '/logos/pgmessages-transparent.png',
+    icon: '/logos/pg-messages.png',
     category: 'Parents and communications',
     gradient: 'from-blue-500 to-indigo-600',
     developer: {
