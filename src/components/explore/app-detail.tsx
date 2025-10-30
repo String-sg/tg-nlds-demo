@@ -1,6 +1,5 @@
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { AppInfoSection } from './app-info-section'
-import { AppMetadataBar } from './app-metadata-bar'
 import { AppDescription } from './app-description'
 import { AppDeveloperInfo } from './app-developer-info'
 import type { App } from '@/types/explore'
@@ -24,12 +23,6 @@ export function AppDetail({ app }: AppDetailProps) {
             gradient={app.gradient}
             inAppPurchases={app.inAppPurchases}
             thirdParty={app.thirdParty}
-          />
-
-          {/* Metadata Bar */}
-          <AppMetadataBar
-            metadata={app.metadata}
-            developerName={app.developer.name}
           />
 
           {/* Description */}
