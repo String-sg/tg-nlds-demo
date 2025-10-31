@@ -160,10 +160,11 @@ type SettingsTabKey = typeof settingsTabConfig['key']
 type AssistantTabKey = typeof assistantTabConfig['key']
 type StudentProfileTabKey = `student-${string}` // Dynamic student profile tabs (standalone)
 type ClassroomTabKey = `classroom/${string}` // Dynamic classroom tabs with forward slash
+type InboxTabKey = `inbox/${string}` // Dynamic inbox tabs with sub-routes (announcements, meetings, chat)
 type DailyRoundupTabKey = 'daily-roundup' // Daily Roundup is a child of Home
 type LegacyTabKey = 'records' | 'recents' // Legacy tab keys for backward compatibility
 type PageKey = PrimaryPageKey | ProfileTabKey | SettingsTabKey
-type ClosableTabKey = PageKey | AssistantTabKey | StudentProfileTabKey | ClassroomTabKey | DailyRoundupTabKey | LegacyTabKey
+type ClosableTabKey = PageKey | AssistantTabKey | StudentProfileTabKey | ClassroomTabKey | InboxTabKey | DailyRoundupTabKey | LegacyTabKey
 type TabKey = typeof newTabConfig['key'] | ClosableTabKey
 type PageConfig = (typeof primaryPages)[number] | typeof profileTabConfig | typeof settingsTabConfig
 type TabConfig = PageConfig | typeof newTabConfig | typeof assistantTabConfig
@@ -386,6 +387,7 @@ const TabContent = memo(function TabContent({
   handleNavigateToRecordResults,
   handleNavigateToLearn,
   handleNavigateToInbox,
+  handleNavigateToAnnouncements,
   handleDailyRoundupDismiss,
   setIsAssistantOpen,
   handleAssistantModeChange,
@@ -422,6 +424,7 @@ const TabContent = memo(function TabContent({
   handleNavigateToRecordResults: () => void
   handleNavigateToLearn: () => void
   handleNavigateToInbox: () => void
+  handleNavigateToAnnouncements: () => void
   handleDailyRoundupDismiss: () => void
   setIsAssistantOpen: (open: boolean) => void
   handleAssistantModeChange: (mode: AssistantMode | 'full') => void
@@ -473,6 +476,7 @@ const TabContent = memo(function TabContent({
         onNavigateToRecordResults={handleNavigateToRecordResults}
         onNavigateToLearn={handleNavigateToLearn}
         onNavigateToInbox={handleNavigateToInbox}
+        onNavigateToAnnouncements={handleNavigateToAnnouncements}
         onNavigateToTeachingMarking={() => handleNavigate('teaching/marking' as ClosableTabKey)}
         onNavigateToTeachingLessonPlanning={() => handleNavigate('teaching/lesson-planning' as ClosableTabKey)}
         onNavigateToDailyRoundup={() => handleNavigate('daily-roundup', true)}
@@ -1574,6 +1578,10 @@ export default function Home() {
     handleNavigate('inbox')
   }
 
+  const handleNavigateToAnnouncements = () => {
+    handleNavigate('inbox/announcements')
+  }
+
   const handleDailyRoundupDismiss = () => {
     // Mark Daily Roundup as seen
     try {
@@ -2551,6 +2559,7 @@ export default function Home() {
                   handleNavigateToRecordResults={handleNavigateToRecordResults}
                   handleNavigateToLearn={handleNavigateToLearn}
                   handleNavigateToInbox={handleNavigateToInbox}
+                  handleNavigateToAnnouncements={handleNavigateToAnnouncements}
                   handleDailyRoundupDismiss={handleDailyRoundupDismiss}
                   setIsAssistantOpen={setIsAssistantOpen}
                   handleAssistantModeChange={handleAssistantModeChange}
