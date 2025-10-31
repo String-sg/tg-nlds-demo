@@ -386,6 +386,7 @@ const TabContent = memo(function TabContent({
   handleNavigateToRecordResults,
   handleNavigateToLearn,
   handleNavigateToInbox,
+  handleNavigateToAnnouncements,
   handleDailyRoundupDismiss,
   setIsAssistantOpen,
   handleAssistantModeChange,
@@ -422,6 +423,7 @@ const TabContent = memo(function TabContent({
   handleNavigateToRecordResults: () => void
   handleNavigateToLearn: () => void
   handleNavigateToInbox: () => void
+  handleNavigateToAnnouncements: () => void
   handleDailyRoundupDismiss: () => void
   setIsAssistantOpen: (open: boolean) => void
   handleAssistantModeChange: (mode: AssistantMode | 'full') => void
@@ -473,6 +475,7 @@ const TabContent = memo(function TabContent({
         onNavigateToRecordResults={handleNavigateToRecordResults}
         onNavigateToLearn={handleNavigateToLearn}
         onNavigateToInbox={handleNavigateToInbox}
+        onNavigateToAnnouncements={handleNavigateToAnnouncements}
         onNavigateToTeachingMarking={() => handleNavigate('teaching/marking' as ClosableTabKey)}
         onNavigateToTeachingLessonPlanning={() => handleNavigate('teaching/lesson-planning' as ClosableTabKey)}
         onNavigateToDailyRoundup={() => handleNavigate('daily-roundup', true)}
@@ -1574,6 +1577,10 @@ export default function Home() {
     handleNavigate('inbox')
   }
 
+  const handleNavigateToAnnouncements = () => {
+    handleNavigate('inbox/announcements')
+  }
+
   const handleDailyRoundupDismiss = () => {
     // Mark Daily Roundup as seen
     try {
@@ -2551,6 +2558,7 @@ export default function Home() {
                   handleNavigateToRecordResults={handleNavigateToRecordResults}
                   handleNavigateToLearn={handleNavigateToLearn}
                   handleNavigateToInbox={handleNavigateToInbox}
+                  handleNavigateToAnnouncements={handleNavigateToAnnouncements}
                   handleDailyRoundupDismiss={handleDailyRoundupDismiss}
                   setIsAssistantOpen={setIsAssistantOpen}
                   handleAssistantModeChange={handleAssistantModeChange}
