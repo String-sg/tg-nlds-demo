@@ -7,7 +7,7 @@ import {
   BookOpen,
   MessageSquare,
   ArrowRight,
-  Compass,
+  Megaphone,
   Zap,
   Play,
   Calendar as CalendarIcon,
@@ -57,10 +57,10 @@ const actionButtons = [
     iconColor: 'text-white'
   },
   {
-    key: 'explore',
-    label: 'Discover',
-    icon: Compass,
-    bgColor: 'bg-cyan-500',
+    key: 'announcements',
+    label: 'Create Announcement',
+    icon: Megaphone,
+    bgColor: 'bg-purple-500',
     iconColor: 'text-white'
   },
 ]
@@ -106,6 +106,7 @@ interface HomeContentProps {
   onNavigateToRecordResults?: () => void
   onNavigateToLearn?: () => void
   onNavigateToInbox?: () => void
+  onNavigateToAnnouncements?: () => void
   onNavigateToTeachingMarking?: () => void
   onNavigateToTeachingLessonPlanning?: () => void
   onAssistantMessage?: (message: string) => void
@@ -116,7 +117,7 @@ interface HomeContentProps {
   renderPageActions?: () => React.ReactNode
 }
 
-export function HomeContent({ onNavigateToClassroom, onNavigateToExplore, onNavigateToAttendance, onNavigateToRecordResults, onNavigateToLearn, onNavigateToInbox, onNavigateToTeachingMarking, onNavigateToTeachingLessonPlanning, onAssistantMessage, onStudentClick, onStudentClickWithClass, onNavigateToDailyRoundup, onEditWidgets, renderPageActions }: HomeContentProps = {}) {
+export function HomeContent({ onNavigateToClassroom, onNavigateToExplore, onNavigateToAttendance, onNavigateToRecordResults, onNavigateToLearn, onNavigateToInbox, onNavigateToAnnouncements, onNavigateToTeachingMarking, onNavigateToTeachingLessonPlanning, onAssistantMessage, onStudentClick, onStudentClickWithClass, onNavigateToDailyRoundup, onEditWidgets, renderPageActions }: HomeContentProps = {}) {
   const [assistantInput, setAssistantInput] = useState('')
   const [gridRowHeight] = useState(156)
   const [widgetPadding] = useState(16)
@@ -407,8 +408,8 @@ export function HomeContent({ onNavigateToClassroom, onNavigateToExplore, onNavi
                         onNavigateToTeachingLessonPlanning?.()
                       } else if (action.key === 'record-results') {
                         onNavigateToRecordResults?.()
-                      } else if (action.key === 'explore') {
-                        onNavigateToExplore?.()
+                      } else if (action.key === 'announcements') {
+                        onNavigateToAnnouncements?.()
                       }
                     }}
                     className="group relative flex flex-1 flex-col items-center rounded-2xl border border-stone-200 bg-white px-4 py-4 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-md"

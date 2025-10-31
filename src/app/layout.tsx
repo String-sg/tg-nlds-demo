@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
-import { Geist, Geist_Mono } from 'next/font/google'
+// Temporarily disabled Google Fonts due to network restrictions in build environment
+// import { Geist, Geist_Mono } from 'next/font/google'
 
 import { ThemeProvider } from '@/components/theme-provider'
 import { SidebarProvider } from '@/components/ui/sidebar'
@@ -13,15 +14,15 @@ import { UserRoleProvider } from '@/contexts/user-role-context'
 import { InboxProvider } from '@/contexts/inbox-context'
 import './globals.css'
 
-const geistSans = Geist({
-  variable: '--font-geist-sans',
-  subsets: ['latin'],
-})
+// const geistSans = Geist({
+//   variable: '--font-geist-sans',
+//   subsets: ['latin'],
+// })
 
-const geistMono = Geist_Mono({
-  variable: '--font-geist-mono',
-  subsets: ['latin'],
-})
+// const geistMono = Geist_Mono({
+//   variable: '--font-geist-mono',
+//   subsets: ['latin'],
+// })
 
 export const metadata: Metadata = {
   title: 'moe-tg-vx',
@@ -55,7 +56,7 @@ export default function RootLayout({
         />
       </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className="antialiased"
       >
         <FontSizeProvider>
           <AccessibilityProvider>
