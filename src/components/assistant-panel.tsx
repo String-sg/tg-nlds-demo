@@ -239,11 +239,6 @@ function PTMResponseContent({
                   {student.priorityLevel === 'high' ? 'High Priority' : 'Medium Priority'}
                 </span>
 
-                {/* Conduct grade badge */}
-                <span className="inline-flex items-center rounded-md bg-muted px-2 py-0.5 text-xs font-medium">
-                  {student.conductGrade}
-                </span>
-
                 {/* Additional tags */}
                 {student.tags.slice(0, 2).map((tag) => (
                   <span key={tag} className="inline-flex items-center rounded-md bg-muted px-2 py-0.5 text-xs font-medium">
@@ -315,11 +310,6 @@ function PTMResponseContent({
                     High Priority
                   </span>
                 )}
-
-                {/* Conduct grade */}
-                <span className="inline-flex items-center rounded-md bg-muted px-2 py-0.5 text-xs font-medium">
-                  {student.conductGrade}
-                </span>
 
                 {/* Student tags */}
                 {student.tags.map((tag) => (

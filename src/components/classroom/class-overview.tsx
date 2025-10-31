@@ -72,7 +72,7 @@ export function ClassOverview({ classId, onBack, onNavigateToGrades, onStudentCl
   const [searchQuery, setSearchQuery] = useState('')
   const [showDetails, setShowDetails] = useState(false)
   const [filterStatus, setFilterStatus] = useState<string>('all')
-  const [sortField, setSortField] = useState<'name' | 'attendance_rate' | 'english' | 'math' | 'science' | 'conduct'>('name')
+  const [sortField, setSortField] = useState<'name' | 'attendance_rate' | 'english' | 'math' | 'science'>('name')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc')
 
   // Filter and sort students - must be before early return
@@ -101,9 +101,6 @@ export function ClassOverview({ classId, onBack, onNavigateToGrades, onStudentCl
         case 'math':
         case 'science':
           compareValue = (a.grades[sortField] || 0) - (b.grades[sortField] || 0)
-          break
-        case 'conduct':
-          compareValue = a.conduct_grade.localeCompare(b.conduct_grade)
           break
       }
 
@@ -178,7 +175,6 @@ export function ClassOverview({ classId, onBack, onNavigateToGrades, onStudentCl
                       <TableHead className="w-24 text-center">English</TableHead>
                       <TableHead className="w-24 text-center">Math</TableHead>
                       <TableHead className="w-24 text-center">Science</TableHead>
-                      <TableHead className="w-36">Conduct Grade</TableHead>
                       <TableHead className="w-24">Status</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -196,7 +192,6 @@ export function ClassOverview({ classId, onBack, onNavigateToGrades, onStudentCl
                         <TableCell className="text-center"><Skeleton className="h-4 w-8 mx-auto" /></TableCell>
                         <TableCell className="text-center"><Skeleton className="h-4 w-8 mx-auto" /></TableCell>
                         <TableCell className="text-center"><Skeleton className="h-4 w-8 mx-auto" /></TableCell>
-                        <TableCell><Skeleton className="h-6 w-24" /></TableCell>
                         <TableCell><Skeleton className="h-5 w-12" /></TableCell>
                       </TableRow>
                     ))}
@@ -483,7 +478,6 @@ export function ClassOverview({ classId, onBack, onNavigateToGrades, onStudentCl
                   <DropdownMenuItem onClick={() => handleSort('english')}>English</DropdownMenuItem>
                   <DropdownMenuItem onClick={() => handleSort('math')}>Math</DropdownMenuItem>
                   <DropdownMenuItem onClick={() => handleSort('science')}>Science</DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleSort('conduct')}>Conduct</DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
@@ -500,7 +494,6 @@ export function ClassOverview({ classId, onBack, onNavigateToGrades, onStudentCl
                   <TableHead className="w-24 text-center">English</TableHead>
                   <TableHead className="w-24 text-center">Math</TableHead>
                   <TableHead className="w-24 text-center">Science</TableHead>
-                  <TableHead className="w-36">Conduct Grade</TableHead>
                   <TableHead className="w-24">Status</TableHead>
                 </TableRow>
               </TableHeader>
@@ -560,34 +553,6 @@ export function ClassOverview({ classId, onBack, onNavigateToGrades, onStudentCl
                         )}
                       </TableCell>
                       <TableCell>
-                        <Badge
-                          variant={
-                            student.conduct_grade === 'Excellent'
-                              ? 'default'
-                              : student.conduct_grade === 'Very Good'
-                                ? 'secondary'
-                                : student.conduct_grade === 'Poor'
-                                  ? 'destructive'
-                                  : student.conduct_grade === 'Fair'
-                                    ? 'outline'
-                                    : 'secondary'
-                          }
-                          className={
-                            student.conduct_grade === 'Excellent'
-                              ? 'bg-green-100 text-green-800 border-green-300'
-                              : student.conduct_grade === 'Very Good'
-                                ? 'bg-blue-100 text-blue-800 border-blue-300'
-                                : student.conduct_grade === 'Good'
-                                  ? 'bg-gray-100 text-gray-800 border-gray-300'
-                                  : student.conduct_grade === 'Fair'
-                                    ? 'bg-amber-100 text-amber-800 border-amber-300'
-                                    : 'bg-red-100 text-red-800 border-red-300'
-                          }
-                        >
-                          {student.conduct_grade}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
                         {student.status && student.status !== 'None' && (
                           <Tooltip>
                             <TooltipTrigger asChild>
@@ -613,7 +578,7 @@ export function ClassOverview({ classId, onBack, onNavigateToGrades, onStudentCl
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={8} className="text-center text-stone-500 py-8">
+                    <TableCell colSpan={7} className="text-center text-stone-500 py-8">
                       No students found
                     </TableCell>
                   </TableRow>
