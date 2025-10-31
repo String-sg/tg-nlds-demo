@@ -148,21 +148,16 @@ async function enrichStudentWithPTMData(
     getRecentGrades(student.id),
   ])
 
-  // Get conduct grade from student overview
-  const conductGrade = student.overview?.conduct_grade || 'Good'
-
   // Calculate priority
   const priorityScore = calculatePriorityScore({
     attendanceRate,
     activeCases,
-    conductGrade,
   })
 
   const priorityLevel = getPriorityLevel(priorityScore)
   const priorityReasons = getPriorityReasons({
     attendanceRate,
     activeCases,
-    conductGrade,
   })
 
   // Generate concerns and strengths
@@ -170,14 +165,12 @@ async function enrichStudentWithPTMData(
   const concernAreas = generateConcernAreas({
     attendanceRate,
     activeCases,
-    conductGrade,
     average_grade: averageGrade,
     recentGrades,
   })
 
   const strengths = generateStrengths({
     attendanceRate,
-    conductGrade,
     average_grade: averageGrade,
     recentGrades,
   })
@@ -187,7 +180,6 @@ async function enrichStudentWithPTMData(
   const tags = generateStudentTags({
     attendanceRate,
     activeCases,
-    conductGrade,
     status,
   })
 
@@ -210,7 +202,6 @@ async function enrichStudentWithPTMData(
     class_name: 'Form Class',
     year_level: parseInt(student.year_level || '5'),
     status: status as any,
-    conduct_grade: conductGrade,
     grades: gradesMap,
     average_grade: averageGrade,
     attendance_rate: attendanceRate,
@@ -241,7 +232,6 @@ async function enrichStudentWithPTMData(
     attendanceRate,
     activeCases,
     recentGrades,
-    conductGrade,
     concernAreas,
     strengths,
     badgeColor,

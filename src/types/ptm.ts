@@ -1,6 +1,6 @@
 // PTM (Parent-Teacher Meeting) TypeScript Definitions
 
-import type { Student, Case, ConductGrade } from './classroom'
+import type { Student, Case } from './classroom'
 
 /**
  * Priority level for PTM students
@@ -18,8 +18,6 @@ export type PTMPriorityReason =
   | 'Very Low Attendance'
   | 'Active Case'
   | 'Multiple Cases'
-  | 'Poor Conduct'
-  | 'Fair Conduct'
   | 'Academic Decline'
 
 /**
@@ -70,11 +68,6 @@ export interface PTMStudent extends Student {
    * Recent academic results
    */
   recentGrades: PTMGrade[]
-
-  /**
-   * Student conduct grade
-   */
-  conductGrade: ConductGrade
 
   /**
    * Areas of concern for discussion
@@ -195,16 +188,6 @@ export interface PTMPriorityWeights {
    * Points per active case (max 3 cases counted)
    */
   perCase: number
-
-  /**
-   * Points for poor conduct grade
-   */
-  poorConduct: number
-
-  /**
-   * Points for fair conduct grade
-   */
-  fairConduct: number
 }
 
 /**
@@ -214,6 +197,4 @@ export const DEFAULT_PTM_WEIGHTS: PTMPriorityWeights = {
   veryLowAttendance: 50,
   lowAttendance: 30,
   perCase: 30,
-  poorConduct: 20,
-  fairConduct: 10,
 }

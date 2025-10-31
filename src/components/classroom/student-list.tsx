@@ -35,7 +35,7 @@ interface StudentListProps {
   classroomTabs?: Map<string, string>
 }
 
-type SortField = 'attendance_rate' | 'name' | 'english' | 'math' | 'science' | 'conduct_grade'
+type SortField = 'attendance_rate' | 'name' | 'english' | 'math' | 'science'
 type SortOrder = 'asc' | 'desc'
 
 export function StudentList({ classId, onBack, onStudentClick, onNavigate, classroomTabs }: StudentListProps) {
@@ -79,9 +79,6 @@ export function StudentList({ classId, onBack, onStudentClick, onNavigate, class
         case 'math':
         case 'science':
           compareValue = (a.grades[sortField] || 0) - (b.grades[sortField] || 0)
-          break
-        case 'conduct_grade':
-          compareValue = a.conduct_grade.localeCompare(b.conduct_grade)
           break
       }
 
@@ -162,7 +159,6 @@ export function StudentList({ classId, onBack, onStudentClick, onNavigate, class
                     <TableHead className="text-xs font-medium text-stone-500 text-center">English</TableHead>
                     <TableHead className="text-xs font-medium text-stone-500 text-center">Math</TableHead>
                     <TableHead className="text-xs font-medium text-stone-500 text-center">Science</TableHead>
-                    <TableHead className="text-xs font-medium text-stone-500 w-32">Conduct grade</TableHead>
                     <TableHead className="text-xs font-medium text-stone-500">Remark</TableHead>
                     <TableHead className="w-12"></TableHead>
                   </TableRow>
@@ -209,24 +205,6 @@ export function StudentList({ classId, onBack, onStudentClick, onNavigate, class
       </PageLayout>
     )
   }
-
-  const getConductColor = (conduct: string) => {
-    switch (conduct) {
-      case 'Excellent':
-        return 'text-green-600'
-      case 'Very Good':
-        return 'text-blue-600'
-      case 'Good':
-        return 'text-stone-900'
-      case 'Fair':
-        return 'text-amber-600'
-      case 'Poor':
-        return 'text-red-600'
-      default:
-        return 'text-stone-600'
-    }
-  }
-
 
   return (
     <PageLayout>
@@ -282,7 +260,6 @@ export function StudentList({ classId, onBack, onStudentClick, onNavigate, class
                   <DropdownMenuItem onClick={() => handleSort('english')}>English</DropdownMenuItem>
                   <DropdownMenuItem onClick={() => handleSort('math')}>Math</DropdownMenuItem>
                   <DropdownMenuItem onClick={() => handleSort('science')}>Science</DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleSort('conduct_grade')}>Conduct</DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
@@ -303,7 +280,6 @@ export function StudentList({ classId, onBack, onStudentClick, onNavigate, class
                 <TableHead className="text-xs font-medium text-stone-500 text-center">English</TableHead>
                 <TableHead className="text-xs font-medium text-stone-500 text-center">Math</TableHead>
                 <TableHead className="text-xs font-medium text-stone-500 text-center">Science</TableHead>
-                <TableHead className="text-xs font-medium text-stone-500 w-32">Conduct grade</TableHead>
                 <TableHead className="text-xs font-medium text-stone-500">Remark</TableHead>
                 <TableHead className="w-12"></TableHead>
               </TableRow>
@@ -333,9 +309,6 @@ export function StudentList({ classId, onBack, onStudentClick, onNavigate, class
                   <TableCell className="text-center text-stone-900">{student.grades.english || '-'}</TableCell>
                   <TableCell className="text-center text-stone-900">{student.grades.math || '-'}</TableCell>
                   <TableCell className="text-center text-stone-900">{student.grades.science || '-'}</TableCell>
-                  <TableCell>
-                    <span className={getConductColor(student.conduct_grade)}>{student.conduct_grade}</span>
-                  </TableCell>
                   <TableCell>
                     {student.status && student.status !== 'None' ? (
                       <span className={`inline-flex px-2 py-0.5 text-xs font-medium rounded-full border ${getStatusColor(student.status)}`}>

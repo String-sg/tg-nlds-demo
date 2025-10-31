@@ -40,7 +40,6 @@ export function useStudentsQuery(classId: string) {
           average_grade: s.average_grade,
           status: (s.status || 'None') as Student['status'],
           has_sen: s.has_sen,
-          conduct_grade: s.conduct_grade as Student['conduct_grade'],
           parent_name: s.guardian?.name || '',
           parent_email: s.guardian?.email || '',
           parent_phone: s.guardian?.phone || '',
