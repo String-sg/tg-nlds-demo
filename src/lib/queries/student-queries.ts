@@ -422,7 +422,7 @@ export async function fetchStudentsInClass(classId: string) {
     // Batch overview query
     supabase
       .from('student_overview')
-      .select('student_id, is_swan, conduct_grade')
+      .select('student_id, is_swan')
       .in('student_id', studentIds)
       .then((res) => res.data),
   ])
@@ -446,11 +446,10 @@ export async function fetchStudentsInClass(classId: string) {
     gradesMap.set(result.student_id, current)
   })
 
-  const overviewMap = new Map<string, { is_swan: boolean; conduct_grade?: string }>()
+  const overviewMap = new Map<string, { is_swan: boolean }>()
   overviewData?.forEach((overview) => {
     overviewMap.set(overview.student_id, {
       is_swan: overview.is_swan || false,
-      conduct_grade: overview.conduct_grade || undefined,
     })
   })
 
@@ -494,18 +493,16 @@ export async function fetchStudentsInClass(classId: string) {
         average_grade = Math.round(total / studentGrades.length)
       }
 
-      // Add status and conduct
+      // Add status
       const overview = overviewMap.get(student.id)
       let status: string | undefined
       let has_sen = false
-      let conduct_grade: string | undefined
 
       if (overview) {
         if (overview.is_swan) {
           status = 'SWAN'
           has_sen = true
         }
-        conduct_grade = overview.conduct_grade
       }
 
       return {
@@ -519,7 +516,6 @@ export async function fetchStudentsInClass(classId: string) {
         average_grade,
         status,
         has_sen,
-        conduct_grade,
         guardian: student.primary_guardian
           ? {
               id: student.primary_guardian.id,

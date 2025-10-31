@@ -7,7 +7,7 @@ import type {
   PTMPriorityWeights,
   DEFAULT_PTM_WEIGHTS,
 } from '@/types/ptm'
-import type { Case, ConductGrade } from '@/types/classroom'
+import type { Case } from '@/types/classroom'
 
 /**
  * Calculate priority score for a student based on multiple factors
@@ -16,25 +16,22 @@ import type { Case, ConductGrade } from '@/types/classroom'
  * - Very low attendance (<70%): 50 points
  * - Low attendance (70-84%): 30 points
  * - Active cases: 30 points per case (max 3 cases)
- * - Poor conduct: 20 points
- * - Fair conduct: 10 points
  *
- * @param student - Student data with attendance, cases, and conduct
+ * Maximum score: 120 points (50 + 30 + 30 + 30)
+ *
+ * @param student - Student data with attendance and cases
  * @param weights - Custom weights (optional, uses defaults if not provided)
- * @returns Priority score (0-100)
+ * @returns Priority score (0-120)
  */
 export function calculatePriorityScore(
   student: {
     attendanceRate: number
     activeCases?: Case[]
-    conductGrade?: ConductGrade
   },
   weights: PTMPriorityWeights = {
     veryLowAttendance: 50,
     lowAttendance: 30,
     perCase: 30,
-    poorConduct: 20,
-    fairConduct: 10,
   }
 ): number {
   let score = 0
@@ -50,13 +47,6 @@ export function calculatePriorityScore(
   const activeCaseCount = student.activeCases?.length || 0
   const caseCount = Math.min(activeCaseCount, 3)
   score += caseCount * weights.perCase
-
-  // Conduct component (0-20 points)
-  if (student.conductGrade === 'Poor') {
-    score += weights.poorConduct
-  } else if (student.conductGrade === 'Fair') {
-    score += weights.fairConduct
-  }
 
   // Cap at 100
   return Math.min(score, 100)
@@ -83,7 +73,6 @@ export function getPriorityLevel(score: number): PTMPriorityLevel {
 export function getPriorityReasons(student: {
   attendanceRate: number
   activeCases?: Case[]
-  conductGrade?: ConductGrade
 }): PTMPriorityReason[] {
   const reasons: PTMPriorityReason[] = []
 
@@ -100,13 +89,6 @@ export function getPriorityReasons(student: {
     reasons.push('Multiple Cases')
   } else if (activeCaseCount === 1) {
     reasons.push('Active Case')
-  }
-
-  // Conduct reasons
-  if (student.conductGrade === 'Poor') {
-    reasons.push('Poor Conduct')
-  } else if (student.conductGrade === 'Fair') {
-    reasons.push('Fair Conduct')
   }
 
   return reasons
@@ -126,29 +108,6 @@ export function getPriorityBadgeColor(priorityLevel: PTMPriorityLevel): string {
       return 'bg-yellow-100 text-yellow-700 border-yellow-200'
     case 'low':
       return 'bg-green-100 text-green-700 border-green-200'
-    default:
-      return 'bg-gray-100 text-gray-700 border-gray-200'
-  }
-}
-
-/**
- * Get badge color based on conduct grade
- *
- * @param conductGrade - Conduct grade
- * @returns Color class name for badge
- */
-export function getConductBadgeColor(conductGrade: ConductGrade): string {
-  switch (conductGrade) {
-    case 'Excellent':
-      return 'bg-green-100 text-green-700 border-green-200'
-    case 'Very Good':
-      return 'bg-blue-100 text-blue-700 border-blue-200'
-    case 'Good':
-      return 'bg-stone-100 text-stone-700 border-stone-200'
-    case 'Fair':
-      return 'bg-yellow-100 text-yellow-700 border-yellow-200'
-    case 'Poor':
-      return 'bg-red-100 text-red-700 border-red-200'
     default:
       return 'bg-gray-100 text-gray-700 border-gray-200'
   }
@@ -244,7 +203,6 @@ export function getAttendanceColor(rate: number): string {
 export function generateConcernAreas(student: {
   attendanceRate: number
   activeCases?: Case[]
-  conductGrade?: ConductGrade
   average_grade?: number
   recentGrades?: { score: number; percentage: number }[]
 }): string[] {
@@ -263,11 +221,6 @@ export function generateConcernAreas(student: {
     concerns.push(`${student.activeCases.length} active case${student.activeCases.length > 1 ? 's' : ''}: ${caseTypes}`)
   }
 
-  // Conduct concerns
-  if (student.conductGrade === 'Poor' || student.conductGrade === 'Fair') {
-    concerns.push(`${student.conductGrade} conduct grade`)
-  }
-
   // Academic concerns
   if (student.average_grade && student.average_grade < 50) {
     concerns.push(`Low academic performance (avg: ${student.average_grade}%)`)
@@ -284,7 +237,6 @@ export function generateConcernAreas(student: {
  */
 export function generateStrengths(student: {
   attendanceRate: number
-  conductGrade?: ConductGrade
   average_grade?: number
   recentGrades?: { score: number; percentage: number; subject?: string }[]
 }): string[] {
@@ -295,11 +247,6 @@ export function generateStrengths(student: {
     strengths.push('Excellent attendance')
   } else if (student.attendanceRate >= 85) {
     strengths.push('Good attendance')
-  }
-
-  // Conduct strengths
-  if (student.conductGrade === 'Excellent' || student.conductGrade === 'Very Good') {
-    strengths.push(`${student.conductGrade} conduct`)
   }
 
   // Academic strengths
@@ -332,7 +279,6 @@ export function generateStrengths(student: {
 export function generateStudentTags(student: {
   attendanceRate: number
   activeCases?: Case[]
-  conductGrade?: ConductGrade
   status?: string
 }): string[] {
   const tags: string[] = []
@@ -344,10 +290,6 @@ export function generateStudentTags(student: {
 
   if (student.activeCases && student.activeCases.length > 0) {
     tags.push('Active Case')
-  }
-
-  if (student.conductGrade === 'Poor' || student.conductGrade === 'Fair') {
-    tags.push('Conduct')
   }
 
   // Status tags

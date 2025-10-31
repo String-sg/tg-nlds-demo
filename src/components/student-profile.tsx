@@ -9,7 +9,6 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { CaseManagementTable } from '@/components/case-management-table'
 import { cn, getInitials, getAvatarColor } from '@/lib/utils'
 import { PageLayout } from '@/components/layout/page-layout'
-import { ReportSlip } from '@/components/student/report-slip'
 import { useStudentProfileQuery } from '@/hooks/queries/use-student-profile-query'
 import type { StudentProfileData } from '@/types/student'
 
@@ -80,7 +79,6 @@ export function StudentProfile({ studentName, classId, onBack, activeTab, onNavi
     english: getSubjectAverage('English'),
     math: getSubjectAverage('Math'),
     science: getSubjectAverage('Science'),
-    conduct: (studentData.overview as { conduct_grade?: string })?.conduct_grade || 'N/A',
     status: studentData.overview?.is_swan ? 'SWAN' : 'None',
     parentName: studentData.guardian?.name || 'N/A',
     parentEmail: studentData.guardian?.email || 'N/A',
@@ -97,23 +95,6 @@ export function StudentProfile({ studentName, classId, onBack, activeTab, onNavi
         return 'bg-amber-100 text-amber-800 border-amber-300'
       default:
         return 'bg-stone-100 text-stone-800 border-stone-300'
-    }
-  }
-
-  const getConductColor = (conduct: string) => {
-    switch (conduct) {
-      case 'Excellent':
-        return 'bg-green-100 text-green-800 border-green-300'
-      case 'Very Good':
-        return 'bg-blue-100 text-blue-800 border-blue-300'
-      case 'Good':
-        return 'bg-gray-100 text-gray-800 border-gray-300'
-      case 'Fair':
-        return 'bg-amber-100 text-amber-800 border-amber-300'
-      case 'Poor':
-        return 'bg-red-100 text-red-800 border-red-300'
-      default:
-        return 'bg-stone-100 text-stone-600 border-stone-300'
     }
   }
 
@@ -148,13 +129,12 @@ export function StudentProfile({ studentName, classId, onBack, activeTab, onNavi
 
       {/* Tabs Navigation */}
       <Tabs defaultValue="overview" className="w-full">
-        <TabsList className="grid w-full grid-cols-6">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="attendance">Attendance</TabsTrigger>
           <TabsTrigger value="performance">Performance</TabsTrigger>
           <TabsTrigger value="social-behaviour">Social & Behaviour</TabsTrigger>
           <TabsTrigger value="cases">Cases</TabsTrigger>
-          <TabsTrigger value="reports">Reports</TabsTrigger>
         </TabsList>
 
         {/* Overview Tab */}
@@ -302,27 +282,6 @@ export function StudentProfile({ studentName, classId, onBack, activeTab, onNavi
               ) : (
                 <p className="text-sm text-stone-500">No private notes recorded</p>
               )}
-            </CardContent>
-          </Card>
-
-          {/* Conduct Grade */}
-          <Card className="border-stone-200">
-            <CardHeader>
-              <CardTitle className="text-base font-medium text-stone-900">Conduct Grade</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-stone-500 mb-2">Overall Conduct Assessment</p>
-                  <p className="text-xs text-stone-500">Based on attendance, behavior, and character development</p>
-                </div>
-                <span className={cn(
-                  'inline-flex px-3 py-1.5 text-sm font-medium rounded-full border',
-                  getConductColor(student.conduct)
-                )}>
-                  {student.conduct}
-                </span>
-              </div>
             </CardContent>
           </Card>
         </TabsContent>
@@ -669,15 +628,6 @@ export function StudentProfile({ studentName, classId, onBack, activeTab, onNavi
               </div>
             </CardContent>
           </Card>
-        </TabsContent>
-
-        {/* Reports Tab */}
-        <TabsContent value="reports" className="space-y-6">
-          <ReportSlip
-            studentId={student.id}
-            studentName={student.name}
-            class={student.class}
-          />
         </TabsContent>
       </Tabs>
       </div>

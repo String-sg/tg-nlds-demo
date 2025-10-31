@@ -29,8 +29,6 @@ export type CommunicationType = 'Email' | 'Phone' | 'Meeting' | 'SMS'
 
 export type AssessmentType = 'Assignment' | 'Quiz' | 'Exam' | 'Project'
 
-export type ConductGrade = 'Excellent' | 'Very Good' | 'Good' | 'Fair' | 'Poor'
-
 export type StudentStatus = 'None' | 'GEP' | 'SEN' | 'SWAN'
 
 // User/Teacher
@@ -116,7 +114,6 @@ export interface Student {
   class_name: string
   year_level: number
   status: StudentStatus
-  conduct_grade: ConductGrade
 
   // Academic
   grades: {
@@ -335,24 +332,6 @@ export interface SupportPlan {
   }[]
   review_date: string
   status: 'Active' | 'Completed' | 'On Hold'
-}
-
-// Report
-export interface Report {
-  report_id: string
-  type: 'PTM' | 'Class Performance' | 'Individual Student' | 'Custom'
-  title: string
-  class_id?: string
-  student_ids: string[]
-  period: string
-  created_by: string
-  created_date: string
-  status: 'Draft' | 'Published'
-  progress: number // 0-100
-  last_edited: string
-  published_date?: string
-  content?: string
-  format: 'PDF' | 'Word' | 'Excel'
 }
 
 // Document

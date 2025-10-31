@@ -1035,7 +1035,6 @@ export type Database = {
       student_overview: {
         Row: {
           background: string | null
-          conduct_grade: string | null
           created_at: string
           family: Json | null
           health_declaration: Json | null
@@ -1050,7 +1049,6 @@ export type Database = {
         }
         Insert: {
           background?: string | null
-          conduct_grade?: string | null
           created_at?: string
           family?: Json | null
           health_declaration?: Json | null
@@ -1065,7 +1063,6 @@ export type Database = {
         }
         Update: {
           background?: string | null
-          conduct_grade?: string | null
           created_at?: string
           family?: Json | null
           health_declaration?: Json | null
