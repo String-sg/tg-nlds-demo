@@ -1042,9 +1042,8 @@ A major innovation introduced with SSOE 2.0 was the automation of delivery of sy
 No coding required—build forms with drag-and-drop simplicity while maintaining government-grade security. All data is encrypted and stored securely, meeting strict public sector requirements. Form responses can be integrated with school systems or exported for further analysis.
 
 Whether collecting trip consent forms, gathering feedback, or managing school event registrations, FormSG provides a professional, secure solution that parents and staff trust.`,
-    icon: Send,
+    icon: '/logos/formsg.png',
     category: 'Digital Innovation and Enhancements',
-    gradient: 'from-red-400 to-red-600',
     developer: {
       name: 'GovTech Singapore',
       website: 'https://form.gov.sg',
@@ -1116,9 +1115,8 @@ Aligned with MOE language syllabuses, LangBuddy supplements classroom instructio
 Teachers can provide assignments to students and track and grade them within Teams, while the new Classwork app offers educators a one-stop shop to access and manage their entire curriculum. The platform features School Data Sync (SDS) which allows IT departments to set up Teams school-wide using existing student information system data, automatically creating class rosters and maintaining them.
 
 Teams integrates seamlessly with OneNote Class Notebook for collaborative note-taking and includes advanced features like native Python Jupyter Notebooks integration for coding education, Search Coach for developing information literacy skills, and the Reflect app for supporting student well-being. The platform also includes comprehensive accessibility features such as Sign Language View, live closed captions, and Immersive Reader, making education more inclusive for all learners.`,
-    icon: Video,
+    icon: '/logos/msteams.png',
     category: 'Digital Innovation and Enhancements',
-    gradient: 'from-purple-500 to-indigo-600',
     thirdParty: true,
     developer: {
       name: 'Microsoft Corporation',
@@ -1157,9 +1155,8 @@ Teams integrates seamlessly with OneNote Class Notebook for collaborative note-t
 Schools can create group chats for specific departments or teams to facilitate discussions and share information quickly, supporting both administrative coordination and educational collaboration. For students (typically grades 9-12, with some schools offering access to grades 3-8 where administrators have requested it), Google Chat can be an excellent tool for group conversations and organization.
 
 The platform integrates seamlessly with Google Classroom, allowing teachers to leverage built-in chat and comment features to leave students feedback as they're working on assignments. Schools need to ensure proper monitoring and security measures are in place to maintain Google Chat as a safe space for students and teachers to collaborate and communicate in real-time every day.`,
-    icon: MessageCircle,
+    icon: '/logos/Google_Chat_icon.png',
     category: 'Digital Innovation and Enhancements',
-    gradient: 'from-green-500 to-teal-600',
     thirdParty: true,
     developer: {
       name: 'Google LLC',
@@ -1196,9 +1193,8 @@ The platform integrates seamlessly with Google Classroom, allowing teachers to l
 The AI assistant can answer questions about your documents, create summaries, suggest related concepts, and help you prepare lesson materials. Unlike generic AI tools, NotebookLM grounds all responses in your uploaded sources, ensuring accuracy and relevance to your specific teaching context.
 
 Perfect for curriculum research, professional development, and preparing comprehensive lesson plans. NotebookLM keeps your sources organized and makes information retrieval effortless.`,
-    icon: Sparkles,
+    icon: '/logos/notebooklm.png',
     category: 'Digital Innovation and Enhancements',
-    gradient: 'from-fuchsia-400 to-fuchsia-600',
     thirdParty: true,
     developer: {
       name: 'Google Labs',
@@ -1234,9 +1230,8 @@ Perfect for curriculum research, professional development, and preparing compreh
 Over 1,000 U.S. higher education institutions have officially integrated Gemini for Education, providing more than 10 million U.S. college students with access to the platform. Educators use Gemini to kickstart lesson planning, brainstorm and research new ideas, quickly draft lesson plans aligned to learning objectives and education standards, and get fresh ideas for ways to make lessons more engaging.
 
 In the coming months, educators will be able to assign Gems (custom AI assistants) and notebooks from NotebookLM grounded in their class materials directly to students in Google Classroom. Gemini's new Guided Learning mode helps students understand concepts with step-by-step support rather than just providing answers, promoting deeper learning and critical thinking. Google has partnered with learning science experts, tested with youth advisory panels, and added extra data protection for all education users, ensuring that data from chats will not be used to improve AI models.`,
-    icon: Sparkles,
+    icon: '/logos/google-gemini.png',
     category: 'Digital Innovation and Enhancements',
-    gradient: 'from-blue-400 to-purple-600',
     thirdParty: true,
     developer: {
       name: 'Google LLC',
