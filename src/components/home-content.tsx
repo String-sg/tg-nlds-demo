@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import {
   Edit2,
   Sparkle,
@@ -10,6 +10,7 @@ import {
   Megaphone,
   Zap,
   Play,
+  Pause,
   Calendar as CalendarIcon,
   Clock,
   AlertCircle,
@@ -67,11 +68,12 @@ const actionButtons = [
 
 // Mock data for teacher widgets
 const podcastData = {
-  title: "What Is Vibe Coding?",
+  title: "Strategies to Develop Emotion Regulation in Secondary School Students",
   date: 'Oct 24',
   duration: '8 min',
-  description: 'The material discusses "Vibe coding," a concept coined by computer scientist Andre Carpathy in February 2025.',
-  imageUrl: '/images/podcast-thumb-ai.png',
+  description: "This set of micro-learning unit (MLU) is part of a series of MLUs on facilitating social-emotional skills in students.",
+  imageUrl: '/images/podcast-thumb-student-development.png',
+  audioUrl: '/audio/ElevenLabs_Draft_SEED_Emotional_Regulation.mp3',
 }
 
 const getTodayDate = () => {
@@ -122,6 +124,8 @@ export function HomeContent({ onNavigateToClassroom, onNavigateToExplore, onNavi
   const [gridRowHeight] = useState(156)
   const [widgetPadding] = useState(16)
   const [studentAlerts, setStudentAlerts] = useState<StudentAlert[] | null>(null)
+  const [isPlaying, setIsPlaying] = useState(false)
+  const audioRef = useRef<HTMLAudioElement | null>(null)
   const { user, loading: userLoading } = useUser()
 
   // Extract stable dependency values
@@ -174,6 +178,19 @@ export function HomeContent({ onNavigateToClassroom, onNavigateToExplore, onNavi
     }
   }, [userId, isUserLoading])
 
+  // Initialize audio element
+  useEffect(() => {
+    if (!audioRef.current) {
+      audioRef.current = new Audio(podcastData.audioUrl)
+      audioRef.current.addEventListener('ended', () => setIsPlaying(false))
+    }
+    return () => {
+      audioRef.current?.pause()
+      audioRef.current?.removeAttribute('src')
+      audioRef.current = null
+    }
+  }, [])
+
   const handleAssistantSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (assistantInput.trim() && onAssistantMessage) {
@@ -225,7 +242,7 @@ export function HomeContent({ onNavigateToClassroom, onNavigateToExplore, onNavi
                 {/* Podcast Image */}
                 <div
                   className="relative h-48 overflow-hidden rounded-xl py-4"
-                  style={{ backgroundColor: '#67E8F9' }}
+                  style={{ backgroundColor: '#86EFAC' }}
                 >
                   <img
                     src={podcastData.imageUrl}
@@ -243,10 +260,24 @@ export function HomeContent({ onNavigateToClassroom, onNavigateToExplore, onNavi
                 {/* Play Button - pushed to bottom */}
                 <Button
                   className="mt-4 h-9 w-full rounded-lg bg-stone-900 text-sm text-white hover:bg-stone-800"
-                  onClick={() => comingSoonToast.feature('Podcast player')}
+                  onClick={() => {
+                    const audio = audioRef.current
+                    if (!audio) return
+                    if (isPlaying) {
+                      audio.pause()
+                      setIsPlaying(false)
+                    } else {
+                      audio.play()
+                      setIsPlaying(true)
+                    }
+                  }}
                 >
-                  <Play className="mr-1.5 h-3.5 w-3.5 fill-current" />
-                  Play now
+                  {isPlaying ? (
+                    <Pause className="mr-1.5 h-3.5 w-3.5" />
+                  ) : (
+                    <Play className="mr-1.5 h-3.5 w-3.5 fill-current" />
+                  )}
+                  {isPlaying ? 'Pause' : 'Play now'}
                 </Button>
               </CardContent>
             </Card>
