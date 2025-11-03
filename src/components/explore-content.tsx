@@ -11,6 +11,7 @@ import {
   Check,
   Sparkles,
   Users,
+  User,
   Globe,
   CheckSquare,
   Star,
@@ -46,13 +47,13 @@ import { comingSoonToast } from '@/lib/coming-soon-toast'
 import type { App } from '@/types/explore'
 
 const categoryDescriptions: Record<string, string> = {
-  'Recommended for you': "Because it's an exam period",
-  'Classes and students': 'Tools for classroom management, student assessment, and academic support',
-  'Parents and communications': 'Connect with parents and manage school-home communication',
-  'School life & Admin': 'Administrative tools and school management systems',
-  'Growth and community': 'Professional development and community engagement platforms',
-  'Digital innovation and enhancements': 'Cutting-edge digital tools and productivity enhancers',
-  'My school apps': 'Apps specific to your school for managing results, student check-ins, and more',
+  'Recommended for You': "Because it's an exam period",
+  'Classes and Students': 'Tools for classroom management, student assessment, and academic support',
+  'Parents and Communications': 'Connect with parents and manage school-home communication',
+  'School Life and Admin': 'Administrative tools and school management systems',
+  'Growth and Community': 'Professional development and community engagement platforms',
+  'Digital Innovation and Enhancements': 'Cutting-edge digital tools and productivity enhancers',
+  'My School Apps': 'Apps specific to your school for managing results, student check-ins, and more',
 }
 
 // SDT Data Tool - appears in both "Recommended for you" and "Classes and students"
@@ -67,7 +68,7 @@ The SDT actively works with key personnel and teachers to deepen understanding o
 
 The data is used to customize curriculum and support programs for students' holistic development, enabling schools to take a proactive, data-informed approach to student welfare. With intelligent analytics and comprehensive reporting, the SDT Data Tool empowers educators to identify at-risk students early and provide targeted interventions that make a real difference.`,
   icon: '/logos/sdt-logo-22-oct-2025-transparent.png',
-  category: 'Recommended for you',
+  category: 'Recommended for You',
   gradient: 'from-blue-500 to-cyan-600',
   developer: {
     name: 'Ministry of Education (MOE) Singapore',
@@ -106,7 +107,7 @@ The platform supports multiple assessment types including essays, short answers,
 
 Designed specifically for Singapore MOE educators, Mark.ly integrates seamlessly with the Student Learning Space and other MOE systems, following local curriculum guidelines and assessment frameworks. Save hours on marking while providing more detailed, actionable feedback that helps every student improve. With batch marking capabilities and intelligent analytics, Mark.ly gives you back precious time to focus on what matters most—inspiring and supporting your students.`,
   icon: '/logos/Markly.svg',
-  category: 'Recommended for you',
+  category: 'Recommended for You',
   gradient: 'from-amber-500 to-orange-600',
   developer: {
     name: 'MOE Digital Innovation',
@@ -139,7 +140,7 @@ const allApps: App[] = [
   markly,
 
   // Classes and students
-  { ...sdtDataTool, category: 'Classes and students' },
+  { ...sdtDataTool, category: 'Classes and Students' },
   {
     key: 'seconnect',
     name: 'SEConnect',
@@ -151,7 +152,7 @@ Through SEConnect, teachers can create engaging activities, monitor student part
 
 The platform integrates with existing MOE systems to provide a seamless experience, ensuring that student engagement data informs teaching strategies and school programs. SEConnect supports the holistic development of students by promoting active participation, building resilience, and strengthening school culture.`,
     icon: '/logos/seconnect-mysei.png',
-    category: 'Classes and students',
+    category: 'Classes and Students',
     gradient: 'from-green-500 to-emerald-600',
     developer: {
       name: 'Ministry of Education (MOE) Singapore',
@@ -188,7 +189,7 @@ At their convenience, teachers can select specific absent reasons, and the data 
 
 The platform has significantly improved efficiency by eliminating the manual submission process that previously required teachers to consolidate and submit attendance records manually. With automatic data sync, real-time updates, and mobile accessibility, SC Mobile represents a modern approach to school administration that saves time and reduces errors.`,
     icon: '/logos/sc-mobile.png',
-    category: 'Classes and students',
+    category: 'Classes and Students',
     gradient: 'from-purple-500 to-violet-600',
     developer: {
       name: 'Ministry of Education (MOE) Singapore',
@@ -215,7 +216,7 @@ The platform has significantly improved efficiency by eliminating the manual sub
     platforms: ['Web', 'iOS', 'Android'],
     inAppPurchases: false,
   },
-  { ...markly, category: 'Classes and students' },
+  { ...markly, category: 'Classes and Students' },
   {
     key: 'appraiser',
     name: 'Appraiser',
@@ -227,7 +228,7 @@ Teachers can now use Appraiser to generate a polished first draft within minutes
 
 To date, Appraiser has benefited more than 4,000 teachers and has generated over 40,000 testimonials, demonstrating significant efficiency gains across the MOE system. The AI-powered platform ensures personalized, well-structured testimonials that help students in their educational and career journeys, while freeing up valuable teacher time for direct student interaction and support.`,
     icon: '/logos/appraiser-logo-no-words.png',
-    category: 'Classes and students',
+    category: 'Classes and Students',
     gradient: 'from-yellow-500 to-amber-600',
     developer: {
       name: 'GovTech in collaboration with MOE Singapore',
@@ -265,7 +266,7 @@ The tool supports lesson planning for all subjects and levels, streamlining the 
 
 The Authoring Copilot is part of MOE's broader AI in Education initiative, which includes five AI-powered tools rolled out since June 2023 under the EdTech Masterplan 2030. It represents a significant advancement in reducing teacher workload while maintaining quality educational content that is curriculum-aligned and pedagogically sound.`,
     icon: Bot,
-    category: 'Classes and students',
+    category: 'Classes and Students',
     gradient: 'from-indigo-500 to-purple-600',
     developer: {
       name: 'Ministry of Education (MOE) Singapore & GovTech',
@@ -303,7 +304,7 @@ The system integrates data from various sources including CCA participation, stu
 
 SDIS supports the recognition of student development through structured frameworks, helping schools prepare graduation portfolios and references. The platform ensures that every student's holistic development is documented, celebrated, and supported throughout their educational journey, preparing them for success beyond the classroom.`,
     icon: '/logos/sdis-logo.png',
-    category: 'Classes and students',
+    category: 'Classes and Students',
     gradient: 'from-teal-500 to-cyan-600',
     developer: {
       name: 'Ministry of Education (MOE) Singapore',
@@ -343,7 +344,7 @@ The platform uses evidence-based screening tools and creates a supportive enviro
 
 Integrated with school counseling services, All Ears ensures that student welfare concerns are addressed holistically with proper documentation and follow-up protocols in place.`,
     icon: '/logos/ae-logo.png',
-    category: 'Parents and communications',
+    category: 'Parents and Communications',
     gradient: 'from-teal-400 to-teal-600',
     developer: {
       name: 'MOE Student Support Services',
@@ -380,7 +381,7 @@ Using Singpass authentication, parents can manage their children's school matter
 
 The app enables parents to receive school announcements and updates via push notifications with multimedia attachments, view and respond to consent forms, book Parent-Teacher meeting slots, declare travel plans, and access parenting resources. With calendar integration and secure authentication, Parents Gateway strengthens school-home partnership to support children in their educational journey.`,
     icon: '/logos/pg-messages.png',
-    category: 'Parents and communications',
+    category: 'Parents and Communications',
     gradient: 'from-blue-500 to-indigo-600',
     developer: {
       name: 'GovTech & Ministry of Education (MOE) Singapore',
@@ -418,7 +419,7 @@ Using natural language processing, HeyTalia can answer common parent queries, pr
 
 HeyTalia integrates with existing school systems to provide personalized responses based on student information, school calendars, and relevant policies. From checking homework assignments to understanding school procedures, HeyTalia empowers parents to stay informed and engaged in their children's education while reducing administrative burden on school staff.`,
     icon: '/logos/heytalia-icon.png',
-    category: 'Parents and communications',
+    category: 'Parents and Communications',
     gradient: 'from-pink-500 to-rose-600',
     developer: {
       name: 'MOE Innovation Labs',
@@ -458,7 +459,7 @@ The P1 Registration Portal provides a fully online registration process conducte
 
 For secondary school placement, the system uses a computerized allocation based on PSLE results and student preferences, with each school having specific cut-off points. The system is designed to give priority to choices indicated by students and parents while fairly distributing students among available schools, handling over 40,000 Primary 1 registrations annually.`,
     icon: '/logos/allocate.png',
-    category: 'School life & Admin',
+    category: 'School Life and Admin',
     gradient: 'from-orange-500 to-red-600',
     developer: {
       name: 'Ministry of Education (MOE) Singapore',
@@ -496,7 +497,7 @@ MOE is actively working to whitelist TagUI and Python for use across government 
 
 Real-world applications include automating the addition of test questions from CSV files to populate question banks for Primary Mathematics adaptive learning systems, automating the registration of 170 teachers from Excel sheets for professional development workshops, and automating the sharing of SLS lessons (eliminating up to 4,000 manual clicks for a typical batch operation). According to the LinkedIn 2020 Emerging Jobs report, Robotics Process Automation is among the top 15 emerging career prospects in Singapore.`,
     icon: '/logos/rpa-logo.png',
-    category: 'School life & Admin',
+    category: 'School Life and Admin',
     gradient: 'from-purple-500 to-pink-600',
     developer: {
       name: 'AI Singapore (adopted by MOE Singapore)',
@@ -534,7 +535,7 @@ SLS empowers students to engage in personalized learning across different learni
 
 The platform integrates with over 250 whitelisted external sites and tools, significantly expanding the learning resources available to students. Recent AI-powered enhancements include an Adaptive Learning System (ALS) for mathematics and geography, Short Answer Feedback Assistant (ShortAnsFA), Language Feedback Assistant for English, and Authoring Copilot (ACP) to assist teachers in lesson planning. Teachers benefit from comprehensive tools to customize content, create collaborative lessons, evaluate students' thinking processes, and apply targeted interventions catering to different learning paces and needs.`,
     icon: GraduationCap,
-    category: 'School life & Admin',
+    category: 'School Life and Admin',
     gradient: 'from-blue-500 to-purple-600',
     developer: {
       name: 'MOE Singapore in collaboration with GovTech',
@@ -573,7 +574,7 @@ The system requires Singpass with 2-Factor Authentication for secure access, ens
 
 The portal allows parents to view their child's eligible phases and schools, submit registrations online without physically queuing at schools, and check registration results digitally. For the 2025 exercise starting July 1st, the portal handles tens of thousands of registrations nationwide. The system is designed to be user-friendly, accessible, and transparent, providing parents with clear information about eligibility, vacancies, and registration outcomes.`,
     icon: MapPin,
-    category: 'School life & Admin',
+    category: 'School Life and Admin',
     gradient: 'from-green-500 to-teal-600',
     developer: {
       name: 'Ministry of Education (MOE) Singapore',
@@ -612,7 +613,7 @@ GovEntry gained significant recognition when it powered the General Election 202
 
 In the MOE context, the system can be used for school events, parent-teacher meetings, open houses, and other school-related activities requiring visitor management and attendance tracking. The platform enables event organizers to create custom sign-up forms, automate check-ins, and generate real-time attendance reports. The system has proven scalability, supporting events from small gatherings to large-scale operations serving millions of users.`,
     icon: '/logos/goventry-logo.png',
-    category: 'School life & Admin',
+    category: 'School Life and Admin',
     gradient: 'from-cyan-500 to-blue-600',
     developer: {
       name: 'Government Technology Agency (GovTech)',
@@ -651,7 +652,7 @@ When schools, vendors, or parents make payments via iFAAS, the system generates 
 
 iFAAS is integrated with MOE's broader administrative systems, enabling streamlined financial workflows between schools, MOE headquarters, and external vendors. Schools use iFAAS for processing purchase orders, tracking budgets, managing expenditures, and generating financial reports required for auditing and compliance purposes. The system represents a significant component of MOE's digital transformation efforts in financial administration.`,
     icon: DollarSign,
-    category: 'School life & Admin',
+    category: 'School Life and Admin',
     gradient: 'from-emerald-500 to-green-600',
     developer: {
       name: 'Ministry of Education (MOE) Singapore',
@@ -690,7 +691,7 @@ HR administrators and school leaders use iBENs to process benefit claims, track 
 
 For MOE staff, iBENs provides self-service capabilities to view benefit balances, submit claims, and track approval status. The system maintains comprehensive records of all benefit transactions, supporting audit requirements and policy reviews. By digitizing benefits administration, iBENs reduces administrative burden and improves transparency in the management of staff entitlements.`,
     icon: Gift,
-    category: 'School life & Admin',
+    category: 'School Life and Admin',
     gradient: 'from-rose-500 to-pink-600',
     developer: {
       name: 'Ministry of Education (MOE) Singapore',
@@ -729,7 +730,7 @@ Bus operators use OSB to input and manage data relating to routes, vehicles, sta
 
 Drivers and attendants access OSB via a mobile app, using their mobile numbers as login credentials. The driver app allows real-time student attendance marking, route viewing, and schedule management. The system manages school bus operations across all MOE schools in Singapore, serving tens of thousands of students daily with features including centralized route management, real-time attendance tracking, comprehensive reporting, and multi-stakeholder access with role-based permissions.`,
     icon: Bus,
-    category: 'School life & Admin',
+    category: 'School Life and Admin',
     gradient: 'from-yellow-500 to-orange-600',
     developer: {
       name: 'Ministry of Education (MOE) Singapore',
@@ -768,7 +769,7 @@ The system can automatically reschedule and accommodate changes instantly, makin
 
 The cloud-based nature means no installation is required, and the system is accessible anytime, anywhere with secure data storage. Multiple users can work on the timetable simultaneously, facilitating collaborative planning among school administrators and timetable coordinators. Schools typically publish multiple timetable versions (e.g., "Timetable A" and "Timetable B") for each class, along with examination schedules, CCA schedules, and post-exam timetables through these platforms.`,
     icon: CalendarDays,
-    category: 'School life & Admin',
+    category: 'School Life and Admin',
     gradient: 'from-purple-500 to-indigo-600',
     thirdParty: true,
     developer: {
@@ -811,7 +812,7 @@ The platform hosts multiple subject-specific and professional communities, inclu
 
 Each school cluster receives consultancy support to strengthen the culture of collaboration and share technology-enabled lesson resources, ideas, and teaching strategies. The platform empowers educators to take charge of their professional growth while building a strong community of practice across Singapore's education system.`,
     icon: '/logos/glow-symbol.png',
-    category: 'Growth and community',
+    category: 'Growth and Community',
     gradient: 'from-amber-500 to-yellow-600',
     developer: {
       name: 'Ministry of Education (MOE) Singapore',
@@ -849,7 +850,7 @@ Through nLDS, educators can access a curated collection of learning designs alig
 
 The platform supports continuous improvement in teaching quality by providing a structured way to document, share, and refine learning designs. With features for feedback, ratings, and discussion, nLDS builds a vibrant community where educators collaborate to advance student learning outcomes through thoughtful instructional design.`,
     icon: '/logos/nlds-logo.png',
-    category: 'Growth and community',
+    category: 'Growth and Community',
     gradient: 'from-blue-500 to-cyan-600',
     developer: {
       name: 'Ministry of Education (MOE) Singapore',
@@ -887,7 +888,7 @@ Through Community, educators can participate in discussions on topics ranging fr
 
 Community fosters a sense of belonging and professional camaraderie among Singapore's teaching workforce. By breaking down school boundaries and facilitating knowledge exchange, the platform helps educators feel supported, inspired, and connected to a larger community of professionals dedicated to nurturing young Singaporeans.`,
     icon: Heart,
-    category: 'Growth and community',
+    category: 'Growth and Community',
     gradient: 'from-pink-500 to-rose-600',
     developer: {
       name: 'Ministry of Education (MOE) Singapore',
@@ -927,7 +928,7 @@ For students, the MIMS username is the same as their iCON email address, making 
 
 MIMS serves as the digital identity gateway for accessing all MOE Centrally Provisioned Digital Tools including Student iCON Email, SLS (Student Learning Space), Microsoft Pro Plus, and AllEars, ensuring a unified and secure authentication experience across the entire MOE digital ecosystem.`,
     icon: '/logos/mimsv2-keystone-logo.png',
-    category: 'Digital innovation and enhancements',
+    category: 'Digital Innovation and Enhancements',
     gradient: 'from-slate-500 to-gray-600',
     developer: {
       name: 'Ministry of Education (MOE) Singapore',
@@ -965,7 +966,7 @@ The platform is web-based and can be accessed through any internet-enabled compu
 
 Students also gain access to Zoom and Microsoft Pro Plus (Word, Excel, PowerPoint, OneNote, Publisher) through their iCON account. The platform facilitates communication, collaboration, and project work among students and between students and teachers, supporting modern pedagogical approaches and preparing students for digital collaboration in their future careers.`,
     icon: AtSign,
-    category: 'Digital innovation and enhancements',
+    category: 'Digital Innovation and Enhancements',
     gradient: 'from-blue-500 to-indigo-600',
     developer: {
       name: 'Google (implemented by MOE Singapore)',
@@ -1004,7 +1005,7 @@ The SSOE 2.0 rollout linked more than 100,000 devices across 344 schools and can
 
 A major innovation introduced with SSOE 2.0 was the automation of delivery of systems to schools, reducing the turnaround time for school infrastructure deployment (servers and virtual machines) from 4 days to just 1 day. The system includes secure features for e-assessments, with ITD Lockdown accounts recommended for subjects with National e-Examinations. In 2022, MOE announced a 3-year extension of the SSOE 2.0 programme, with plans for SSOE 3.0 currently in development.`,
     icon: '/logos/w365-cloud-pc-logo-1.jpg',
-    category: 'Digital innovation and enhancements',
+    category: 'Digital Innovation and Enhancements',
     gradient: 'from-red-500 to-orange-600',
     developer: {
       name: 'MOE Singapore, implemented by NCS',
@@ -1042,7 +1043,7 @@ No coding required—build forms with drag-and-drop simplicity while maintaining
 
 Whether collecting trip consent forms, gathering feedback, or managing school event registrations, FormSG provides a professional, secure solution that parents and staff trust.`,
     icon: Send,
-    category: 'Digital innovation and enhancements',
+    category: 'Digital Innovation and Enhancements',
     gradient: 'from-red-400 to-red-600',
     developer: {
       name: 'GovTech Singapore',
@@ -1079,7 +1080,7 @@ The platform adapts to each student's proficiency level, providing appropriate c
 
 Aligned with MOE language syllabuses, LangBuddy supplements classroom instruction with engaging practice that builds confidence and fluency outside regular lesson time.`,
     icon: '/logos/langbuddy-square-with-text-blue.png',
-    category: 'Digital innovation and enhancements',
+    category: 'Digital Innovation and Enhancements',
     gradient: 'from-violet-400 to-violet-600',
     developer: {
       name: 'EdTech Innovations',
@@ -1116,7 +1117,7 @@ Teachers can provide assignments to students and track and grade them within Tea
 
 Teams integrates seamlessly with OneNote Class Notebook for collaborative note-taking and includes advanced features like native Python Jupyter Notebooks integration for coding education, Search Coach for developing information literacy skills, and the Reflect app for supporting student well-being. The platform also includes comprehensive accessibility features such as Sign Language View, live closed captions, and Immersive Reader, making education more inclusive for all learners.`,
     icon: Video,
-    category: 'Digital innovation and enhancements',
+    category: 'Digital Innovation and Enhancements',
     gradient: 'from-purple-500 to-indigo-600',
     thirdParty: true,
     developer: {
@@ -1157,7 +1158,7 @@ Schools can create group chats for specific departments or teams to facilitate d
 
 The platform integrates seamlessly with Google Classroom, allowing teachers to leverage built-in chat and comment features to leave students feedback as they're working on assignments. Schools need to ensure proper monitoring and security measures are in place to maintain Google Chat as a safe space for students and teachers to collaborate and communicate in real-time every day.`,
     icon: MessageCircle,
-    category: 'Digital innovation and enhancements',
+    category: 'Digital Innovation and Enhancements',
     gradient: 'from-green-500 to-teal-600',
     thirdParty: true,
     developer: {
@@ -1196,7 +1197,7 @@ The AI assistant can answer questions about your documents, create summaries, su
 
 Perfect for curriculum research, professional development, and preparing comprehensive lesson plans. NotebookLM keeps your sources organized and makes information retrieval effortless.`,
     icon: Sparkles,
-    category: 'Digital innovation and enhancements',
+    category: 'Digital Innovation and Enhancements',
     gradient: 'from-fuchsia-400 to-fuchsia-600',
     thirdParty: true,
     developer: {
@@ -1234,7 +1235,7 @@ Over 1,000 U.S. higher education institutions have officially integrated Gemini 
 
 In the coming months, educators will be able to assign Gems (custom AI assistants) and notebooks from NotebookLM grounded in their class materials directly to students in Google Classroom. Gemini's new Guided Learning mode helps students understand concepts with step-by-step support rather than just providing answers, promoting deeper learning and critical thinking. Google has partnered with learning science experts, tested with youth advisory panels, and added extra data protection for all education users, ensuring that data from chats will not be used to improve AI models.`,
     icon: Sparkles,
-    category: 'Digital innovation and enhancements',
+    category: 'Digital Innovation and Enhancements',
     gradient: 'from-blue-400 to-purple-600',
     thirdParty: true,
     developer: {
@@ -1273,7 +1274,7 @@ In the coming months, educators will be able to assign Gems (custom AI assistant
     description: 'Consolidates all assessment data in one spreadsheet with visual color-coding and automated recommendations',
     fullDescription: `The Results Management Day (RMD) Tool is designed to help schools efficiently manage and analyze examination results. This tool streamlines the process of collecting, organizing, and presenting student performance data during Results Management Day events.`,
     icon: PieChart,
-    category: 'My school apps',
+    category: 'My School Apps',
     gradient: 'from-indigo-500 to-blue-600',
     developer: {
       name: 'Ministry of Education (MOE) Singapore',
@@ -1305,7 +1306,7 @@ In the coming months, educators will be able to assign Gems (custom AI assistant
     description: 'Student wellbeing data analysis',
     fullDescription: `Student Check In Analysis leverages AI technology to provide insights into student check-in patterns, attendance trends, and engagement metrics. This tool helps educators identify patterns, track student participation, and make data-informed decisions about student support and engagement strategies.`,
     icon: CheckSquare,
-    category: 'My school apps',
+    category: 'My School Apps',
     gradient: 'from-green-500 to-emerald-600',
     developer: {
       name: 'Open Government Products (OGP)',
@@ -1336,8 +1337,8 @@ In the coming months, educators will be able to assign Gems (custom AI assistant
     tagline: 'Discover pathways and opportunities for students',
     description: 'Student movement tracking',
     fullDescription: `Student Go Where is a comprehensive platform that helps students explore various educational pathways, career opportunities, and post-secondary options. The platform provides detailed information about different institutions, courses, and programs available to students, helping them make informed decisions about their future educational journey.`,
-    icon: Globe,
-    category: 'My school apps',
+    icon: User,
+    category: 'My School Apps',
     gradient: 'from-cyan-500 to-blue-600',
     developer: {
       name: 'Ministry of Education (MOE) Singapore',
@@ -1401,13 +1402,13 @@ export function ExploreContent({ onAppSelected, clearSelection }: ExploreContent
 
   const appsByCategory = useMemo(() => {
     const categoryOrder = [
-      'Recommended for you',
-      'Classes and students',
-      'Parents and communications',
-      'School life & Admin',
-      'Growth and community',
-      'Digital innovation and enhancements',
-      'My school apps',
+      'Recommended for You',
+      'Classes and Students',
+      'Parents and Communications',
+      'School Life and Admin',
+      'Growth and Community',
+      'Digital Innovation and Enhancements',
+      'My School Apps',
     ]
     const grouped = new Map<string, App[]>()
 
