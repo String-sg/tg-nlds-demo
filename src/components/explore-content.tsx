@@ -34,6 +34,7 @@ import {
   Shield,
   Video,
   MessageCircle,
+  PieChart,
   type LucideIcon,
 } from 'lucide-react'
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -51,6 +52,7 @@ const categoryDescriptions: Record<string, string> = {
   'School life & Admin': 'Administrative tools and school management systems',
   'Growth and community': 'Professional development and community engagement platforms',
   'Digital innovation and enhancements': 'Cutting-edge digital tools and productivity enhancers',
+  'My school apps': 'Apps specific to your school for managing results, student check-ins, and more',
 }
 
 // SDT Data Tool - appears in both "Recommended for you" and "Classes and students"
@@ -1262,6 +1264,104 @@ In the coming months, educators will be able to assign Gems (custom AI assistant
     platforms: ['Web', 'iOS', 'Android'],
     inAppPurchases: false,
   },
+
+  // My school apps
+  {
+    key: 'rmd-tool',
+    name: 'Results Management Day (RMD) Tool',
+    tagline: 'Manage and analyze examination results',
+    description: 'Consolidates all assessment data in one spreadsheet with visual color-coding and automated recommendations',
+    fullDescription: `The Results Management Day (RMD) Tool is designed to help schools efficiently manage and analyze examination results. This tool streamlines the process of collecting, organizing, and presenting student performance data during Results Management Day events.`,
+    icon: PieChart,
+    category: 'My school apps',
+    gradient: 'from-indigo-500 to-blue-600',
+    developer: {
+      name: 'Ministry of Education (MOE) Singapore',
+      website: undefined,
+      support: 'https://www.moe.gov.sg/contact',
+    },
+    metadata: {
+      rating: 4.5,
+      ratingCount: 234,
+      ageRating: '4+',
+      chartPosition: 25,
+      chartCategory: 'Education',
+      languages: ['EN'],
+      size: '32 MB',
+    },
+    features: [
+      'Results data management',
+      'Performance analytics',
+      'Examination result processing',
+      'Data visualization and reporting',
+    ],
+    platforms: ['Web'],
+    inAppPurchases: false,
+  },
+  {
+    key: 'student-checkin-analysis',
+    name: 'Student Check In Analysis',
+    tagline: 'Analyze student check-in patterns and attendance',
+    description: 'Student wellbeing data analysis',
+    fullDescription: `Student Check In Analysis leverages AI technology to provide insights into student check-in patterns, attendance trends, and engagement metrics. This tool helps educators identify patterns, track student participation, and make data-informed decisions about student support and engagement strategies.`,
+    icon: CheckSquare,
+    category: 'My school apps',
+    gradient: 'from-green-500 to-emerald-600',
+    developer: {
+      name: 'Open Government Products (OGP)',
+      website: 'https://pair.gov.sg/',
+      support: 'https://pair.gov.sg/',
+    },
+    metadata: {
+      rating: 4.6,
+      ratingCount: 189,
+      ageRating: '4+',
+      chartPosition: 26,
+      chartCategory: 'Education',
+      languages: ['EN'],
+      size: '28 MB',
+    },
+    features: [
+      'AI-powered check-in analysis',
+      'Attendance pattern identification',
+      'Trend visualization',
+      'Data-driven insights',
+    ],
+    platforms: ['Web'],
+    inAppPurchases: false,
+  },
+  {
+    key: 'student-go-where',
+    name: 'Student Go Where',
+    tagline: 'Discover pathways and opportunities for students',
+    description: 'Student movement tracking',
+    fullDescription: `Student Go Where is a comprehensive platform that helps students explore various educational pathways, career opportunities, and post-secondary options. The platform provides detailed information about different institutions, courses, and programs available to students, helping them make informed decisions about their future educational journey.`,
+    icon: Globe,
+    category: 'My school apps',
+    gradient: 'from-cyan-500 to-blue-600',
+    developer: {
+      name: 'Ministry of Education (MOE) Singapore',
+      website: 'https://for.edu.sg/studentsgowhere',
+      support: 'https://www.moe.gov.sg/contact',
+    },
+    metadata: {
+      rating: 4.7,
+      ratingCount: 456,
+      ageRating: '4+',
+      chartPosition: 27,
+      chartCategory: 'Education',
+      languages: ['EN', 'ZH', 'MS', 'TA'],
+      size: '35 MB',
+    },
+    features: [
+      'Pathway exploration',
+      'Educational opportunity search',
+      'Institution and course information',
+      'Career guidance resources',
+    ],
+    platforms: ['Web'],
+    inAppPurchases: false,
+  },
 ]
 
 interface ExploreContentProps {
@@ -1307,6 +1407,7 @@ export function ExploreContent({ onAppSelected, clearSelection }: ExploreContent
       'School life & Admin',
       'Growth and community',
       'Digital innovation and enhancements',
+      'My school apps',
     ]
     const grouped = new Map<string, App[]>()
 
