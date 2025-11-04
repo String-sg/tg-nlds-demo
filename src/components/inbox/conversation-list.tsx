@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import { Input } from '@/components/ui/input'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
@@ -15,6 +16,9 @@ import { Search, MessageSquare, Filter, Plus } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { getInitials, getAvatarColor } from '@/lib/chat/utils'
 import { ConversationListSkeleton } from './conversation-list-skeleton'
+import { NewChatDialog } from './new-chat-dialog'
+import { useInboxStudentsQuery } from '@/hooks/queries/use-inbox-students-query'
+import { useUser } from '@/contexts/user-context'
 import type { ConversationGroup, Priority } from '@/types/inbox'
 
 interface ConversationListProps {
@@ -38,6 +42,13 @@ export function ConversationList({
   onPriorityFilterChange,
   isLoading = false,
 }: ConversationListProps) {
+  const { user } = useUser()
+  const [newChatDialogOpen, setNewChatDialogOpen] = useState(false)
+
+  // Fetch students for new chat dialog
+  const { data: students = [], isLoading: isLoadingStudents } = useInboxStudentsQuery(
+    user?.user_id || ''
+  )
   const formatTime = (date: Date) => {
     const now = new Date()
     const diff = now.getTime() - date.getTime()
@@ -88,17 +99,22 @@ export function ConversationList({
     : [{ priority: priorityFilter, conversations: conversationGroups }]
 
   return (
-    <div className="flex h-full min-h-0 flex-col">
-      {/* Header */}
-      <div className="flex-shrink-0 border-b border-stone-200 p-4">
-        {/* Title */}
-        <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-stone-900">Chat</h2>
-          <Button size="sm" className="gap-2">
-            <Plus className="size-4" />
-            New Chat
-          </Button>
-        </div>
+    <>
+      <div className="flex h-full min-h-0 flex-col">
+        {/* Header */}
+        <div className="flex-shrink-0 border-b border-stone-200 p-4">
+          {/* Title */}
+          <div className="mb-3 flex items-center justify-between">
+            <h2 className="text-lg font-semibold text-stone-900">Chat</h2>
+            <Button
+              size="sm"
+              className="gap-2"
+              onClick={() => setNewChatDialogOpen(true)}
+            >
+              <Plus className="size-4" />
+              New Chat
+            </Button>
+          </div>
 
         {/* Search and Filter */}
         <div className="flex items-center gap-2">
@@ -246,6 +262,15 @@ export function ConversationList({
           </div>
         )}
       </ScrollArea>
-    </div>
+      </div>
+
+      {/* New Chat Dialog */}
+      <NewChatDialog
+        open={newChatDialogOpen}
+        onOpenChange={setNewChatDialogOpen}
+        students={students}
+        isLoadingStudents={isLoadingStudents}
+      />
+    </>
   )
 }
