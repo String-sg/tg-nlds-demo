@@ -348,6 +348,9 @@ export async function fetchStudentsInClass(classId: string) {
         student_id,
         name,
         year_level,
+        profile_photo,
+        gender,
+        nationality,
         primary_guardian:parents_guardians!primary_guardian_id(
           id,
           name,
@@ -449,6 +452,9 @@ export async function fetchStudentsInClass(classId: string) {
           student_id: string
           name: string
           year_level: string
+          profile_photo: string | null
+          gender: string | null
+          nationality: string | null
           primary_guardian?: { id: string; name: string; email: string; phone: string; relationship: string }
           form_teacher?: { id: string; name: string; email: string }
         }
@@ -497,6 +503,9 @@ export async function fetchStudentsInClass(classId: string) {
         class_id: classData.id,
         class_name: classData.name,
         year_level: student.year_level,
+        profile_photo: student.profile_photo,
+        gender: student.gender,
+        nationality: student.nationality,
         attendance_rate,
         grades,
         average_grade,

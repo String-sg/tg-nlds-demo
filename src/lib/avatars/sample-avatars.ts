@@ -109,25 +109,19 @@ export function getMatchingSampleAvatar(criteria?: {
 }
 
 /**
- * Get student avatar URL - returns sample avatar if student has no photo
- * Use this in components to always show an avatar
+ * Get student avatar URL - returns undefined if student has no photo (will show initials fallback)
+ * Use this in components to show profile photo or fallback to initials
  */
 export function getStudentAvatarUrl(
   studentPhoto: string | null | undefined,
   studentGender?: 'male' | 'female' | 'other',
   studentEthnicity?: string
-): string {
+): string | undefined {
   // If student has a profile photo, use it
   if (studentPhoto) {
     return studentPhoto
   }
 
-  // Otherwise, get a matching sample avatar
-  const gender = studentGender === 'other' ? undefined : studentGender
-  const avatar = getMatchingSampleAvatar({
-    gender,
-    ethnicity: studentEthnicity,
-  })
-
-  return avatar.imagePath
+  // Return undefined to trigger Avatar fallback (initials)
+  return undefined
 }
