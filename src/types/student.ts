@@ -12,6 +12,9 @@ export interface StudentProfileData {
   class_name: string
   year_level: string | null
   form_class_id: string | null
+  profile_photo: string | null
+  gender: string | null
+  nationality: string | null
 
   // Overview data
   overview: {

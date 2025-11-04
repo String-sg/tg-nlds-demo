@@ -1,0 +1,48 @@
+{
+  "generatedAt": "2025-11-04T12:43:21.116Z",
+  "generator": "DiceBear API (avataaars style)",
+  "source": "https://dicebear.com",
+  "cost": "$0.00",
+  "students": [
+    {
+      "id": "sample-1",
+      "name": "Wei Ming",
+      "gender": "male",
+      "ethnicity": "Chinese",
+      "age": 11,
+      "imagePath": "/avatars/students/sample-1.png"
+    },
+    {
+      "id": "sample-2",
+      "name": "Aisha",
+      "gender": "female",
+      "ethnicity": "Malay",
+      "age": 12,
+      "imagePath": "/avatars/students/sample-2.png"
+    },
+    {
+      "id": "sample-3",
+      "name": "Ravi",
+      "gender": "male",
+      "ethnicity": "Indian",
+      "age": 11,
+      "imagePath": "/avatars/students/sample-3.png"
+    },
+    {
+      "id": "sample-4",
+      "name": "Emma",
+      "gender": "female",
+      "ethnicity": "Chinese",
+      "age": 12,
+      "imagePath": "/avatars/students/sample-4.png"
+    },
+    {
+      "id": "sample-5",
+      "name": "Arjun",
+      "gender": "male",
+      "ethnicity": "Indian",
+      "age": 11,
+      "imagePath": "/avatars/students/sample-5.png"
+    }
+  ]
+}

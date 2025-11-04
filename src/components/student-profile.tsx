@@ -7,11 +7,13 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Skeleton } from '@/components/ui/skeleton'
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { CaseManagementTable } from '@/components/case-management-table'
 import { cn, getInitials, getAvatarColor, getLetterGrade, calculatePercentage } from '@/lib/utils'
 import { PageLayout } from '@/components/layout/page-layout'
 import { useStudentProfileQuery } from '@/hooks/queries/use-student-profile-query'
 import { useMessageParent } from '@/hooks/use-message-parent'
+import { getStudentAvatarUrl } from '@/lib/avatars/sample-avatars'
 import type { StudentProfileData } from '@/types/student'
 
 interface StudentProfileProps {
@@ -102,13 +104,20 @@ export function StudentProfile({ studentName, classId, onBack, activeTab, onNavi
   }
 
 
+  // Get avatar URL with fallback to sample avatars
+  const avatarUrl = getStudentAvatarUrl(
+    studentData.profile_photo,
+    studentData.gender as 'male' | 'female' | 'other' | undefined,
+    studentData.nationality || undefined
+  )
+
   const avatar = (
-    <div className={cn(
-      'flex h-16 w-16 shrink-0 items-center justify-center rounded-full text-xl font-medium',
-      getAvatarColor(student.name)
-    )}>
-      {getInitials(student.name)}
-    </div>
+    <Avatar className="h-16 w-16">
+      <AvatarImage src={avatarUrl} alt={student.name} />
+      <AvatarFallback className={cn('text-xl font-medium', getAvatarColor(student.name))}>
+        {getInitials(student.name)}
+      </AvatarFallback>
+    </Avatar>
   )
 
   const badge = student.status !== 'None' ? (

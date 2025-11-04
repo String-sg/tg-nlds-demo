@@ -7,6 +7,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Skeleton } from '@/components/ui/skeleton'
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import {
   Table,
   TableBody,
@@ -25,6 +26,7 @@ import { useUser } from '@/contexts/user-context'
 import { useClasses } from '@/hooks/queries/use-classes-query'
 import { useStudents } from '@/hooks/queries/use-students-query'
 import { getInitials, getAvatarColor } from '@/lib/utils'
+import { getStudentAvatarUrl } from '@/lib/avatars/sample-avatars'
 import { PageLayout } from '@/components/layout/page-layout'
 
 interface StudentListProps {
@@ -299,9 +301,19 @@ export function StudentList({ classId, onBack, onStudentClick, onNavigate, class
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-3">
-                      <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-medium ${getAvatarColor(student.name)}`}>
-                        {getInitials(student.name)}
-                      </div>
+                      <Avatar className="h-8 w-8">
+                        <AvatarImage
+                          src={getStudentAvatarUrl(
+                            student.profile_photo,
+                            student.gender as 'male' | 'female' | 'other' | undefined,
+                            student.nationality || undefined
+                          )}
+                          alt={student.name}
+                        />
+                        <AvatarFallback className={`text-xs font-medium ${getAvatarColor(student.name)}`}>
+                          {getInitials(student.name)}
+                        </AvatarFallback>
+                      </Avatar>
                       <span className="font-medium text-stone-900">{student.name}</span>
                     </div>
                   </TableCell>

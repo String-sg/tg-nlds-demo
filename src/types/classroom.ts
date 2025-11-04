@@ -114,6 +114,9 @@ export interface Student {
   class_name: string
   year_level: number
   status: StudentStatus
+  profile_photo?: string | null
+  gender?: string | null
+  nationality?: string | null
 
   // Academic
   grades: {
