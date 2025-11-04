@@ -20,6 +20,8 @@ export type Message = {
   content: string | React.ReactNode
   timestamp: Date
   isThinking?: boolean
+  command?: string // For slash commands like /ptm
+  fullPrompt?: string // The expanded prompt text
 }
 
 // Stored message type - only text content, no React nodes
@@ -30,6 +32,8 @@ type StoredMessage = {
   timestamp: string
   isThinking?: boolean
   isPTMResponse?: boolean // Flag to show placeholder for PTM responses
+  command?: string // Store slash command
+  fullPrompt?: string // Store full prompt text
 }
 
 // Assistant state
@@ -91,6 +95,8 @@ function loadFromStorage(): Partial<AssistantState> | null {
           content: '(PTM response - not persisted)',
           timestamp: new Date(msg.timestamp),
           isThinking: msg.isThinking,
+          command: msg.command,
+          fullPrompt: msg.fullPrompt,
         }
       }
 
@@ -100,6 +106,8 @@ function loadFromStorage(): Partial<AssistantState> | null {
         content: msg.content,
         timestamp: new Date(msg.timestamp),
         isThinking: msg.isThinking,
+        command: msg.command,
+        fullPrompt: msg.fullPrompt,
       }
     })
 
@@ -136,6 +144,8 @@ function saveToStorage(state: AssistantState): void {
             timestamp: msg.timestamp.toISOString(),
             isThinking: msg.isThinking,
             isPTMResponse: true,
+            command: msg.command,
+            fullPrompt: msg.fullPrompt,
           }
         }
 
@@ -146,6 +156,8 @@ function saveToStorage(state: AssistantState): void {
           timestamp: msg.timestamp.toISOString(),
           isThinking: msg.isThinking,
           isPTMResponse: false,
+          command: msg.command,
+          fullPrompt: msg.fullPrompt,
         }
       })
 

@@ -52,6 +52,8 @@ type Message = {
   content: string | React.ReactNode
   timestamp: Date
   isThinking?: boolean
+  command?: string // For slash commands like /ptm
+  fullPrompt?: string // The expanded prompt text
 }
 
 const promptShortcuts = [
@@ -113,6 +115,27 @@ const getBadgeColor = (badge: string) => {
 
   // Default
   return 'bg-muted text-muted-foreground'
+}
+
+// Collapsible user message component for showing command shortcuts with full prompts
+function CollapsibleUserMessage({ command, fullPrompt }: { command: string; fullPrompt: string }) {
+  const [isExpanded, setIsExpanded] = useState(true)
+
+  return (
+    <div className="flex flex-col gap-2">
+      <div className="font-medium">{command}</div>
+      <button
+        type="button"
+        onClick={() => setIsExpanded(!isExpanded)}
+        className="text-xs underline opacity-70 hover:opacity-100 transition-opacity text-left"
+      >
+        {isExpanded ? 'Hide full message' : 'Show full message'}
+      </button>
+      {isExpanded && (
+        <div className="text-sm opacity-90">{fullPrompt}</div>
+      )}
+    </div>
+  )
 }
 
 function PTMResponseContent({
@@ -487,11 +510,13 @@ function AssistantBody({ onStudentClick, onStudentClickWithClass, incomingMessag
     setShowShortcuts(false)
     setInput('')
 
-    // Send the shortcut command as a message
+    // Send the shortcut command as a message with both command and full prompt
     const userMessage: Message = {
       id: generateMessageId(),
       role: 'user',
       content: shortcut.command,
+      command: shortcut.command,
+      fullPrompt: shortcut.prompt,
       timestamp: new Date(),
     }
 
@@ -550,9 +575,9 @@ function AssistantBody({ onStudentClick, onStudentClickWithClass, incomingMessag
   }
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col gap-4">
+    <div className="flex min-h-0 flex-1 flex-col gap-2">
       <ScrollArea className="h-0 flex-1">
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-3 px-5">
           {messages.map((message) => (
             <div
               key={message.id}
@@ -572,7 +597,10 @@ function AssistantBody({ onStudentClick, onStudentClickWithClass, incomingMessag
                 </>
               ) : (
                 <>
-                  {typeof message.content === 'string' ? (
+                  {/* Check if this is a command message with full prompt */}
+                  {message.command && message.fullPrompt ? (
+                    <CollapsibleUserMessage command={message.command} fullPrompt={message.fullPrompt} />
+                  ) : typeof message.content === 'string' ? (
                     <p className="whitespace-pre-wrap break-words">{message.content}</p>
                   ) : (
                     <div>{message.content}</div>
@@ -602,7 +630,7 @@ function AssistantBody({ onStudentClick, onStudentClickWithClass, incomingMessag
         </div>
       </ScrollArea>
 
-      <div className="flex flex-col gap-2">
+      <div className="flex flex-col gap-2 px-5">
         {/* Shortcut hints - only show when no messages */}
         {messages.length === 0 && (
           <div className="flex items-center gap-2">
@@ -755,9 +783,9 @@ export function AssistantPanel({
   const { clearMessages } = useAssistant()
 
   const content = (
-    <div className={cn('flex h-full min-h-0 flex-col gap-4 px-2 pb-2 pt-2', className)}>
+    <div className={cn('flex h-full min-h-0 flex-col gap-4 pb-2 pt-2', className)}>
       {showHeaderControls && (
-        <div className="flex items-center justify-between gap-2 px-2 py-0.5">
+        <div className="flex items-center justify-between gap-2 px-5 py-0.5">
           <div className="flex items-center gap-2">
             <h2 className="text-base font-semibold leading-none">Assistant</h2>
           </div>
@@ -839,7 +867,7 @@ export function AssistantPanel({
             </div>
           </SheetHeader>
         )}
-        <div className="flex max-h-[calc(100vh-10rem)] min-h-[24rem] min-h-0 flex-col p-5">
+        <div className="flex h-[calc(100vh-10rem)] min-h-0 flex-col py-5">
           <AssistantBody
             showHeading={showBodyHeading}
             onStudentClick={onStudentClick}
