@@ -104,7 +104,7 @@ export function StudentProfile({ studentName, classId, onBack, activeTab, onNavi
   }
 
 
-  // Get avatar URL with fallback to sample avatars
+  // Get avatar URL - returns undefined if no photo (will show initials fallback)
   const avatarUrl = getStudentAvatarUrl(
     studentData.profile_photo,
     studentData.gender as 'male' | 'female' | 'other' | undefined,

@@ -509,6 +509,10 @@ export function ClassOverview({ classId, onBack, onNavigateToGrades, onStudentCl
                       <TableCell>
                         <div className="flex items-center gap-3">
                           <Avatar className="h-8 w-8">
+                            <AvatarImage
+                              src={student.profile_photo ?? undefined}
+                              alt={student.name}
+                            />
                             <AvatarFallback className="bg-blue-100 text-blue-700 text-xs font-semibold">
                               {getInitials(student.name)}
                             </AvatarFallback>
