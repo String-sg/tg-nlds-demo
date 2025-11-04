@@ -306,7 +306,7 @@ export function StudentList({ classId, onBack, onStudentClick, onNavigate, class
                           src={getStudentAvatarUrl(
                             student.profile_photo,
                             student.gender as 'male' | 'female' | 'other' | undefined,
-                            student.nationality
+                            student.nationality || undefined
                           )}
                           alt={student.name}
                         />

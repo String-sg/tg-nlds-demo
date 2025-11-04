@@ -108,7 +108,7 @@ export function StudentProfile({ studentName, classId, onBack, activeTab, onNavi
   const avatarUrl = getStudentAvatarUrl(
     studentData.profile_photo,
     studentData.gender as 'male' | 'female' | 'other' | undefined,
-    studentData.nationality
+    studentData.nationality || undefined
   )
 
   const avatar = (
