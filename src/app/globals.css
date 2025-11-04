@@ -246,3 +246,29 @@
     }
   }
 }
+
+/* Assistant chat: fade top/bottom of ScrollArea content via CSS mask */
+.assistant-scroll-mask [data-slot="scroll-area-viewport"] {
+  /* Adjustable fade height */
+  --sa-mask-height: 24px;
+
+  /* Use alpha-based mask so white=visible, transparent=hidden */
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0) 0,
+    rgba(255, 255, 255, 1) var(--sa-mask-height),
+    rgba(255, 255, 255, 1) calc(100% - var(--sa-mask-height)),
+    rgba(255, 255, 255, 0) 100%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0) 0,
+    rgba(255, 255, 255, 1) var(--sa-mask-height),
+    rgba(255, 255, 255, 1) calc(100% - var(--sa-mask-height)),
+    rgba(255, 255, 255, 0) 100%
+  );
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+}
