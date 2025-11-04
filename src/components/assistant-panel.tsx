@@ -399,20 +399,68 @@ function AssistantBody({ onStudentClick, onStudentClickWithClass, incomingMessag
     }
 
     setMessages((prev) => [...prev, userMessage])
+    const messageText = input.trim().toLowerCase()
     setInput('')
     setIsLoading(true)
 
-    // Simulate assistant response
-    setTimeout(() => {
-      const assistantMessage: Message = {
+    // Check if message matches PTM natural language patterns
+    const ptmPatterns = [
+      'parent teacher meeting',
+      'parents teacher meeting',
+      'parent-teacher meeting',
+      'parent teacher conference',
+      'parents teacher conference',
+      'ptm',
+      'prepare for meeting with parents',
+      'prepare for parent meeting',
+      'help with parent meeting',
+      'parent meeting',
+      'meeting with parents',
+    ]
+
+    const isPTMRequest = ptmPatterns.some(pattern =>
+      messageText.includes(pattern) &&
+      (messageText.includes('prepare') || messageText.includes('help') || messageText.includes('ready') || messageText.includes('upcoming') || messageText.includes('next') || messageText === pattern)
+    )
+
+    if (isPTMRequest) {
+      // Add thinking indicator
+      const thinkingMessage: Message = {
         id: generateMessageId(),
         role: 'assistant',
-        content: 'This is a simulated response. In a real implementation, this would connect to an AI service.',
+        content: 'Thought for 5 seconds',
         timestamp: new Date(),
+        isThinking: true,
       }
-      setMessages((prev) => [...prev, assistantMessage])
-      setIsLoading(false)
-    }, 1000)
+      setMessages((prev) => [...prev, thinkingMessage])
+
+      // Simulate PTM response
+      setTimeout(() => {
+        // Remove thinking message and add actual response
+        setMessages((prev) => prev.filter((msg) => !msg.isThinking))
+
+        const assistantMessage: Message = {
+          id: generateMessageId(),
+          role: 'assistant',
+          content: <PTMResponseContent onStudentClick={onStudentClick} onStudentClickWithClass={onStudentClickWithClass} />,
+          timestamp: new Date(),
+        }
+        setMessages((prev) => [...prev, assistantMessage])
+        setIsLoading(false)
+      }, 5000)
+    } else {
+      // Default simulated response for non-PTM messages
+      setTimeout(() => {
+        const assistantMessage: Message = {
+          id: generateMessageId(),
+          role: 'assistant',
+          content: 'This is a simulated response. In a real implementation, this would connect to an AI service.',
+          timestamp: new Date(),
+        }
+        setMessages((prev) => [...prev, assistantMessage])
+        setIsLoading(false)
+      }, 1000)
+    }
   }
 
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
