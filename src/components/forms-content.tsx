@@ -183,7 +183,7 @@ export function FormsContent() {
           <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               <h1 className="text-2xl font-semibold tracking-tight">Template Library</h1>
-              <Badge variant="secondary" className="flex items-center gap-2 px-3 py-1.5">
+              <Badge variant="secondary" className="flex items-center gap-2 px-2 py-0.5">
                 <Image
                   src="/logos/ae-logo.png"
                   alt="AllEars"

@@ -21,6 +21,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { comingSoonToast } from '@/lib/coming-soon-toast'
+import Image from 'next/image'
 
 interface TeachingContentProps {
   defaultTab?: 'marking' | 'lesson-planning' | 'homework' | 'timetable'
@@ -144,7 +145,21 @@ export function TeachingContent({ defaultTab = 'marking', teacherId = 'teacher@e
         <div className="mx-auto w-full max-w-5xl">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h1 className="text-2xl font-semibold tracking-tight">Teaching</h1>
+              <div className="flex items-center gap-3 mb-2">
+                <h1 className="text-2xl font-semibold tracking-tight">Teaching</h1>
+                <Badge variant="secondary" className="flex items-center gap-2 px-2 py-0.5">
+                  <div className="relative w-8 h-6 overflow-hidden shrink-0 flex items-center justify-center">
+                    <Image
+                      src="/logos/Markly.svg"
+                      alt="Mark.ly"
+                      width={48}
+                      height={48}
+                      className="size-12"
+                    />
+                  </div>
+                  <span className="text-xs font-medium">Powered by Mark.ly</span>
+                </Badge>
+              </div>
               <p className="text-sm text-muted-foreground">
                 Manage your teaching tasks and resources
               </p>
