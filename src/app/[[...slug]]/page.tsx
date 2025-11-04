@@ -443,23 +443,21 @@ const TabContent = memo(function TabContent({
   // Use currentUrl for content rendering decisions
   // Only render content for the current URL
   if (isAssistantTabActive) {
-    return (
-      <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-6">
-        {assistantMode === 'sidebar' ? (
-          <AssistantPanel
-            mode="sidebar"
-            isOpen
-            onOpenChange={setIsAssistantOpen}
-            onModeChange={handleAssistantModeChange}
-            showBodyHeading={false}
-            showHeaderControls={false}
-            onStudentClick={handleOpenStudentProfile}
-            onStudentClickWithClass={handleOpenStudentFromClass}
-          />
-        ) : (
-          <AssistantBody showHeading={false} onStudentClick={handleOpenStudentProfile} onStudentClickWithClass={handleOpenStudentFromClass} />
-        )}
+    return assistantMode === 'sidebar' ? (
+      <div className="mx-auto flex w-full max-w-2xl flex-1 min-h-0 flex-col gap-6">
+        <AssistantPanel
+          mode="sidebar"
+          isOpen
+          onOpenChange={setIsAssistantOpen}
+          onModeChange={handleAssistantModeChange}
+          showBodyHeading={false}
+          showHeaderControls={false}
+          onStudentClick={handleOpenStudentProfile}
+          onStudentClickWithClass={handleOpenStudentFromClass}
+        />
       </div>
+    ) : (
+      <AssistantBody showHeading={false} onStudentClick={handleOpenStudentProfile} onStudentClickWithClass={handleOpenStudentFromClass} fullPageMode={true} />
     )
   }
 
@@ -2141,7 +2139,7 @@ export default function Home() {
 
       <SidebarInset className="overflow-x-clip">
         <div className="flex flex-1 min-h-0 flex-col">
-          <div className="sticky top-0 z-20 w-full max-w-full overflow-hidden rounded-t-[17px] bg-background">
+          <div className="sticky top-0 z-20 flex-shrink-0 w-full max-w-full overflow-hidden rounded-t-[17px] bg-background">
             <div className="w-full max-w-full">
               <div ref={tabContainerRef} className="grid grid-cols-[minmax(0,1fr)_auto] w-full max-w-full items-stretch" suppressHydrationWarning>
                 <div className="flex flex-nowrap items-center gap-2 overflow-x-auto overflow-y-hidden tab-scrollbar-hidden min-w-0 px-4 py-2 bg-stone-100" suppressHydrationWarning>

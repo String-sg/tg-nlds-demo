@@ -45,6 +45,7 @@ type AssistantBodyProps = {
   onStudentClickWithClass?: (classId: string, studentName: string) => void
   incomingMessage?: string | null
   onMessageProcessed?: () => void
+  fullPageMode?: boolean
 }
 
 type Message = {
@@ -372,7 +373,7 @@ function PTMResponseContent({
   )
 }
 
-function AssistantBody({ onStudentClick, onStudentClickWithClass, incomingMessage, onMessageProcessed }: AssistantBodyProps) {
+function AssistantBody({ onStudentClick, onStudentClickWithClass, incomingMessage, onMessageProcessed, fullPageMode = false }: AssistantBodyProps) {
   // Use context for persisted state
   const { messages, setMessages, currentInput: input, setCurrentInput: setInput, clearMessages } = useAssistant()
   const { scrollRef } = useScrollToBottom({ dependencies: [messages] })
@@ -750,63 +751,64 @@ function AssistantBody({ onStudentClick, onStudentClickWithClass, incomingMessag
     }
   }
 
-  return (
-    <div className="flex min-h-0 flex-1 flex-col gap-2">
-      <ScrollArea className="assistant-scroll-mask flex-1 min-h-0">
-        <div className="flex flex-col gap-2 px-3">
-          {messages.map((message) => (
-            <div
-              key={message.id}
-              className={cn(
-                'flex flex-col gap-1 text-sm',
-                message.role === 'user'
-                  ? 'ml-auto max-w-[85%] rounded-lg bg-orange-500 p-2 text-white'
-                  : message.isThinking
-                    ? 'mr-auto flex-row items-center gap-2'
-                    : 'mr-auto w-full min-w-0 rounded-lg bg-background p-2',
-              )}
-            >
-              {message.isThinking ? (
-                <>
-                  <span className="text-muted-foreground">{message.content}</span>
-                  <ChevronRightIcon className="size-4 text-muted-foreground" />
-                </>
-              ) : (
-                <>
-                  {/* Check if this is a command message with full prompt */}
-                  {message.command && message.fullPrompt ? (
-                    <CollapsibleUserMessage command={message.command} fullPrompt={message.fullPrompt} />
-                  ) : typeof message.content === 'string' ? (
-                    <AssistantRichText text={message.content as string} className="break-words overflow-hidden" />
-                  ) : (
-                    <div>{message.content}</div>
-                  )}
-                  {!message.isThinking && (
-                    <span className="text-xs opacity-60">
-                      {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                    </span>
-                  )}
-                </>
-              )}
-            </div>
-          ))}
-          {isLoading && (
-            <div className="mr-auto max-w-[85%] rounded-lg bg-background p-2 text-sm">
-              <div className="flex items-center gap-2">
-                <div className="flex gap-1">
-                  <div className="size-2 animate-bounce rounded-full bg-muted-foreground [animation-delay:-0.3s]" />
-                  <div className="size-2 animate-bounce rounded-full bg-muted-foreground [animation-delay:-0.15s]" />
-                  <div className="size-2 animate-bounce rounded-full bg-muted-foreground" />
-                </div>
-                <span className="text-muted-foreground">Thinking...</span>
-              </div>
-            </div>
+  // Render messages (reused in both modes)
+  const renderMessages = () => (
+    <>
+      {messages.map((message) => (
+        <div
+          key={message.id}
+          className={cn(
+            'flex flex-col gap-1 text-sm',
+            message.role === 'user'
+              ? 'ml-auto max-w-[85%] rounded-lg bg-orange-500 p-2 text-white'
+              : message.isThinking
+                ? 'mr-auto flex-row items-center gap-2'
+                : 'mr-auto w-full min-w-0 rounded-lg bg-background p-2',
           )}
-          <div ref={scrollRef} />
+        >
+          {message.isThinking ? (
+            <>
+              <span className="text-muted-foreground">{message.content}</span>
+              <ChevronRightIcon className="size-4 text-muted-foreground" />
+            </>
+          ) : (
+            <>
+              {/* Check if this is a command message with full prompt */}
+              {message.command && message.fullPrompt ? (
+                <CollapsibleUserMessage command={message.command} fullPrompt={message.fullPrompt} />
+              ) : typeof message.content === 'string' ? (
+                <AssistantRichText text={message.content as string} className="break-words overflow-hidden" />
+              ) : (
+                <div>{message.content}</div>
+              )}
+              {!message.isThinking && (
+                <span className="text-xs opacity-60">
+                  {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                </span>
+              )}
+            </>
+          )}
         </div>
-      </ScrollArea>
+      ))}
+      {isLoading && (
+        <div className="mr-auto max-w-[85%] rounded-lg bg-background p-2 text-sm">
+          <div className="flex items-center gap-2">
+            <div className="flex gap-1">
+              <div className="size-2 animate-bounce rounded-full bg-muted-foreground [animation-delay:-0.3s]" />
+              <div className="size-2 animate-bounce rounded-full bg-muted-foreground [animation-delay:-0.15s]" />
+              <div className="size-2 animate-bounce rounded-full bg-muted-foreground" />
+            </div>
+            <span className="text-muted-foreground">Thinking...</span>
+          </div>
+        </div>
+      )}
+    </>
+  )
 
-      <div className="flex flex-col gap-2 px-4">
+  // Render input area (reused in both modes)
+  const renderInput = () => (
+    <>
+      <div className="flex flex-col gap-2">
         {/* Shortcut hints - only show when no messages */}
         {messages.length === 0 && (
           <div className="flex items-center gap-2">
@@ -866,6 +868,37 @@ function AssistantBody({ onStudentClick, onStudentClickWithClass, incomingMessag
             <SendIcon className="size-4" />
           </Button>
         </div>
+      </div>
+    </>
+  )
+
+  return fullPageMode ? (
+    // Full-page mode: Follow ConversationView pattern - full width with padding
+    <div className="flex h-full flex-col">
+      {/* Messages - scrollable with auto-scroll-to-bottom */}
+      <ScrollArea className="flex-1 min-h-0">
+        <div className="flex flex-col gap-2 px-6 py-4">
+          {renderMessages()}
+          <div ref={scrollRef} />
+        </div>
+      </ScrollArea>
+
+      {/* Input - fixed at bottom */}
+      <div className="flex-shrink-0 border-t bg-background px-6 py-4">
+        {renderInput()}
+      </div>
+    </div>
+  ) : (
+    <div className="flex min-h-0 flex-1 flex-col">
+      {/* Sidebar/floating mode: custom ScrollArea */}
+      <ScrollArea className="assistant-scroll-mask flex-1 min-h-0">
+        <div className="flex flex-col gap-2 px-3">
+          {renderMessages()}
+          <div ref={scrollRef} />
+        </div>
+      </ScrollArea>
+      <div className="flex flex-shrink-0 flex-col gap-2 px-4">
+        {renderInput()}
       </div>
     </div>
   )
