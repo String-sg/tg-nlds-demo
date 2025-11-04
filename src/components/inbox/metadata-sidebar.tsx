@@ -251,13 +251,13 @@ export function MetadataSidebar({ conversationId, conversationGroups, isLoading 
                       {thread.metadata.subject || 'No subject'}
                     </div>
                     <div className="text-xs text-stone-600 mb-1.5 line-clamp-2">
-                      {lastMessage.content}
+                      {lastMessage ? lastMessage.content : 'No messages yet'}
                     </div>
                     <div className="text-xs text-stone-500">
-                      {lastMessage.sentAt.toLocaleDateString('en-US', {
+                      {lastMessage ? lastMessage.sentAt.toLocaleDateString('en-US', {
                         month: 'short',
                         day: 'numeric',
-                      })}
+                      }) : 'Just now'}
                     </div>
                   </div>
                 )
