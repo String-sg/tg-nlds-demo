@@ -63,15 +63,6 @@ export interface StudentProfileData {
     }>
   }
 
-  // Physical fitness
-  physical_fitness: Array<{
-    id: string
-    assessment_date: string
-    assessment_type: string
-    metrics: Json
-    overall_grade: string | null
-    pass_status: boolean | null
-  }>
 
   // Behaviour observations
   behaviour_observations: Array<{

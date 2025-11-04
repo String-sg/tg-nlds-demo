@@ -322,46 +322,6 @@ export function StudentProfile({ studentName, classId, onBack, activeTab, onNavi
 
 
 
-          {/* Physical Fitness */}
-          <Card className="border-stone-200">
-            <CardHeader>
-              <CardTitle className="text-base font-medium text-stone-900">Physical Fitness</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {studentData.physical_fitness.length > 0 ? (
-                  studentData.physical_fitness.map((fitness, index) => (
-                    <div key={fitness.id} className="border-b border-stone-100 pb-4 last:border-0 last:pb-0">
-                      <div className="flex justify-between items-start mb-2">
-                        <div>
-                          <p className="text-sm font-medium text-stone-900">{fitness.assessment_type}</p>
-                          <p className="text-xs text-stone-500">
-                            {new Date(fitness.assessment_date).toLocaleDateString('en-SG', { year: 'numeric', month: 'long', day: 'numeric' })}
-                          </p>
-                        </div>
-                        <span className={cn(
-                          'px-2 py-1 text-xs font-medium rounded-full',
-                          fitness.pass_status ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800'
-                        )}>
-                          {fitness.overall_grade || 'N/A'}
-                        </span>
-                      </div>
-                      <div className="grid grid-cols-2 gap-2 text-sm">
-                        {Object.entries(fitness.metrics as Record<string, unknown>).map(([key, value]) => (
-                          <div key={key}>
-                            <span className="text-stone-500 capitalize">{key.replace(/_/g, ' ')}:</span>{' '}
-                            <span className="font-medium text-stone-900">{String(value)}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <p className="text-sm text-stone-500">No fitness records available</p>
-                )}
-              </div>
-            </CardContent>
-          </Card>
         </TabsContent>
 
         {/* Attendance Tab */}

@@ -58,7 +58,6 @@ export async function fetchStudentProfile(studentName: string) {
     overviewData,
     academicData,
     attendanceData,
-    fitnessData,
     behaviourData,
     friendsData,
     privateNotesData,
@@ -104,13 +103,6 @@ export async function fetchStudentProfile(studentName: string) {
       .order('date', { ascending: false })
       .then((res) => res.data),
 
-    // Physical fitness
-    supabase
-      .from('physical_fitness')
-      .select('*')
-      .eq('student_id', studentId)
-      .order('assessment_date', { ascending: false })
-      .then((res) => res.data),
 
     // Behaviour observations
     supabase
@@ -227,7 +219,6 @@ export async function fetchStudentProfile(studentName: string) {
           }
         }),
     },
-    physical_fitness: fitnessData || [],
     behaviour_observations: behaviourData || [],
     friend_relationships: (friendsData || []).map(
       (f: {
