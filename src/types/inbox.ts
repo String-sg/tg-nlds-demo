@@ -134,6 +134,7 @@ export interface EnrichedConversation extends DbConversation {
     name: string
     class_id: string
     class_name: string
+    profile_photo?: string | null
   }
   messages?: DbMessage[]
   participants?: DbParticipant[]

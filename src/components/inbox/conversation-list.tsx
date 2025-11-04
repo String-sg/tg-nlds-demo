@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { Input } from '@/components/ui/input'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
@@ -12,7 +12,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { Search, MessageSquare, Filter, Plus } from 'lucide-react'
+import { Search, MessageSquare, Filter, Plus, Users } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { getInitials, getAvatarColor } from '@/lib/chat/utils'
 import { ConversationListSkeleton } from './conversation-list-skeleton'
@@ -211,12 +211,27 @@ export function ConversationList({
                         )}
                       >
                         <div className="flex items-center gap-3">
-                          {/* Avatar - Show parent initials */}
-                          <Avatar className="h-10 w-10 flex-shrink-0">
-                            <AvatarFallback className={getAvatarColor(parentName)}>
-                              {getInitials(parentName)}
-                            </AvatarFallback>
-                          </Avatar>
+                          {/* Avatar - Show student avatar with group overlay if group */}
+                          {latestThread.type === 'group' ? (
+                            <div className="relative h-10 w-10 flex-shrink-0">
+                              <Avatar className="h-10 w-10">
+                                <AvatarImage src={group.student.avatar ?? undefined} alt={group.student.name} />
+                                <AvatarFallback className={getAvatarColor(group.student.name)}>
+                                  {getInitials(group.student.name)}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div className="absolute -bottom-1 -right-1 h-5 w-5 rounded-full bg-white border border-stone-200 grid place-items-center">
+                                <Users className="h-3.5 w-3.5 text-stone-600" />
+                              </div>
+                            </div>
+                          ) : (
+                            <Avatar className="h-10 w-10 flex-shrink-0">
+                              <AvatarImage src={group.student.avatar} alt={group.student.name} />
+                              <AvatarFallback className={getAvatarColor(group.student.name)}>
+                                {getInitials(group.student.name)}
+                              </AvatarFallback>
+                            </Avatar>
+                          )}
 
                           {/* Content */}
                           <div className="flex-1 min-w-0">

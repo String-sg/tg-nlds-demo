@@ -1,6 +1,6 @@
 'use client'
 
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
@@ -59,6 +59,7 @@ export function MetadataSidebar({ conversationId, conversationGroups, isLoading 
       <div className="flex-shrink-0 border-b border-stone-200 bg-white p-4">
         <div className="flex items-start gap-3 mb-3">
           <Avatar className="h-12 w-12">
+            <AvatarImage src={student.avatar ?? undefined} alt={student.name} />
             <AvatarFallback className={getAvatarColor(student.name)}>
               {getInitials(student.name)}
             </AvatarFallback>

@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { getConversation, getConversationMessages } from '@/lib/mock-data/chat-data'
 import { groupMessagesByDate, getDateSeparator, formatMessageTime, formatFileSize, getFileIcon, getInitials, getAvatarColor } from '@/lib/chat/utils'
@@ -107,11 +107,26 @@ export function ConversationContent({ conversationId }: ConversationContentProps
       <div className="flex-shrink-0 border-b border-stone-200 bg-white px-6 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Avatar className="h-10 w-10">
-              <AvatarFallback className={getAvatarColor(displayName)}>
-                {type === 'group' ? <Users className="h-5 w-5" /> : getInitials(displayName)}
-              </AvatarFallback>
-            </Avatar>
+            {type === 'group' ? (
+              <div className="relative h-10 w-10">
+                <Avatar className="h-10 w-10">
+                  <AvatarImage src={undefined} alt={studentContext.studentName} />
+                  <AvatarFallback className={getAvatarColor(studentContext.studentName)}>
+                    {getInitials(studentContext.studentName)}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="absolute -bottom-1 -right-1 h-5 w-5 rounded-full bg-white border border-stone-200 grid place-items-center">
+                  <Users className="h-3.5 w-3.5 text-stone-600" />
+                </div>
+              </div>
+            ) : (
+              <Avatar className="h-10 w-10">
+                <AvatarImage src={undefined} alt={studentContext.studentName} />
+                <AvatarFallback className={getAvatarColor(studentContext.studentName)}>
+                  {getInitials(studentContext.studentName)}
+                </AvatarFallback>
+              </Avatar>
+            )}
             <div>
               <h2 className="text-sm font-semibold text-stone-900">{displayName}</h2>
               <p className="text-xs text-stone-600">

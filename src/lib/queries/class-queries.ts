@@ -112,60 +112,86 @@ export async function fetchClassStats(classId: string) {
 
   const today = new Date().toISOString().split('T')[0]
 
-  // Fetch stats in parallel
-  const [studentCount, attendanceData, gradesData, casesData] = await Promise.all([
-    // Total students
-    supabase
-      .from('student_classes')
-      .select('*', { count: 'exact', head: true })
-      .eq('class_id', classId)
-      .eq('status', 'active')
-      .then((res) => res.count || 0),
+  // First, get all student IDs for this class
+  const { data: studentClasses, error: studentClassesError } = await supabase
+    .from('student_classes')
+    .select('student_id')
+    .eq('class_id', classId)
+    .eq('status', 'active')
 
-    // Today's attendance
+  if (studentClassesError) {
+    console.error('Error fetching student classes:', studentClassesError)
+    throw studentClassesError
+  }
+
+  const studentIds = studentClasses?.map((sc) => sc.student_id) || []
+  const studentCount = studentIds.length
+
+  if (studentCount === 0) {
+    return {
+      total_students: 0,
+      attendance: {
+        rate: 0,
+        present: 0,
+        absent: 0,
+        late: 0,
+      },
+      academic: {
+        class_average: 0,
+        pending_grades: 0,
+      },
+      alerts: {
+        urgent: 0,
+        high: 0,
+        total: 0,
+      },
+    }
+  }
+
+  // Fetch stats in parallel using student IDs
+  const [attendanceData, gradesData, casesData] = await Promise.all([
+    // Today's attendance - filter by student IDs and today's date
     supabase
       .from('attendance')
-      .select(`
-        status,
-        student:student_classes!inner(
-          class_id
-        )
-      `)
-      .eq('student:student_classes.class_id', classId)
+      .select('status')
+      .in('student_id', studentIds)
       .eq('date', today)
-      .then((res) => res.data),
+      .eq('type', 'daily')
+      .then((res) => {
+        if (res.error) {
+          console.error('Error fetching attendance:', res.error)
+          return []
+        }
+        return res.data || []
+      }),
 
-    // Academic grades for class average
+    // Academic grades for class average - get latest results per student
     supabase
       .from('academic_results')
-      .select(`
-        score,
-        student:students!inner(
-          id,
-          student_classes!inner(
-            class_id
-          )
-        )
-      `)
-      .eq('student:students.student_classes.class_id', classId)
-      .then((res) => res.data),
+      .select('score, percentage, student_id, assessment_date')
+      .in('student_id', studentIds)
+      .order('assessment_date', { ascending: false })
+      .then((res) => {
+        if (res.error) {
+          console.error('Error fetching academic results:', res.error)
+          return []
+        }
+        return res.data || []
+      }),
 
-    // Student cases for alerts
+    // Student cases for alerts - only open cases
     supabase
       .from('cases')
-      .select(`
-        severity,
-        status,
-        student:students!inner(
-          id,
-          student_classes!inner(
-            class_id
-          )
-        )
-      `)
-      .eq('student:students.student_classes.class_id', classId)
+      .select('severity, status')
+      .in('student_id', studentIds)
       .eq('status', 'open')
-      .then((res) => res.data),
+      .then((res) => {
+        if (res.error) {
+          console.error('Error fetching cases:', res.error)
+          return []
+        }
+        return res.data || []
+      }),
   ])
 
   // Calculate attendance stats
@@ -174,10 +200,23 @@ export async function fetchClassStats(classId: string) {
   const late = attendanceData?.filter((a) => a.status === 'late').length || 0
   const attendanceRate = studentCount > 0 ? Math.round((present / studentCount) * 100) : 0
 
-  // Calculate academic stats
-  const validGrades = gradesData?.filter((g) => g.score !== null && g.score !== undefined) || []
+  // Calculate academic stats - average all results for students in the class
+  // Use percentage if available, otherwise use score directly
+  const validGrades: number[] = []
+  gradesData?.forEach((g) => {
+    const gradeValue = g.percentage !== null && g.percentage !== undefined
+      ? Number(g.percentage)
+      : g.score !== null && g.score !== undefined
+      ? Number(g.score)
+      : null
+    
+    if (gradeValue !== null && !isNaN(gradeValue) && gradeValue >= 0 && gradeValue <= 100) {
+      validGrades.push(gradeValue)
+    }
+  })
+
   const classAverage = validGrades.length > 0
-    ? validGrades.reduce((sum, g) => sum + (g.score || 0), 0) / validGrades.length
+    ? validGrades.reduce((sum, g) => sum + g, 0) / validGrades.length
     : 0
 
   // Calculate alert stats

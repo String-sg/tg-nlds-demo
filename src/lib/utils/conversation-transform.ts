@@ -32,7 +32,7 @@ export function transformToConversationGroups(
       class: firstConv.student?.class_name || '',
       class_id: firstConv.student?.class_id || '',
       class_name: firstConv.student?.class_name || '',
-      avatar: undefined,
+      avatar: firstConv.student?.profile_photo ?? undefined,
       recentGrade: undefined,
       attendance: undefined,
       alerts: [],

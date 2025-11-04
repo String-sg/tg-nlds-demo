@@ -17,7 +17,8 @@ export async function GET(request: Request) {
         student:students!student_id (
           id,
           name,
-          student_id
+          student_id,
+          profile_photo
         ),
         class:classes!class_id (
           id,
@@ -197,7 +198,8 @@ export async function POST(request: Request) {
         student:students!student_id (
           id,
           name,
-          student_id
+          student_id,
+          profile_photo
         ),
         class:classes!class_id (
           id,
