@@ -32,3 +32,26 @@ export function getAvatarColor(name: string) {
   const index = name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % colors.length
   return colors[index]
 }
+
+/**
+ * Calculate letter grade based on HDP (Singapore) grading standards
+ * @param percentage - Score percentage (0-100)
+ * @returns Letter grade (A, B, C, or D)
+ */
+export function getLetterGrade(percentage: number): string {
+  if (percentage >= 80) return 'A'
+  if (percentage >= 60) return 'B'
+  if (percentage >= 40) return 'C'
+  return 'D'
+}
+
+/**
+ * Calculate percentage from score and max score
+ * @param score - Actual score achieved
+ * @param maxScore - Maximum possible score
+ * @returns Percentage (0-100)
+ */
+export function calculatePercentage(score: number, maxScore: number): number {
+  if (maxScore === 0) return 0
+  return Math.round((score / maxScore) * 100)
+}
