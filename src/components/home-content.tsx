@@ -71,7 +71,7 @@ const podcastData = {
   title: "Strategies to Develop Emotion Regulation in Secondary School Students",
   date: 'Oct 24',
   duration: '8 min',
-  description: "This set of micro-learning unit (MLU) is part of a series of MLUs on facilitating social-emotional skills in students.",
+  description: "Through these MLUs, educators can gain an understanding of emotions, emotion regulation and its benefits.",
   imageUrl: '/images/podcast-thumb-student-development.png',
   audioUrl: '/audio/ElevenLabs_Draft_SEED_Emotional_Regulation.mp3',
 }

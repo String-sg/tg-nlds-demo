@@ -1383,12 +1383,6 @@ export default function Home() {
               },
             ],
           },
-          {
-            label: 'Message Parents',
-            icon: MessageSquare,
-            onClick: () => handleOpenConversation('conv-1'),
-            variant: 'outline',
-          },
         ]
       } else {
         // Class overview page actions
@@ -1431,12 +1425,6 @@ export default function Home() {
               },
             ],
           },
-          {
-            label: 'Message Parents',
-            icon: MessageSquare,
-            onClick: () => handleOpenConversation('conv-1'),
-            variant: 'outline',
-          },
         ]
       }
     } else if (typeof currentUrl === 'string' && currentUrl.startsWith('student-')) {
@@ -1473,12 +1461,6 @@ export default function Home() {
               disabled: true,
             },
           ],
-        },
-        {
-          label: 'Message Parents',
-          icon: MessageSquare,
-          onClick: () => handleOpenConversation('conv-1'),
-          variant: 'outline',
         },
       ]
     }

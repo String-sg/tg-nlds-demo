@@ -52,6 +52,8 @@ type Message = {
   content: string | React.ReactNode
   timestamp: Date
   isThinking?: boolean
+  command?: string // For slash commands like /ptm
+  fullPrompt?: string // The expanded prompt text
 }
 
 const promptShortcuts = [
@@ -113,6 +115,27 @@ const getBadgeColor = (badge: string) => {
 
   // Default
   return 'bg-muted text-muted-foreground'
+}
+
+// Collapsible user message component for showing command shortcuts with full prompts
+function CollapsibleUserMessage({ command, fullPrompt }: { command: string; fullPrompt: string }) {
+  const [isExpanded, setIsExpanded] = useState(true)
+
+  return (
+    <div className="flex flex-col gap-2">
+      <div className="font-medium">{command}</div>
+      <button
+        type="button"
+        onClick={() => setIsExpanded(!isExpanded)}
+        className="text-xs underline opacity-70 hover:opacity-100 transition-opacity text-left"
+      >
+        {isExpanded ? 'Hide full message' : 'Show full message'}
+      </button>
+      {isExpanded && (
+        <div className="text-sm opacity-90">{fullPrompt}</div>
+      )}
+    </div>
+  )
 }
 
 function PTMResponseContent({
@@ -399,20 +422,148 @@ function AssistantBody({ onStudentClick, onStudentClickWithClass, incomingMessag
     }
 
     setMessages((prev) => [...prev, userMessage])
+    const messageText = input.trim().toLowerCase()
+    const inputValue = input.trim()
     setInput('')
     setIsLoading(true)
 
-    // Simulate assistant response
-    setTimeout(() => {
-      const assistantMessage: Message = {
-        id: generateMessageId(),
+    // Check if message matches PTM natural language patterns
+    const ptmPatterns = [
+      'parent teacher meeting',
+      'parents teacher meeting',
+      'parent-teacher meeting',
+      'parent teacher conference',
+      'parents teacher conference',
+      'ptm',
+      'prepare for meeting with parents',
+      'prepare for parent meeting',
+      'help with parent meeting',
+      'parent meeting',
+      'meeting with parents',
+    ]
+
+    const isPTMRequest = ptmPatterns.some(pattern =>
+      messageText.includes(pattern) &&
+      (messageText.includes('prepare') || messageText.includes('help') || messageText.includes('ready') || messageText.includes('upcoming') || messageText.includes('next') || messageText === pattern)
+    )
+
+    try {
+      // For PTM requests, skip OpenAI and show component directly
+      if (isPTMRequest) {
+        // Show loading indicator briefly
+        const loadingMessage: Message = {
+          id: generateMessageId(),
+          role: 'assistant',
+          content: 'Loading PTM data...',
+          timestamp: new Date(),
+          isThinking: true,
+        }
+        setMessages((prev) => [...prev, loadingMessage])
+
+        // Small delay for better UX
+        await new Promise(resolve => setTimeout(resolve, 500))
+
+        // Remove loading and show PTM component
+        setMessages((prev) => prev.filter((msg) => !msg.isThinking))
+
+        const ptmMessage: Message = {
+          id: generateMessageId(),
+          role: 'assistant',
+          content: <PTMResponseContent onStudentClick={onStudentClick} onStudentClickWithClass={onStudentClickWithClass} />,
+          timestamp: new Date(),
+        }
+        setMessages((prev) => [...prev, ptmMessage])
+        setIsLoading(false)
+        return
+      }
+
+      // For non-PTM requests, use OpenAI streaming
+      // Create streaming message
+      const streamingMessageId = generateMessageId()
+      const streamingMessage: Message = {
+        id: streamingMessageId,
         role: 'assistant',
-        content: 'This is a simulated response. In a real implementation, this would connect to an AI service.',
+        content: '',
         timestamp: new Date(),
       }
-      setMessages((prev) => [...prev, assistantMessage])
+      setMessages((prev) => [...prev, streamingMessage])
+
+      // Call streaming API
+      const response = await fetch('/api/chat/stream', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: inputValue,
+          conversationHistory: messages
+            .filter(m => typeof m.content === 'string' && !m.isThinking)
+            .map(m => ({
+              role: m.role,
+              content: m.content as string,
+            })),
+          isPTMRequest: false, // Never PTM here since we handle it above
+        }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to send message')
+      }
+
+      // Handle streaming response
+      const reader = response.body?.getReader()
+      const decoder = new TextDecoder()
+      let accumulatedContent = ''
+
+      if (reader) {
+        while (true) {
+          const { done, value } = await reader.read()
+          if (done) break
+
+          const chunk = decoder.decode(value)
+          const lines = chunk.split('\n\n')
+
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              const data = JSON.parse(line.slice(6))
+
+              if (data.content) {
+                accumulatedContent += data.content
+                // Update streaming message
+                setMessages((prev) =>
+                  prev.map((msg) =>
+                    msg.id === streamingMessageId
+                      ? { ...msg, content: accumulatedContent }
+                      : msg
+                  )
+                )
+              }
+
+              if (data.error) {
+                throw new Error(data.error)
+              }
+            }
+          }
+        }
+      }
+
       setIsLoading(false)
-    }, 1000)
+    } catch (error) {
+      console.error('Chat error:', error)
+      // Remove failed streaming message
+      setMessages((prev) => prev.filter(m => m.content !== ''))
+
+      // Add error message
+      const errorMessage: Message = {
+        id: generateMessageId(),
+        role: 'assistant',
+        content: `Sorry, I encountered an error: ${error instanceof Error ? error.message : 'Unknown error'}. Please try again.`,
+        timestamp: new Date(),
+      }
+      setMessages((prev) => [...prev, errorMessage])
+      setIsLoading(false)
+    }
   }
 
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -439,41 +590,138 @@ function AssistantBody({ onStudentClick, onStudentClickWithClass, incomingMessag
     setShowShortcuts(false)
     setInput('')
 
-    // Send the shortcut command as a message
+    // Send the shortcut command as a message with both command and full prompt
     const userMessage: Message = {
       id: generateMessageId(),
       role: 'user',
       content: shortcut.command,
+      command: shortcut.command,
+      fullPrompt: shortcut.prompt,
       timestamp: new Date(),
     }
 
     setMessages((prev) => [...prev, userMessage])
-
-    // Add thinking indicator
-    const thinkingMessage: Message = {
-      id: generateMessageId(),
-      role: 'assistant',
-      content: 'Thought for 5 seconds',
-      timestamp: new Date(),
-      isThinking: true,
-    }
-    setMessages((prev) => [...prev, thinkingMessage])
     setIsLoading(true)
 
-    // Simulate assistant response
-    setTimeout(() => {
-      // Remove thinking message and add actual response
-      setMessages((prev) => prev.filter((msg) => !msg.isThinking))
+    const isPTMRequest = shortcut.command === '/ptm'
 
-      const assistantMessage: Message = {
-        id: generateMessageId(),
+    try {
+      // For PTM requests, skip OpenAI and show component directly
+      if (isPTMRequest) {
+        // Show loading indicator briefly
+        const loadingMessage: Message = {
+          id: generateMessageId(),
+          role: 'assistant',
+          content: 'Loading PTM data...',
+          timestamp: new Date(),
+          isThinking: true,
+        }
+        setMessages((prev) => [...prev, loadingMessage])
+
+        // Small delay for better UX
+        await new Promise(resolve => setTimeout(resolve, 500))
+
+        // Remove loading and show PTM component
+        setMessages((prev) => prev.filter((msg) => !msg.isThinking))
+
+        const ptmMessage: Message = {
+          id: generateMessageId(),
+          role: 'assistant',
+          content: <PTMResponseContent onStudentClick={onStudentClick} onStudentClickWithClass={onStudentClickWithClass} />,
+          timestamp: new Date(),
+        }
+        setMessages((prev) => [...prev, ptmMessage])
+        setIsLoading(false)
+        return
+      }
+
+      // For non-PTM requests, use OpenAI streaming
+      // Create streaming message
+      const streamingMessageId = generateMessageId()
+      const streamingMessage: Message = {
+        id: streamingMessageId,
         role: 'assistant',
-        content: shortcut.command === '/ptm' ? <PTMResponseContent onStudentClick={onStudentClick} onStudentClickWithClass={onStudentClickWithClass} /> : 'This is a simulated response. In a real implementation, this would connect to an AI service.',
+        content: '',
         timestamp: new Date(),
       }
-      setMessages((prev) => [...prev, assistantMessage])
+      setMessages((prev) => [...prev, streamingMessage])
+
+      // Call streaming API with full prompt
+      const response = await fetch('/api/chat/stream', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: shortcut.prompt,
+          conversationHistory: messages
+            .filter(m => typeof m.content === 'string' && !m.isThinking)
+            .map(m => ({
+              role: m.role,
+              content: m.content as string,
+            })),
+          isPTMRequest: false, // Never PTM here since we handle it above
+        }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to send message')
+      }
+
+      // Handle streaming response
+      const reader = response.body?.getReader()
+      const decoder = new TextDecoder()
+      let accumulatedContent = ''
+
+      if (reader) {
+        while (true) {
+          const { done, value } = await reader.read()
+          if (done) break
+
+          const chunk = decoder.decode(value)
+          const lines = chunk.split('\n\n')
+
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              const data = JSON.parse(line.slice(6))
+
+              if (data.content) {
+                accumulatedContent += data.content
+                // Update streaming message
+                setMessages((prev) =>
+                  prev.map((msg) =>
+                    msg.id === streamingMessageId
+                      ? { ...msg, content: accumulatedContent }
+                      : msg
+                  )
+                )
+              }
+
+              if (data.error) {
+                throw new Error(data.error)
+              }
+            }
+          }
+        }
+      }
+
       setIsLoading(false)
-    }, 5000)
+    } catch (error) {
+      console.error('Chat error:', error)
+      // Remove failed streaming message
+      setMessages((prev) => prev.filter(m => m.content !== ''))
+
+      // Add error message
+      const errorMessage: Message = {
+        id: generateMessageId(),
+        role: 'assistant',
+        content: `Sorry, I encountered an error: ${error instanceof Error ? error.message : 'Unknown error'}. Please try again.`,
+        timestamp: new Date(),
+      }
+      setMessages((prev) => [...prev, errorMessage])
+      setIsLoading(false)
+    }
   }
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -502,9 +750,9 @@ function AssistantBody({ onStudentClick, onStudentClickWithClass, incomingMessag
   }
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col gap-4">
+    <div className="flex min-h-0 flex-1 flex-col gap-2">
       <ScrollArea className="h-0 flex-1">
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-3 px-5">
           {messages.map((message) => (
             <div
               key={message.id}
@@ -524,7 +772,10 @@ function AssistantBody({ onStudentClick, onStudentClickWithClass, incomingMessag
                 </>
               ) : (
                 <>
-                  {typeof message.content === 'string' ? (
+                  {/* Check if this is a command message with full prompt */}
+                  {message.command && message.fullPrompt ? (
+                    <CollapsibleUserMessage command={message.command} fullPrompt={message.fullPrompt} />
+                  ) : typeof message.content === 'string' ? (
                     <p className="whitespace-pre-wrap break-words">{message.content}</p>
                   ) : (
                     <div>{message.content}</div>
@@ -554,7 +805,7 @@ function AssistantBody({ onStudentClick, onStudentClickWithClass, incomingMessag
         </div>
       </ScrollArea>
 
-      <div className="flex flex-col gap-2">
+      <div className="flex flex-col gap-2 px-5">
         {/* Shortcut hints - only show when no messages */}
         {messages.length === 0 && (
           <div className="flex items-center gap-2">
@@ -707,9 +958,9 @@ export function AssistantPanel({
   const { clearMessages } = useAssistant()
 
   const content = (
-    <div className={cn('flex h-full min-h-0 flex-col gap-4 px-2 pb-2 pt-2', className)}>
+    <div className={cn('flex h-full min-h-0 flex-col gap-4 pb-2 pt-2', className)}>
       {showHeaderControls && (
-        <div className="flex items-center justify-between gap-2 px-2 py-0.5">
+        <div className="flex items-center justify-between gap-2 px-5 py-0.5">
           <div className="flex items-center gap-2">
             <h2 className="text-base font-semibold leading-none">Assistant</h2>
           </div>
@@ -791,7 +1042,7 @@ export function AssistantPanel({
             </div>
           </SheetHeader>
         )}
-        <div className="flex max-h-[calc(100vh-10rem)] min-h-[24rem] min-h-0 flex-col p-5">
+        <div className="flex h-[calc(100vh-10rem)] min-h-0 flex-col py-5">
           <AssistantBody
             showHeading={showBodyHeading}
             onStudentClick={onStudentClick}

@@ -672,15 +672,15 @@ export async function getStudentAlerts(
         if (stats.rate < 60) {
           // Critical attendance issue
           priority = 'high'
-          message = `Critical attendance issue: ${stats.rate}% attendance rate (${stats.absent} absences out of ${stats.total} days). Immediate family intervention and support needed.`
+          message = `Critical attendance issue: ${stats.absent} absences in the past ${stats.total} school days. Immediate family intervention required`
         } else if (stats.rate < 80) {
           // High concern
           priority = 'high'
-          message = `Low attendance: ${stats.rate}% attendance rate (${stats.absent} absences, ${stats.late} late arrivals). Requires follow-up with family and support plan.`
+          message = `Low attendance: ${stats.absent} absences in the past ${stats.total} school days. Requires follow-up with family and support plan.`
         } else if (stats.rate < 90) {
           // Moderate concern
           priority = 'medium'
-          message = `Attendance concern: ${stats.rate}% attendance rate (${stats.absent} absences, ${stats.late} late). Monitor pattern and check for underlying issues.`
+          message = `Attendance concern: ${stats.absent} absences in the past ${stats.total} school days. Monitor pattern and check for underlying issues.`
         }
 
         alerts.push({

@@ -75,31 +75,45 @@ export function transformToConversationGroups(
  * Transforms a single database conversation into a ConversationThread
  */
 function transformConversationToThread(conv: EnrichedConversation): ConversationThread {
-  // Build participants list
+  // Build participants list from database participants or fallback to messages
   const participants: Participant[] = []
 
-  // Add teacher participant
-  participants.push({
-    userId: conv.teacher_id,
-    role: 'teacher',
-    studentId: conv.student_id,
-    name: 'Teacher', // TODO: Get actual teacher name
-    avatar: undefined,
-    joinedAt: new Date(conv.created_at),
-  })
-
-  // Add parent participant (inferred from messages)
-  const parentMessages = conv.messages?.filter((m) => m.sender_type === 'parent')
-  if (parentMessages && parentMessages.length > 0) {
-    const parentName = parentMessages[0].sender_name
+  // Use participants from database if available
+  if (conv.participants && conv.participants.length > 0) {
+    conv.participants.forEach((p) => {
+      participants.push({
+        userId: p.participant_type === 'teacher' ? conv.teacher_id : 'parent-' + conv.student_id,
+        role: p.participant_type === 'teacher' ? 'teacher' : 'parent',
+        studentId: conv.student_id,
+        name: p.participant_name,
+        avatar: undefined,
+        joinedAt: new Date(p.created_at),
+      })
+    })
+  } else {
+    // Fallback: Add teacher participant
     participants.push({
-      userId: 'parent-' + conv.student_id,
-      role: 'parent',
+      userId: conv.teacher_id,
+      role: 'teacher',
       studentId: conv.student_id,
-      name: parentName,
+      name: 'Teacher', // TODO: Get actual teacher name
       avatar: undefined,
       joinedAt: new Date(conv.created_at),
     })
+
+    // Add parent participant (inferred from messages)
+    const parentMessages = conv.messages?.filter((m) => m.sender_type === 'parent')
+    if (parentMessages && parentMessages.length > 0) {
+      const parentName = parentMessages[0].sender_name
+      participants.push({
+        userId: 'parent-' + conv.student_id,
+        role: 'parent',
+        studentId: conv.student_id,
+        name: parentName,
+        avatar: undefined,
+        joinedAt: new Date(conv.created_at),
+      })
+    }
   }
 
   // Transform messages

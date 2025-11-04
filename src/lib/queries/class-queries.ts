@@ -251,6 +251,21 @@ export async function fetchClassName(classId: string) {
 export async function fetchInboxStudents(teacherId: string) {
   const supabase = createClient()
 
+  // First, get all class IDs where the teacher is assigned
+  const { data: teacherClasses, error: teacherClassesError } = await supabase
+    .from('teacher_classes')
+    .select('class_id')
+    .eq('teacher_id', teacherId)
+
+  if (teacherClassesError) throw teacherClassesError
+
+  if (!teacherClasses || teacherClasses.length === 0) {
+    return []
+  }
+
+  const classIds = teacherClasses.map((tc) => tc.class_id)
+
+  // Then, get all students in those classes
   const { data, error } = await supabase
     .from('student_classes')
     .select(`
@@ -258,25 +273,34 @@ export async function fetchInboxStudents(teacherId: string) {
         id,
         student_id,
         name,
-        year_level
+        year_level,
+        primary_guardian:parents_guardians!primary_guardian_id(
+          id,
+          name,
+          email,
+          phone,
+          relationship
+        )
       ),
       class:classes(
         id,
         name
       )
     `)
-    .eq('teacher_classes.teacher_id', teacherId)
+    .in('class_id', classIds)
     .eq('status', 'active')
 
   if (error) throw error
 
   return (
     data?.map((enrollment) => ({
-      student_id: enrollment.student.id,
+      id: enrollment.student.id,
+      student_id: enrollment.student.student_id,
       name: enrollment.student.name,
       class_id: enrollment.class.id,
       class_name: enrollment.class.name,
       year_level: enrollment.student.year_level,
+      primary_guardian: enrollment.student.primary_guardian,
     })) || []
   )
 }

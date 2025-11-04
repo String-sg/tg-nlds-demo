@@ -20,7 +20,9 @@ import {
 import { Input } from '@/components/ui/input'
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { ScrollArea } from '@/components/ui/scroll-area'
+import { Badge } from '@/components/ui/badge'
 import { comingSoonToast } from '@/lib/coming-soon-toast'
+import Image from 'next/image'
 
 interface Template {
   id: string
@@ -138,7 +140,7 @@ const templateCategories: TemplateCategory[] = [
     ],
   },
   {
-    name: 'Termly Checkin',
+    name: 'Termly Check In',
     templates: [
       {
         id: 'term-1-checkin',
@@ -179,7 +181,19 @@ export function FormsContent() {
       <div className="border-b bg-background px-6 py-4">
         <div className="mx-auto w-full max-w-5xl">
           <div className="flex items-center justify-between gap-4">
-            <h1 className="text-2xl font-semibold tracking-tight">Template Library</h1>
+            <div className="flex items-center gap-3">
+              <h1 className="text-2xl font-semibold tracking-tight">Template Library</h1>
+              <Badge variant="secondary" className="flex items-center gap-2 px-2 py-0.5">
+                <Image
+                  src="/logos/ae-logo.png"
+                  alt="AllEars"
+                  width={24}
+                  height={24}
+                  className="size-6"
+                />
+                <span className="text-xs font-medium">Powered by AllEars</span>
+              </Badge>
+            </div>
             <div className="relative w-full max-w-sm">
               <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
               <Input

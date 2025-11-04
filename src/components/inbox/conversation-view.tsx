@@ -5,12 +5,29 @@ import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { Send, Paperclip, MoreVertical, MessageSquare, Star, Loader2 } from 'lucide-react'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
+import { Send, Paperclip, MoreVertical, MessageSquare, Loader2, Trash2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { getInitials, getAvatarColor } from '@/lib/chat/utils'
 import { useScrollToBottom } from '@/hooks/use-scroll-to-bottom'
 import { useConversation } from '@/hooks/use-conversation-lookup'
 import { useSendMessageMutation } from '@/hooks/mutations/use-send-message-mutation'
+import { useDeleteConversationMutation } from '@/hooks/mutations/use-delete-conversation-mutation'
 import { useUser } from '@/contexts/user-context'
 import type { ConversationGroup, ConversationThread } from '@/types/inbox'
 import type { Message } from '@/types/chat'
@@ -22,6 +39,7 @@ interface ConversationViewProps {
 
 export function ConversationView({ conversationId, conversationGroups }: ConversationViewProps) {
   const [newMessage, setNewMessage] = useState('')
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const { user } = useUser()
 
   // Instant O(1) lookup - no delay, no linear search
@@ -47,6 +65,9 @@ export function ConversationView({ conversationId, conversationGroups }: Convers
   // Mutation hook for sending messages with optimistic updates
   const sendMessageMutation = useSendMessageMutation(user?.user_id)
 
+  // Mutation hook for deleting conversations
+  const deleteConversationMutation = useDeleteConversationMutation(user?.user_id)
+
   const handleSendMessage = async () => {
     if (!displayedConversation || !newMessage.trim() || sendMessageMutation.isPending) return
 
@@ -69,6 +90,15 @@ export function ConversationView({ conversationId, conversationGroups }: Convers
       e.preventDefault()
       handleSendMessage()
     }
+  }
+
+  const handleDeleteConversation = () => {
+    if (!displayedConversation) return
+
+    deleteConversationMutation.mutate({
+      conversationId: displayedConversation.id,
+    })
+    setShowDeleteDialog(false)
   }
 
   // Show empty state ONLY when no conversation is selected in URL
@@ -137,14 +167,22 @@ export function ConversationView({ conversationId, conversationGroups }: Convers
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-1">
-            <Button variant="ghost" size="icon" className="h-8 w-8">
-              <Star className="h-4 w-4" />
-            </Button>
-            <Button variant="ghost" size="icon" className="h-8 w-8">
-              <MoreVertical className="h-4 w-4" />
-            </Button>
-          </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-8 w-8">
+                <MoreVertical className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem
+                onClick={() => setShowDeleteDialog(true)}
+                className="text-red-600 focus:text-red-600"
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Delete Conversation
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 
@@ -238,6 +276,36 @@ export function ConversationView({ conversationId, conversationGroups }: Convers
 
         <p className="text-xs text-stone-500 mt-2">Press Enter to send, Shift+Enter for new line</p>
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Conversation</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this conversation? This action cannot be undone and will permanently
+              delete all messages in this conversation.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteConversation}
+              className="bg-red-600 hover:bg-red-700"
+              disabled={deleteConversationMutation.isPending}
+            >
+              {deleteConversationMutation.isPending ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Deleting...
+                </>
+              ) : (
+                'Delete'
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

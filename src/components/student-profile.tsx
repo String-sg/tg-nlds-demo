@@ -2,14 +2,16 @@
 
 import { useRouter } from 'next/navigation'
 import { MailIcon, PhoneIcon, MessageSquare, Loader2, Sparkles } from 'lucide-react'
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Skeleton } from '@/components/ui/skeleton'
 import { CaseManagementTable } from '@/components/case-management-table'
-import { cn, getInitials, getAvatarColor } from '@/lib/utils'
+import { cn, getInitials, getAvatarColor, getLetterGrade, calculatePercentage } from '@/lib/utils'
 import { PageLayout } from '@/components/layout/page-layout'
 import { useStudentProfileQuery } from '@/hooks/queries/use-student-profile-query'
+import { useMessageParent } from '@/hooks/use-message-parent'
 import type { StudentProfileData } from '@/types/student'
 
 interface StudentProfileProps {
@@ -25,6 +27,7 @@ interface StudentProfileProps {
 export function StudentProfile({ studentName, classId, onBack, activeTab, onNavigate, classroomTabs, studentProfileTabs }: StudentProfileProps) {
   const router = useRouter()
   const { data: studentData, isLoading: loading, error } = useStudentProfileQuery(studentName) as { data: StudentProfileData | undefined; isLoading: boolean; error: Error | null }
+  const { messageParent, isLoading: isMessagingParent } = useMessageParent()
 
   if (loading) {
     return (
@@ -186,16 +189,39 @@ export function StudentProfile({ studentName, classId, onBack, activeTab, onNavi
                 <Button
                   variant="outline"
                   size="sm"
-                  className="w-full"
                   onClick={() => {
-                    // Check if conversation exists for this student
-                    // In real app, would query backend to find or create conversation
-                    // For now, navigate to inbox with conversation #1 as demo (Bryan Yeo's parents)
-                    router.push('/inbox/conv-1')
+                    // Validate guardian exists
+                    if (!studentData?.guardian) {
+                      toast.error('No guardian information available for this student')
+                      return
+                    }
+
+                    // Validate class ID exists
+                    if (!studentData?.form_class_id) {
+                      toast.error('Student class information is missing')
+                      return
+                    }
+
+                    // Message parent using the hook
+                    messageParent({
+                      studentId: studentData.id, // Use id (UUID) not student_id (student number)
+                      classId: studentData.form_class_id,
+                      guardianName: studentData.guardian.name,
+                    })
                   }}
+                  disabled={isMessagingParent || !studentData?.guardian}
                 >
-                  <MessageSquare className="w-4 h-4 mr-2" />
-                  Message Parents
+                  {isMessagingParent ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Opening conversation...
+                    </>
+                  ) : (
+                    <>
+                      <MessageSquare className="w-4 h-4 mr-2" />
+                      Message Parents
+                    </>
+                  )}
                 </Button>
               </div>
             </CardContent>
@@ -211,12 +237,41 @@ export function StudentProfile({ studentName, classId, onBack, activeTab, onNavi
                 <h4 className="text-sm font-medium text-stone-900 mb-1">Background</h4>
                 <p className="text-sm text-stone-600">{studentData.overview?.background || 'No background information available.'}</p>
               </div>
-              {studentData.overview?.medical_conditions && (
-                <div>
-                  <h4 className="text-sm font-medium text-stone-900 mb-1">Medical Conditions</h4>
-                  <p className="text-sm text-stone-600">{JSON.stringify(studentData.overview.medical_conditions)}</p>
-                </div>
-              )}
+              {studentData.overview?.medical_conditions && typeof studentData.overview.medical_conditions === 'object' && Object.keys(studentData.overview.medical_conditions).length > 0 && (() => {
+                const medicalData = studentData.overview.medical_conditions as { notes?: string; allergies?: string[]; conditions?: string[]; medications?: string[] }
+                const hasContent = medicalData.notes || (medicalData.allergies && medicalData.allergies.length > 0) || (medicalData.conditions && medicalData.conditions.length > 0) || (medicalData.medications && medicalData.medications.length > 0)
+
+                if (!hasContent) return null
+
+                return (
+                  <div>
+                    <h4 className="text-sm font-medium text-stone-900 mb-1">Medical Conditions</h4>
+                    <div className="space-y-2">
+                      {medicalData.notes && (
+                        <p className="text-sm text-stone-600">{medicalData.notes}</p>
+                      )}
+                      {medicalData.conditions && medicalData.conditions.length > 0 && (
+                        <div>
+                          <p className="text-xs font-medium text-stone-700">Conditions:</p>
+                          <p className="text-sm text-stone-600">{medicalData.conditions.join(', ')}</p>
+                        </div>
+                      )}
+                      {medicalData.allergies && medicalData.allergies.length > 0 && (
+                        <div>
+                          <p className="text-xs font-medium text-stone-700">Allergies:</p>
+                          <p className="text-sm text-stone-600">{medicalData.allergies.join(', ')}</p>
+                        </div>
+                      )}
+                      {medicalData.medications && medicalData.medications.length > 0 && (
+                        <div>
+                          <p className="text-xs font-medium text-stone-700">Medications:</p>
+                          <p className="text-sm text-stone-600">{medicalData.medications.join(', ')}</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )
+              })()}
               {studentData.overview?.mental_wellness && (
                 <div>
                   <h4 className="text-sm font-medium text-stone-900 mb-1">Mental Wellness</h4>
@@ -296,23 +351,29 @@ export function StudentProfile({ studentName, classId, onBack, activeTab, onNavi
             <CardContent>
               <div className="space-y-3">
                 {studentData.academic_results.length > 0 ? (
-                  studentData.academic_results.slice(0, 10).map((result, index) => (
-                    <div key={result.id} className="flex items-center justify-between border-b border-stone-100 pb-3 last:border-0 last:pb-0">
-                      <div className="flex flex-col gap-1">
-                        <p className="text-sm font-medium text-stone-900">{result.assessment_name}</p>
-                        <p className="text-xs text-stone-500">
-                          {new Date(result.assessment_date).toLocaleDateString('en-SG', { year: 'numeric', month: 'long', day: 'numeric' })}
-                          {result.term && ` • ${result.term}`}
-                        </p>
+                  studentData.academic_results.slice(0, 10).map((result, index) => {
+                    // Calculate correct grade based on HDP standards
+                    const percentage = result.percentage || (result.score && result.max_score ? calculatePercentage(result.score, result.max_score) : 0)
+                    const grade = getLetterGrade(percentage)
+
+                    return (
+                      <div key={result.id} className="flex items-center justify-between border-b border-stone-100 pb-3 last:border-0 last:pb-0">
+                        <div className="flex flex-col gap-1">
+                          <p className="text-sm font-medium text-stone-900">{result.assessment_name}</p>
+                          <p className="text-xs text-stone-500">
+                            {new Date(result.assessment_date).toLocaleDateString('en-SG', { year: 'numeric', month: 'long', day: 'numeric' })}
+                            {result.term && ` • ${result.term}`}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm text-stone-600">{result.score}/{result.max_score}</span>
+                          <span className="rounded-full bg-stone-100 px-3 py-1 text-sm font-medium text-stone-900">
+                            {grade}
+                          </span>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm text-stone-600">{result.score}/{result.max_score}</span>
-                        <span className="rounded-full bg-stone-100 px-3 py-1 text-sm font-medium text-stone-900">
-                          {result.grade}
-                        </span>
-                      </div>
-                    </div>
-                  ))
+                    )
+                  })
                 ) : (
                   <p className="text-sm text-stone-500">No academic results recorded</p>
                 )}
