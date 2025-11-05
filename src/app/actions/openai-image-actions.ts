@@ -11,6 +11,8 @@ export interface GenerateStudentImageParams {
   gender?: 'male' | 'female' | 'other'
   ethnicity?: string
   age?: number
+  referenceImageUrl?: string // required for identity-locked regeneration
+  outputSize?: '1024' | '1792'
 }
 
 export interface GenerateStudentImageResult {
@@ -23,9 +25,10 @@ export interface GenerateStudentImageResult {
 }
 
 /**
- * Generate a photorealistic portrait for a student using DALL-E 3
+ * Generate a photorealistic portrait for a student using gpt-image-1
+ * Supports reference image for identity consistency and higher quality output
  *
- * @param params - Student information for image generation
+ * @param params - Student information for image generation, optionally including referenceImageUrl
  * @returns Result with image URL or error
  */
 export async function generateStudentImage(
@@ -97,7 +100,7 @@ export async function generateStudentImage(
       }
     }
 
-    // 2. Generate detailed prompt for DALL-E 3
+    // 2. Generate detailed prompt for image generation
     const prompt = buildStudentPortraitPrompt({
       name: studentName,
       gender: gender || student.gender || 'male',
@@ -105,43 +108,80 @@ export async function generateStudentImage(
       age,
     })
 
-    // 3. Call OpenAI DALL-E 3
+    // 3. Determine output size
+    // Note: OpenAI supports up to 1792x1024 or 1024x1792 for larger images
+    // Default to 1024x1024 for square portraits
+    const wantLarge = params.outputSize === '1792'
+    const size = wantLarge ? '1792x1024' : OPENAI_CONFIG.image.size
+
+    // 4. Call OpenAI API (with or without reference image)
     const startTime = Date.now()
-    const response = await openai.images.generate({
-      model: OPENAI_CONFIG.image.model,
-      prompt,
-      n: 1,
-      size: OPENAI_CONFIG.image.size,
-      quality: OPENAI_CONFIG.image.quality,
-      style: OPENAI_CONFIG.image.style,
-    })
+    const hasRef = !!params.referenceImageUrl
+
+    let response: any
+    let imageUrl: string | undefined
+    let revisedPrompt: string | undefined
+
+    if (hasRef) {
+      // Use Responses API for reference image-based generation
+      // Note: This uses gpt-image-1 with reference image support
+      try {
+        response = await (openai as any).responses.create({
+          model: 'gpt-image-1',
+          input: [
+            {
+              role: 'user',
+              content: [
+                { type: 'input_image', image_url: params.referenceImageUrl! },
+                { type: 'text', text: prompt },
+              ],
+            },
+          ],
+          image: { size },
+        })
+
+        // Extract image URL from Responses API format
+        imageUrl =
+          response?.output?.[0]?.content?.find(
+            (c: any) => c.type === 'output_image'
+          )?.image_url
+      } catch (refError) {
+        // Fallback to Images API if Responses API is not available
+        console.warn('Responses API not available, falling back to Images API:', refError)
+        response = await openai.images.generate({
+          model: OPENAI_CONFIG.image.model,
+          prompt: `${prompt} Based on the reference image provided, maintain the same facial features and identity.`,
+          n: 1,
+          size,
+          quality: OPENAI_CONFIG.image.quality,
+          style: OPENAI_CONFIG.image.style,
+        })
+        imageUrl = response.data?.[0]?.url
+        revisedPrompt = response.data?.[0]?.revised_prompt
+      }
+    } else {
+      // Use standard Images API for prompt-only generation
+      response = await openai.images.generate({
+        model: OPENAI_CONFIG.image.model,
+        prompt,
+        n: 1,
+        size,
+        quality: OPENAI_CONFIG.image.quality,
+        style: OPENAI_CONFIG.image.style,
+      })
+      imageUrl = response.data?.[0]?.url
+      revisedPrompt = response.data?.[0]?.revised_prompt
+    }
 
     const generationTime = Date.now() - startTime
 
-    // Check if response data exists
-    if (!response.data || response.data.length === 0) {
-      await trackUsage({
-        userId: userId,
-        type: 'image',
-        model: OPENAI_CONFIG.image.model,
-        error: 'No image data returned from API',
-      })
-
-      return {
-        success: false,
-        error: 'Failed to generate image',
-      }
-    }
-
-    const imageUrl = response.data[0]?.url
-    const revisedPrompt = response.data[0]?.revised_prompt
-
+    // 5. Check if image URL exists
     if (!imageUrl) {
       await trackUsage({
         userId: userId,
         type: 'image',
         model: OPENAI_CONFIG.image.model,
-        error: 'No image URL returned',
+        error: 'No image returned from API',
       })
 
       return {
@@ -150,7 +190,7 @@ export async function generateStudentImage(
       }
     }
 
-    // 4. Download image from OpenAI (temporary URL, expires in 1 hour)
+    // 6. Download image from OpenAI (temporary URL, expires in 1 hour)
     const imageResponse = await fetch(imageUrl)
     if (!imageResponse.ok) {
       await trackUsage({
@@ -168,7 +208,7 @@ export async function generateStudentImage(
 
     const imageBuffer = await imageResponse.arrayBuffer()
 
-    // 5. Upload to Supabase Storage
+    // 7. Upload to Supabase Storage
     const fileName = `${studentId}-${Date.now()}.png`
     const { data: uploadData, error: uploadError } = await supabase.storage
       .from('student-photos')
@@ -192,12 +232,12 @@ export async function generateStudentImage(
       }
     }
 
-    // 6. Get public URL
+    // 8. Get public URL
     const { data: publicUrlData } = supabase.storage
       .from('student-photos')
       .getPublicUrl(fileName)
 
-    // 7. Update student record
+    // 9. Update student record
     const { error: updateError } = await supabase
       .from('students')
       .update({ profile_photo: publicUrlData.publicUrl })
@@ -218,7 +258,7 @@ export async function generateStudentImage(
       }
     }
 
-    // 8. Track usage
+    // 10. Track usage
     const estimatedCost = calculateCost({
       model: OPENAI_CONFIG.image.model,
       imageCount: 1,
@@ -241,7 +281,7 @@ export async function generateStudentImage(
       },
     })
 
-    // 9. Revalidate relevant paths
+    // 11. Revalidate relevant paths
     revalidatePath('/my-classes')
     revalidatePath(`/student/${studentName}`)
 
@@ -343,10 +383,10 @@ export async function generateStudentImagesBatch(
 }
 
 /**
- * Build a detailed prompt for DALL-E 3 to generate a student portrait
+ * Build a detailed prompt for image generation to create a student portrait
  *
  * @param params - Student characteristics
- * @returns Detailed prompt string optimized for DALL-E 3
+ * @returns Detailed prompt string optimized for photorealistic image generation
  */
 function buildStudentPortraitPrompt(params: {
   name: string

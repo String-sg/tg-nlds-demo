@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
+import { AvatarStack } from '@/components/ui/avatar-stack'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import {
   DropdownMenu,
@@ -170,26 +171,30 @@ export function ConversationView({ conversationId, conversationGroups }: Convers
       <div className="flex-shrink-0 border-b border-stone-200 bg-white px-6 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            {displayedConversation.type === 'group' ? (
-              <div className="relative h-10 w-10">
-                <Avatar className="h-10 w-10">
-                  <AvatarImage src={studentAvatar ?? undefined} alt={studentName} />
-                  <AvatarFallback className={getAvatarColor(studentName)}>
-                    {getInitials(studentName)}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="absolute -bottom-1 -right-1 h-5 w-5 rounded-full bg-white border border-stone-200 grid place-items-center">
-                  <Users className="h-3.5 w-3.5 text-stone-600" />
-                </div>
-              </div>
-            ) : (
-              <Avatar className="h-10 w-10">
-                <AvatarImage src={studentAvatar} alt={studentName} />
-                <AvatarFallback className={getAvatarColor(studentName)}>
-                  {getInitials(studentName)}
-                </AvatarFallback>
-              </Avatar>
-            )}
+            <AvatarStack
+              avatars={[
+                // Parent first (will be larger)
+                ...(parentParticipant
+                  ? [
+                      {
+                        src: undefined,
+                        alt: parentParticipant.name,
+                        fallback: getInitials(parentParticipant.name),
+                        fallbackClassName: getAvatarColor(parentParticipant.name),
+                      },
+                    ]
+                  : []),
+                // Student second (will be smaller badge)
+                {
+                  src: studentAvatar ?? undefined,
+                  alt: studentName,
+                  fallback: getInitials(studentName),
+                  fallbackClassName: getAvatarColor(studentName),
+                },
+              ]}
+              layout="badge"
+              size="md"
+            />
             <div>
               <h2 className="text-sm font-semibold text-stone-900">{displayName}</h2>
               <p className="text-xs text-stone-600">

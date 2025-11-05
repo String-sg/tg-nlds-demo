@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { Input } from '@/components/ui/input'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
+import { AvatarStack } from '@/components/ui/avatar-stack'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
@@ -211,27 +212,35 @@ export function ConversationList({
                         )}
                       >
                         <div className="flex items-center gap-3">
-                          {/* Avatar - Show student avatar with group overlay if group */}
-                          {latestThread.type === 'group' ? (
-                            <div className="relative h-10 w-10 flex-shrink-0">
-                              <Avatar className="h-10 w-10">
-                                <AvatarImage src={group.student.avatar ?? undefined} alt={group.student.name} />
-                                <AvatarFallback className={getAvatarColor(group.student.name)}>
-                                  {getInitials(group.student.name)}
-                                </AvatarFallback>
-                              </Avatar>
-                              <div className="absolute -bottom-1 -right-1 h-5 w-5 rounded-full bg-white border border-stone-200 grid place-items-center">
-                                <Users className="h-3.5 w-3.5 text-stone-600" />
-                              </div>
-                            </div>
-                          ) : (
-                            <Avatar className="h-10 w-10 flex-shrink-0">
-                              <AvatarImage src={group.student.avatar} alt={group.student.name} />
-                              <AvatarFallback className={getAvatarColor(group.student.name)}>
-                                {getInitials(group.student.name)}
-                              </AvatarFallback>
-                            </Avatar>
-                          )}
+                          {/* Avatar - Parent (bigger) with student badge (smaller) */}
+                          {(() => {
+                            const parentParticipant = latestThread.participants.find((p) => p.role === 'parent')
+                            
+                            return (
+                              <AvatarStack
+                                avatars={[
+                                  // Parent first (will be larger)
+                                  ...(parentParticipant
+                                    ? [{
+                                        src: undefined,
+                                        alt: parentParticipant.name,
+                                        fallback: getInitials(parentParticipant.name),
+                                        fallbackClassName: getAvatarColor(parentParticipant.name),
+                                      }]
+                                    : []),
+                                  // Student second (will be smaller badge)
+                                  {
+                                    src: group.student.avatar ?? undefined,
+                                    alt: group.student.name,
+                                    fallback: getInitials(group.student.name),
+                                    fallbackClassName: getAvatarColor(group.student.name),
+                                  },
+                                ]}
+                                layout="badge"
+                                size="md"
+                              />
+                            )
+                          })()}
 
                           {/* Content */}
                           <div className="flex-1 min-w-0">

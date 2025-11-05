@@ -33,12 +33,12 @@ export const OPENAI_CONFIG = {
 
   /**
    * Image generation settings
-   * Using DALL-E 3 for high-quality student portraits
+   * Using gpt-image-1 for high-quality student portraits with reference image support
    */
   image: {
-    model: 'dall-e-3' as const,
+    model: 'gpt-image-1' as const,
     size: '1024x1024' as const,
-    quality: 'standard' as const,
+    quality: 'high' as const,
     style: 'natural' as const,
   },
 } as const
