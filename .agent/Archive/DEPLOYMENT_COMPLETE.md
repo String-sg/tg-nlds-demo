@@ -71,7 +71,7 @@ Since you connected Supabase to Vercel via the integration, the environment vari
    ```
 
    If they're missing, add them manually:
-   - `NEXT_PUBLIC_SUPABASE_URL` = `https://uzrzyapgxseqqisapmzb.supabase.co`
+   - `NEXT_PUBLIC_SUPABASE_URL` = `https://YOUR_PROJECT_REF.supabase.co`
    - `NEXT_PUBLIC_SUPABASE_ANON_KEY` = (from your credentials above)
 
 3. **Optional: Add Service Role Key (for admin operations)**
@@ -103,7 +103,7 @@ Once Vercel finishes deploying (usually ~2 minutes):
 ### Step 3: Verify in Supabase Dashboard
 
 1. **Go to Table Editor**
-   - https://supabase.com/dashboard/project/uzrzyapgxseqqisapmzb/editor
+   - https://supabase.com/dashboard/project/YOUR_PROJECT_REF/editor
 
 2. **Verify all 19 tables exist**
 
@@ -115,9 +115,9 @@ Once Vercel finishes deploying (usually ~2 minutes):
 
 **Supabase Project:**
 - Project Name: `tg-vx-db`
-- Project Ref: `uzrzyapgxseqqisapmzb`
+- Project Ref: `YOUR_PROJECT_REF`
 - Region: AWS US East 1
-- URL: `https://uzrzyapgxseqqisapmzb.supabase.co`
+- URL: `https://YOUR_PROJECT_REF.supabase.co`
 
 **Database:**
 - Tables: 19

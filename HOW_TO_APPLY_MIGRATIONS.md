@@ -8,7 +8,7 @@ Since Supabase MCP is not configured and we're using a remote Supabase instance,
 
 ### Step 1: Open the SQL Editor
 
-1. Go to: https://supabase.com/dashboard/project/uzrzyapgxseqqisapmzb/sql
+1. Go to: https://supabase.com/dashboard/project/YOUR_PROJECT_REF/sql
 2. Click **"New query"**
 
 ### Step 2: Copy the All-in-One Migration
@@ -94,19 +94,19 @@ For each file:
 cd /Users/rezailmi/Documents/GitHub/moe-tg-vx/.conductor/carthage
 
 # Set database connection
-export PGPASSWORD="ob5VlizdFjyam3fw"
+export PGPASSWORD="your-postgres-password"
 
 # Run all migrations at once
-psql -h db.uzrzyapgxseqqisapmzb.supabase.co \
+psql -h db.YOUR_PROJECT_REF.supabase.co \
      -U postgres \
      -d postgres \
      -f supabase/APPLY_ALL_SEED_MIGRATIONS.sql
 
 # Or run individually
-psql -h db.uzrzyapgxseqqisapmzb.supabase.co -U postgres -d postgres \
+psql -h db.YOUR_PROJECT_REF.supabase.co -U postgres -d postgres \
   -f supabase/migrations/20251104000001_seed_attendance_data_all_students.sql
 
-psql -h db.uzrzyapgxseqqisapmzb.supabase.co -U postgres -d postgres \
+psql -h db.YOUR_PROJECT_REF.supabase.co -U postgres -d postgres \
   -f supabase/migrations/20251104000002_seed_academic_results_all_students.sql
 
 # ... and so on for remaining migrations

@@ -7,7 +7,7 @@ Since we don't have Docker or Supabase MCP configured, here's how to manually ap
 ### Step 1: Open Supabase SQL Editor
 
 1. Go to https://supabase.com/dashboard
-2. Select your project: `uzrzyapgxseqqisapmzb`
+2. Select your project: `YOUR_PROJECT_REF`
 3. Navigate to **SQL Editor** in the left sidebar
 
 ### Step 2: Run Each Migration File
@@ -79,7 +79,7 @@ If you have `psql` installed:
 
 ```bash
 # Set the database URL
-export DATABASE_URL="postgresql://postgres:ob5VlizdFjyam3fw@db.uzrzyapgxseqqisapmzb.supabase.co:5432/postgres"
+export DATABASE_URL="postgresql://postgres:YOUR_PASSWORD@db.YOUR_PROJECT_REF.supabase.co:5432/postgres"
 
 # Apply each migration
 cd /Users/rezailmi/Documents/GitHub/moe-tg-vx
