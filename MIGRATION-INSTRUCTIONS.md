@@ -4,7 +4,6 @@
 
 Two database migrations need to be applied to complete the conduct grades and report features removal.
 
-**Project**: uzrzyapgxseqqisapmzb
 **Database**: Supabase (Production)
 **Branch**: `remove-conduct-reports`
 
@@ -45,7 +44,7 @@ COMMENT ON SCHEMA public IS 'Public schema (reports system removed on 2025-10-31
 ### Option 1: Supabase Dashboard (Recommended)
 
 1. **Open Supabase SQL Editor**
-   - Go to: https://app.supabase.com/project/uzrzyapgxseqqisapmzb/sql/new
+   - Go to: Supabase Dashboard → Project Settings → SQL Editor
 
 2. **Run Migration 1**
    - Copy the SQL from `supabase/migrations/20251031000001_remove_conduct_grade.sql`
@@ -66,7 +65,7 @@ COMMENT ON SCHEMA public IS 'Public schema (reports system removed on 2025-10-31
 npx supabase login
 
 # 2. Link to project
-npx supabase link --project-ref uzrzyapgxseqqisapmzb
+npx supabase link --project-ref YOUR-PROJECT-ID
 
 # 3. Push migrations
 npx supabase db push

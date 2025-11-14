@@ -8,14 +8,14 @@ Since Supabase MCP is not configured and we're using a remote Supabase instance,
 
 ### Step 1: Open the SQL Editor
 
-1. Go to: https://supabase.com/dashboard/project/uzrzyapgxseqqisapmzb/sql
+1. Go to your Supabase project dashboard → SQL Editor
 2. Click **"New query"**
 
 ### Step 2: Copy the All-in-One Migration
 
 Open this file:
 ```
-/Users/rezailmi/Documents/GitHub/moe-tg-vx/.conductor/carthage/supabase/APPLY_ALL_SEED_MIGRATIONS.sql
+supabase/APPLY_ALL_SEED_MIGRATIONS.sql
 ```
 
 Copy the entire contents (351KB file).
@@ -91,23 +91,21 @@ For each file:
 
 ```bash
 # Navigate to project root
-cd /Users/rezailmi/Documents/GitHub/moe-tg-vx/.conductor/carthage
+cd /path/to/moe-tg-vx
 
-# Set database connection
-export PGPASSWORD="ob5VlizdFjyam3fw"
+# Set database connection from your environment
+# Get these values from: Supabase Dashboard → Project Settings → Database
+export PGHOST="your-db-host.supabase.co"
+export PGPASSWORD="your-db-password"
+export PGUSER="postgres"
+export PGDATABASE="postgres"
 
 # Run all migrations at once
-psql -h db.uzrzyapgxseqqisapmzb.supabase.co \
-     -U postgres \
-     -d postgres \
-     -f supabase/APPLY_ALL_SEED_MIGRATIONS.sql
+psql -f supabase/APPLY_ALL_SEED_MIGRATIONS.sql
 
 # Or run individually
-psql -h db.uzrzyapgxseqqisapmzb.supabase.co -U postgres -d postgres \
-  -f supabase/migrations/20251104000001_seed_attendance_data_all_students.sql
-
-psql -h db.uzrzyapgxseqqisapmzb.supabase.co -U postgres -d postgres \
-  -f supabase/migrations/20251104000002_seed_academic_results_all_students.sql
+psql -f supabase/migrations/20251104000001_seed_attendance_data_all_students.sql
+psql -f supabase/migrations/20251104000002_seed_academic_results_all_students.sql
 
 # ... and so on for remaining migrations
 ```
