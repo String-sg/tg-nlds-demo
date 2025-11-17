@@ -892,7 +892,7 @@ function AssistantBody({ onStudentClick, onStudentClickWithClass, incomingMessag
     <div className="flex min-h-0 flex-1 flex-col">
       {/* Sidebar/floating mode: custom ScrollArea */}
       <ScrollArea className="assistant-scroll-mask flex-1 min-h-0">
-        <div className="flex flex-col gap-2 px-3">
+        <div className="flex flex-col gap-2 px-3 pt-4 pb-2">
           {renderMessages()}
           <div ref={scrollRef} />
         </div>
