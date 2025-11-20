@@ -84,7 +84,10 @@ function SidebarProvider({
       }
 
       // This sets the cookie to keep the sidebar state.
-      document.cookie = `${SIDEBAR_COOKIE_NAME}=${openState}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}`
+      // SECURITY: Add secure cookie flags
+      const isSecure = window.location.protocol === 'https:'
+      const secureFlag = isSecure ? '; secure' : ''
+      document.cookie = `${SIDEBAR_COOKIE_NAME}=${openState}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}; samesite=lax${secureFlag}`
     },
     [setOpenProp, open],
   )

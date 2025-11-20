@@ -37,16 +37,16 @@ export async function generateStudentImage(
   try {
     const { studentId, studentName, gender = 'male', ethnicity, age = 11 } = params
 
-    // Get current user or use mock mode
+    // Get current user
     const supabase = await createClient()
     let userId: string
 
-    // Check if in mock mode (development)
+    // Check if in mock/demo mode
     const mockMode = process.env.NEXT_PUBLIC_PTM_MOCK_MODE === 'true'
     const mockTeacherId = process.env.NEXT_PUBLIC_PTM_MOCK_TEACHER_ID
 
     if (mockMode && mockTeacherId) {
-      // Use mock teacher ID in development
+      // Use mock teacher ID for demo mode
       userId = mockTeacherId
     } else {
       // Production: require authentication

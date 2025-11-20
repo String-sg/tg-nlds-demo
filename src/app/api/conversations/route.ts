@@ -5,8 +5,28 @@ import { createClient } from '@/lib/supabase/server'
 export async function GET(request: Request) {
   try {
     const supabase = await createClient()
+    let userId: string
+
+    // Check if in mock/demo mode
+    const mockMode = process.env.NEXT_PUBLIC_PTM_MOCK_MODE === 'true'
+    const mockTeacherId = process.env.NEXT_PUBLIC_PTM_MOCK_TEACHER_ID
+
+    if (mockMode && mockTeacherId) {
+      // Use mock teacher ID for demo mode
+      userId = mockTeacherId
+    } else {
+      // Production: require authentication
+      const { data: { user }, error: authError } = await supabase.auth.getUser()
+      if (authError || !user) {
+        return NextResponse.json(
+          { success: false, error: 'Authentication required' },
+          { status: 401 }
+        )
+      }
+      userId = user.id
+    }
+
     const { searchParams } = new URL(request.url)
-    const teacherId = searchParams.get('teacherId')
     const studentId = searchParams.get('student_id')
 
     // Build query to fetch conversations with enriched data including participants
@@ -41,11 +61,7 @@ export async function GET(request: Request) {
         )
       `)
       .order('last_message_at', { ascending: false })
-
-    // Filter by teacher if provided
-    if (teacherId) {
-      query = query.eq('teacher_id', teacherId)
-    }
+      .eq('teacher_id', userId)
 
     // Filter by student if provided
     if (studentId) {
@@ -99,8 +115,29 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const supabase = await createClient()
+    let userId: string
+
+    // Check if in mock/demo mode
+    const mockMode = process.env.NEXT_PUBLIC_PTM_MOCK_MODE === 'true'
+    const mockTeacherId = process.env.NEXT_PUBLIC_PTM_MOCK_TEACHER_ID
+
+    if (mockMode && mockTeacherId) {
+      // Use mock teacher ID for demo mode
+      userId = mockTeacherId
+    } else {
+      // Production: require authentication
+      const { data: { user }, error: authError } = await supabase.auth.getUser()
+      if (authError || !user) {
+        return NextResponse.json(
+          { success: false, error: 'Authentication required' },
+          { status: 401 }
+        )
+      }
+      userId = user.id
+    }
+
     const body = await request.json()
-    const { student_id, class_id, teacher_id, subject, guardian_name, teacher_name } = body
+    const { student_id, class_id, subject, guardian_name, teacher_name } = body
 
     // Validate required fields
     if (!student_id) {
@@ -123,23 +160,13 @@ export async function POST(request: Request) {
       )
     }
 
-    if (!teacher_id) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Teacher ID is required',
-        },
-        { status: 400 }
-      )
-    }
-
     // Create conversation in database
     const { data: conversation, error: insertError } = await supabase
       .from('conversations')
       .insert({
         student_id,
         class_id,
-        teacher_id,
+        teacher_id: userId,
         subject: subject || null,
         status: 'active',
       })
