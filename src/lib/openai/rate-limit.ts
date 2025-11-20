@@ -50,8 +50,8 @@ export async function checkRateLimit(
 
     if (error) {
       console.error('Rate limit check error:', error)
-      // On error, allow the request (fail open)
-      return { allowed: true, remaining: config.requests, resetAt: new Date(Date.now() + config.window) }
+      // SECURITY: On error, deny the request (fail closed)
+      return { allowed: false, remaining: 0, resetAt: new Date(Date.now() + config.window) }
     }
 
     const requestCount = data?.length || 0
@@ -71,10 +71,10 @@ export async function checkRateLimit(
     }
   } catch (error) {
     console.error('Rate limit check failed:', error)
-    // On error, allow the request (fail open)
+    // SECURITY: On error, deny the request (fail closed)
     return {
-      allowed: true,
-      remaining: RATE_LIMITS[type].requests,
+      allowed: false,
+      remaining: 0,
       resetAt: new Date(Date.now() + RATE_LIMITS[type].window),
     }
   }

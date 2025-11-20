@@ -1,8 +1,26 @@
 import { NextResponse } from 'next/server'
+import { createClient } from '@/lib/supabase/server'
 
 // POST /api/files/upload - Upload file
 export async function POST(request: Request) {
   try {
+    const supabase = await createClient()
+
+    // Check if in mock/demo mode
+    const mockMode = process.env.NEXT_PUBLIC_PTM_MOCK_MODE === 'true'
+    const mockTeacherId = process.env.NEXT_PUBLIC_PTM_MOCK_TEACHER_ID
+
+    if (!mockMode || !mockTeacherId) {
+      // Production: require authentication
+      const { data: { user }, error: authError } = await supabase.auth.getUser()
+      if (authError || !user) {
+        return NextResponse.json(
+          { success: false, error: 'Authentication required' },
+          { status: 401 }
+        )
+      }
+    }
+
     const formData = await request.formData()
     const file = formData.get('file') as File
 
@@ -52,13 +70,24 @@ export async function POST(request: Request) {
 
     // TODO: Upload to cloud storage (S3, Azure Blob, etc.)
     // For now, return mock response
+
+    // SECURITY: Sanitize filename to prevent path traversal and other attacks
+    const sanitizedFileName = file.name
+      .replace(/[^a-zA-Z0-9.-]/g, '_')  // Replace unsafe chars
+      .replace(/\.{2,}/g, '.')           // Prevent .. sequences
+      .substring(0, 100)                  // Limit length
+
+    // Generate unique filename with UUID to prevent overwrites
+    const uniqueId = crypto.randomUUID()
+    const safeFileName = `${uniqueId}-${sanitizedFileName}`
+
     const fileData = {
       id: `file-${Date.now()}`,
-      fileName: file.name,
+      fileName: sanitizedFileName,
       fileType: file.type,
       fileSize: file.size,
-      fileUrl: `/uploads/${file.name}`, // Mock URL
-      thumbnailUrl: file.type.startsWith('image/') ? `/uploads/thumb-${file.name}` : undefined,
+      fileUrl: `/uploads/${safeFileName}`, // Mock URL with sanitized name
+      thumbnailUrl: file.type.startsWith('image/') ? `/uploads/thumb-${safeFileName}` : undefined,
       uploadedAt: new Date().toISOString(),
     }
 

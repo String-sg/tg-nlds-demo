@@ -10,6 +10,45 @@ export async function GET(request: Request, context: RouteContext) {
   try {
     const supabase = await createClient()
     const { id } = await context.params
+    let userId: string
+
+    // Check if in mock/demo mode
+    const mockMode = process.env.NEXT_PUBLIC_PTM_MOCK_MODE === 'true'
+    const mockTeacherId = process.env.NEXT_PUBLIC_PTM_MOCK_TEACHER_ID
+
+    if (mockMode && mockTeacherId) {
+      userId = mockTeacherId
+    } else {
+      const { data: { user }, error: authError } = await supabase.auth.getUser()
+      if (authError || !user) {
+        return NextResponse.json(
+          { success: false, error: 'Authentication required' },
+          { status: 401 }
+        )
+      }
+      userId = user.id
+    }
+
+    // Verify user owns the conversation
+    const { data: conversation, error: convError } = await supabase
+      .from('conversations')
+      .select('teacher_id')
+      .eq('id', id)
+      .single()
+
+    if (convError || !conversation) {
+      return NextResponse.json(
+        { success: false, error: 'Conversation not found' },
+        { status: 404 }
+      )
+    }
+
+    if (conversation.teacher_id !== userId) {
+      return NextResponse.json(
+        { success: false, error: 'Forbidden: You do not own this conversation' },
+        { status: 403 }
+      )
+    }
 
     // Fetch messages for this conversation
     const { data: messages, error } = await supabase
@@ -52,8 +91,62 @@ export async function POST(request: Request, context: RouteContext) {
   try {
     const supabase = await createClient()
     const { id } = await context.params
+    let userId: string
+
+    // Check if in mock/demo mode
+    const mockMode = process.env.NEXT_PUBLIC_PTM_MOCK_MODE === 'true'
+    const mockTeacherId = process.env.NEXT_PUBLIC_PTM_MOCK_TEACHER_ID
+
+    if (mockMode && mockTeacherId) {
+      userId = mockTeacherId
+    } else {
+      const { data: { user }, error: authError } = await supabase.auth.getUser()
+      if (authError || !user) {
+        return NextResponse.json(
+          { success: false, error: 'Authentication required' },
+          { status: 401 }
+        )
+      }
+      userId = user.id
+    }
+
+    // Verify user owns the conversation
+    const { data: conversation, error: convError } = await supabase
+      .from('conversations')
+      .select('teacher_id')
+      .eq('id', id)
+      .single()
+
+    if (convError || !conversation) {
+      return NextResponse.json(
+        { success: false, error: 'Conversation not found' },
+        { status: 404 }
+      )
+    }
+
+    if (conversation.teacher_id !== userId) {
+      return NextResponse.json(
+        { success: false, error: 'Forbidden: You do not own this conversation' },
+        { status: 403 }
+      )
+    }
+
+    // Get teacher's name from database
+    const { data: teacher, error: teacherError } = await supabase
+      .from('teachers')
+      .select('name')
+      .eq('id', userId)
+      .single()
+
+    if (teacherError || !teacher) {
+      return NextResponse.json(
+        { success: false, error: 'Teacher not found' },
+        { status: 404 }
+      )
+    }
+
     const body = await request.json()
-    const { sender_type, sender_name, content } = body
+    const { content } = body
 
     // Validate required fields
     if (!content || content.trim() === '') {
@@ -66,34 +159,26 @@ export async function POST(request: Request, context: RouteContext) {
       )
     }
 
-    if (!sender_type || !['teacher', 'parent'].includes(sender_type)) {
+    // Validate content length to prevent DoS
+    if (content.length > 5000) {
       return NextResponse.json(
         {
           success: false,
-          error: 'Valid sender_type is required (teacher or parent)',
-        },
-        { status: 400 }
-      )
-    }
-
-    if (!sender_name || sender_name.trim() === '') {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Sender name is required',
+          error: 'Message content exceeds maximum length (5000 characters)',
         },
         { status: 400 }
       )
     }
 
     // Insert message into database
+    // SECURITY: Server determines sender_type and sender_name
     const { data: message, error: insertError } = await supabase
       .from('conversation_messages')
       .insert({
         conversation_id: id,
-        sender_type,
-        sender_name,
-        content,
+        sender_type: 'teacher',
+        sender_name: teacher.name,
+        content: content.trim(),
         read: false,
       })
       .select()

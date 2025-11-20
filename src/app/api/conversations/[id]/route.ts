@@ -15,10 +15,40 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
   try {
     const { id } = await params
     const supabase = await createClient()
+    let userId: string
+
+    // Check if in mock/demo mode
+    const mockMode = process.env.NEXT_PUBLIC_PTM_MOCK_MODE === 'true'
+    const mockTeacherId = process.env.NEXT_PUBLIC_PTM_MOCK_TEACHER_ID
+
+    if (mockMode && mockTeacherId) {
+      userId = mockTeacherId
+    } else {
+      const { data: { user }, error: authError } = await supabase.auth.getUser()
+      if (authError || !user) {
+        return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
+      }
+      userId = user.id
+    }
 
     // Validate conversation ID
     if (!id) {
       return NextResponse.json({ error: 'Conversation ID is required' }, { status: 400 })
+    }
+
+    // Verify ownership before deleting
+    const { data: conversation, error: fetchError } = await supabase
+      .from('conversations')
+      .select('teacher_id')
+      .eq('id', id)
+      .single()
+
+    if (fetchError || !conversation) {
+      return NextResponse.json({ error: 'Conversation not found' }, { status: 404 })
+    }
+
+    if (conversation.teacher_id !== userId) {
+      return NextResponse.json({ error: 'Forbidden: You do not own this conversation' }, { status: 403 })
     }
 
     // Delete the conversation (cascade deletes will handle messages and participants)
