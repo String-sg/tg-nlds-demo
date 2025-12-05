@@ -6,6 +6,11 @@ import { fetchTeacherByEmail } from '@/lib/queries/class-queries'
 import { mapTeacherToUser } from '@/lib/supabase/adapters'
 import type { User } from '@/types/classroom'
 
+interface TeacherClassRole {
+  role: string
+  [key: string]: unknown
+}
+
 /**
  * TanStack Query hook for fetching teacher data
  *
@@ -27,7 +32,7 @@ export function useTeacherDataQuery(email: string = 'daniel.tan@school.edu.sg') 
       // Type assertion: Supabase returns role as string, but we know it's one of these literal types
       const typedData = {
         ...data,
-        teacher_classes: data.teacher_classes?.map(tc => ({
+        teacher_classes: data.teacher_classes?.map((tc: TeacherClassRole) => ({
           ...tc,
           role: tc.role as 'teacher' | 'form_teacher'
         }))

@@ -2,24 +2,46 @@
  * Student Query Functions
  *
  * Shared query functions for student-related data fetching.
- * All functions use parallel queries and batching to avoid N+1 patterns.
+ * Uses API routes with service role client to bypass RLS.
  */
 
 import { createClient } from '@/lib/supabase/client'
-import type { Json } from '@/types/database'
 import { ericStudentRecords } from '@/lib/mock-data/eric-records'
 
 /**
  * Fetch comprehensive student profile with all related data in parallel
- * Fixes: 10 sequential queries → 1 parallel request
+ * Uses API route with service role client
  */
 export async function fetchStudentProfile(studentName: string) {
+  const response = await fetch(
+    `/api/student-profile?name=${encodeURIComponent(studentName)}`
+  )
+
+  if (!response.ok) {
+    // Fall back to direct query if API route doesn't exist yet
+    return fetchStudentProfileDirect(studentName)
+  }
+
+  const data = await response.json()
+
+  if (!data.success) {
+    throw new Error(data.error || 'Failed to fetch student profile')
+  }
+
+  return data.profile
+}
+
+/**
+ * Direct database query for student profile (fallback)
+ */
+async function fetchStudentProfileDirect(studentName: string) {
   const supabase = createClient()
 
   // 1. Get basic student info (required first to get student ID)
   const { data: studentData, error: studentError } = await supabase
     .from('students')
-    .select(`
+    .select(
+      `
       id,
       student_id,
       name,
@@ -33,7 +55,8 @@ export async function fetchStudentProfile(studentName: string) {
         phone,
         relationship
       )
-    `)
+    `
+    )
     .ilike('name', studentName)
     .single()
 
@@ -49,7 +72,7 @@ export async function fetchStudentProfile(studentName: string) {
 
   const studentId = studentData.id
 
-  // Calculate date range for current term (last 60 days) - consistent with fetchStudentsInClass
+  // Calculate date range for current term (last 60 days)
   const today = new Date()
   const termStartDate = new Date(today)
   termStartDate.setDate(today.getDate() - 60)
@@ -69,12 +92,14 @@ export async function fetchStudentProfile(studentName: string) {
     // Form class
     supabase
       .from('student_classes')
-      .select(`
+      .select(
+        `
         classes(
           id,
           name
         )
-      `)
+      `
+      )
       .eq('student_id', studentId)
       .limit(1)
       .single()
@@ -96,7 +121,7 @@ export async function fetchStudentProfile(studentName: string) {
       .order('assessment_date', { ascending: false })
       .then((res) => res.data),
 
-    // Attendance - filtered by last 60 days and daily type only (consistent with fetchStudentsInClass)
+    // Attendance - filtered by last 60 days and daily type only
     supabase
       .from('attendance')
       .select('*')
@@ -105,7 +130,6 @@ export async function fetchStudentProfile(studentName: string) {
       .gte('date', termStartStr)
       .order('date', { ascending: false })
       .then((res) => res.data),
-
 
     // Behaviour observations
     supabase
@@ -118,14 +142,16 @@ export async function fetchStudentProfile(studentName: string) {
     // Friend relationships
     supabase
       .from('friend_relationships')
-      .select(`
+      .select(
+        `
         friend:students!friend_id(
           name
         ),
         relationship_type,
         closeness_level,
         notes
-      `)
+      `
+      )
       .eq('student_id', studentId)
       .then((res) => res.data),
 
@@ -158,7 +184,8 @@ export async function fetchStudentProfile(studentName: string) {
       return {
         id: record.id,
         case_number: record.id.toUpperCase(),
-        case_type: data.caseType?.toLowerCase().replace(/\//g, '_').replace(/ /g, '_') || 'counselling',
+        case_type:
+          data.caseType?.toLowerCase().replace(/\//g, '_').replace(/ /g, '_') || 'counselling',
         title: record.title,
         description: record.description,
         status: 'open',
@@ -182,11 +209,13 @@ export async function fetchStudentProfile(studentName: string) {
   const late =
     attendanceData?.filter((a) => (a as { status: string }).status === 'late').length || 0
   const early_dismissal =
-    attendanceData?.filter((a) => (a as { status: string }).status === 'early_dismissal')
-      .length || 0
+    attendanceData?.filter((a) => (a as { status: string }).status === 'early_dismissal').length ||
+    0
   const attendance_rate = totalDays > 0 ? Math.round((present / totalDays) * 100) : 0
 
-  const formClass = formClassData ? (formClassData as { classes: { id: string; name: string } }).classes : null
+  const formClass = formClassData
+    ? (formClassData as { classes: { id: string; name: string } }).classes
+    : null
 
   return {
     id: studentId,
@@ -208,25 +237,25 @@ export async function fetchStudentProfile(studentName: string) {
       late,
       early_dismissal,
       attendance_rate,
-      recent_records: (attendanceData || [])
-        .slice(0, 10)
-        .map((a) => {
-          const record = a as {
-            date?: string
-            status?: string
-            type?: string
-            reason?: string | null
-          }
-          return {
-            date: record.date || '',
-            status: record.status || '',
-            type: record.type || '',
-            reason: record.reason || '',
-          }
-        }),
+      recent_records: (attendanceData || []).slice(0, 10).map((a) => {
+        const record = a as {
+          date?: string
+          status?: string
+          type?: string
+          reason?: string | null
+        }
+        return {
+          date: record.date || '',
+          status: record.status || '',
+          type: record.type || '',
+          reason: record.reason || '',
+        }
+      }),
     },
     behaviour_observations: behaviourData || [],
-    friend_relationships: (friendsData || []).map(
+    friend_relationships: (
+      friendsData || []
+    ).map(
       (f: {
         friend?: { name: string }
         relationship_type: string | null
@@ -270,8 +299,7 @@ export function generateStudentAISummary(profileData: {
   if (profileData.academic_results.length > 0) {
     const recentScores = profileData.academic_results.slice(0, 3)
     const avgScore =
-      recentScores.reduce((sum, r) => sum + (r.percentage || r.score || 0), 0) /
-      recentScores.length
+      recentScores.reduce((sum, r) => sum + (r.percentage || r.score || 0), 0) / recentScores.length
     if (avgScore < 60) {
       insights.push('Recent academic performance below average - intervention may be needed')
     } else if (avgScore >= 80) {
@@ -334,201 +362,23 @@ export function generateStudentAISummary(profileData: {
 
 /**
  * Fetch students for a class with enriched data
- * Fixes: N+1 attendance queries → single batch query
+ * Uses API route with service role client
  */
 export async function fetchStudentsInClass(classId: string) {
-  const supabase = createClient()
+  const response = await fetch(`/api/students?classId=${classId}`)
 
-  // Get students enrolled in this class
-  const { data: enrollments, error: queryError } = await supabase
-    .from('student_classes')
-    .select(`
-      student:students(
-        id,
-        student_id,
-        name,
-        year_level,
-        profile_photo,
-        gender,
-        nationality,
-        primary_guardian:parents_guardians!primary_guardian_id(
-          id,
-          name,
-          email,
-          phone,
-          relationship
-        ),
-        form_teacher:teachers!form_teacher_id(
-          id,
-          name,
-          email
-        )
-      ),
-      class:classes(
-        id,
-        name
-      )
-    `)
-    .eq('class_id', classId)
-    .eq('status', 'active')
-
-  if (queryError) throw queryError
-
-  if (!enrollments || enrollments.length === 0) {
-    return []
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({ error: 'Failed to fetch students' }))
+    throw new Error(errorData.error || 'Failed to fetch students')
   }
 
-  // Get student IDs for batch enrichment
-  const studentIds = enrollments
-    .filter((e) => e && typeof e === 'object' && 'student' in e)
-    .map((e) => (e as { student: { id: string } }).student.id)
+  const data = await response.json()
 
-  // Calculate date range for current term (last 60 days)
-  const today = new Date()
-  const termStartDate = new Date(today)
-  termStartDate.setDate(today.getDate() - 60)
-  const termStartStr = termStartDate.toISOString().split('T')[0]
+  if (!data.success) {
+    throw new Error(data.error || 'Failed to fetch students')
+  }
 
-  // Fetch all enrichment data in parallel using batch queries
-  const [attendanceData, academicData, overviewData] = await Promise.all([
-    // Batch attendance query (fixes N+1 pattern)
-    // Filter by current term (last 60 days) and daily attendance only
-    supabase
-      .from('attendance')
-      .select('student_id, status, date')
-      .in('student_id', studentIds)
-      .eq('type', 'daily')
-      .gte('date', termStartStr)
-      .then((res) => res.data),
-
-    // Batch academic results query
-    supabase
-      .from('academic_results')
-      .select('student_id, subject, score')
-      .in('student_id', studentIds)
-      .then((res) => res.data),
-
-    // Batch overview query
-    supabase
-      .from('student_overview')
-      .select('student_id, is_swan')
-      .in('student_id', studentIds)
-      .then((res) => res.data),
-  ])
-
-  // Build lookup maps for O(1) access
-  const attendanceMap = new Map<string, { total: number; present: number }>()
-  attendanceData?.forEach((a) => {
-    const current = attendanceMap.get(a.student_id) || { total: 0, present: 0 }
-    current.total++
-    if (a.status === 'present') current.present++
-    attendanceMap.set(a.student_id, current)
-  })
-
-  const gradesMap = new Map<string, Array<{ subject: string; score: number }>>()
-  academicData?.forEach((result) => {
-    // Skip results with null subject or score
-    if (!result.subject || result.score === null || result.score === undefined) return
-
-    const current = gradesMap.get(result.student_id) || []
-    current.push({ subject: result.subject, score: result.score })
-    gradesMap.set(result.student_id, current)
-  })
-
-  const overviewMap = new Map<string, { is_swan: boolean }>()
-  overviewData?.forEach((overview) => {
-    overviewMap.set(overview.student_id, {
-      is_swan: overview.is_swan || false,
-    })
-  })
-
-  // Map and enrich students
-  return enrollments
-    .filter((e) => e && typeof e === 'object' && 'student' in e && 'class' in e)
-    .map((enrollment) => {
-      const typedEnrollment = enrollment as {
-        student: {
-          id: string
-          student_id: string
-          name: string
-          year_level: string
-          profile_photo: string | null
-          gender: string | null
-          nationality: string | null
-          primary_guardian?: { id: string; name: string; email: string; phone: string; relationship: string }
-          form_teacher?: { id: string; name: string; email: string }
-        }
-        class: { id: string; name: string }
-      }
-
-      const student = typedEnrollment.student
-      const classData = typedEnrollment.class
-
-      // Add attendance
-      const attendance = attendanceMap.get(student.id)
-      const attendance_rate =
-        attendance && attendance.total > 0
-          ? Math.round((attendance.present / attendance.total) * 100)
-          : 0
-
-      // Add grades and calculate average
-      let grades: { [subject: string]: number } = {}
-      let average_grade: number | undefined
-      const studentGrades = gradesMap.get(student.id)
-      if (studentGrades && studentGrades.length > 0) {
-        studentGrades.forEach((g) => {
-          const subjectKey =
-            g.subject.toLowerCase() === 'mathematics' ? 'math' : g.subject.toLowerCase()
-          grades[subjectKey] = g.score
-        })
-        const total = studentGrades.reduce((sum, g) => sum + g.score, 0)
-        average_grade = Math.round(total / studentGrades.length)
-      }
-
-      // Add status
-      const overview = overviewMap.get(student.id)
-      let status: string | undefined
-      let has_sen = false
-
-      if (overview) {
-        if (overview.is_swan) {
-          status = 'SWAN'
-          has_sen = true
-        }
-      }
-
-      return {
-        student_id: student.student_id,
-        name: student.name,
-        class_id: classData.id,
-        class_name: classData.name,
-        year_level: student.year_level,
-        profile_photo: student.profile_photo,
-        gender: student.gender,
-        nationality: student.nationality,
-        attendance_rate,
-        grades,
-        average_grade,
-        status,
-        has_sen,
-        guardian: student.primary_guardian
-          ? {
-              id: student.primary_guardian.id,
-              name: student.primary_guardian.name,
-              email: student.primary_guardian.email,
-              phone: student.primary_guardian.phone,
-              relationship: student.primary_guardian.relationship,
-            }
-          : undefined,
-        form_teacher: student.form_teacher
-          ? {
-              id: student.form_teacher.id,
-              name: student.form_teacher.name,
-              email: student.form_teacher.email,
-            }
-          : undefined,
-      }
-    })
+  return data.students
 }
 
 /**

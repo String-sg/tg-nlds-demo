@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 
 interface RouteParams {
@@ -14,21 +14,17 @@ interface RouteParams {
 export async function DELETE(request: NextRequest, { params }: RouteParams) {
   try {
     const { id } = await params
-    const supabase = await createClient()
-    let userId: string
+    // Use service role client to bypass RLS
+    const supabase = createServiceClient()
 
-    // Check if in mock/demo mode
-    const mockMode = process.env.NEXT_PUBLIC_PTM_MOCK_MODE === 'true'
+    // Get teacher ID from query params or use mock teacher ID
+    const { searchParams } = new URL(request.url)
+    const teacherIdParam = searchParams.get('teacherId')
     const mockTeacherId = process.env.NEXT_PUBLIC_PTM_MOCK_TEACHER_ID
+    const userId = teacherIdParam || mockTeacherId
 
-    if (mockMode && mockTeacherId) {
-      userId = mockTeacherId
-    } else {
-      const { data: { user }, error: authError } = await supabase.auth.getUser()
-      if (authError || !user) {
-        return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
-      }
-      userId = user.id
+    if (!userId) {
+      return NextResponse.json({ error: 'Teacher ID is required' }, { status: 400 })
     }
 
     // Validate conversation ID

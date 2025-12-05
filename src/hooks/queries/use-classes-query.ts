@@ -9,6 +9,11 @@ import type { Database } from '@/types/database'
 
 type ClassRow = Database['public']['Tables']['classes']['Row']
 
+interface TeacherClassData {
+  class: ClassRow
+  studentCount: number
+}
+
 interface UseClassesResult {
   formClass: Class | null
   subjectClasses: Class[]
@@ -59,17 +64,17 @@ export function useClassesQuery(teacherId: string) {
       }
 
       const mappedSubjectClasses = subjectClasses
-        .filter((tc) => typeof tc === 'object' && 'class' in tc && 'studentCount' in tc)
-        .map((tc) => {
-          const classData = (tc as { class: ClassRow }).class
-          const studentCount = (tc as { studentCount: number }).studentCount
+        .filter((tc: TeacherClassData) => typeof tc === 'object' && 'class' in tc && 'studentCount' in tc)
+        .map((tc: TeacherClassData) => {
+          const classData = tc.class
+          const studentCount = tc.studentCount
           return mapSupabaseClassToClass(classData, teacherId, undefined, studentCount)
         })
 
       const mappedCcaClasses = ccaClasses
-        .filter((tc) => typeof tc === 'object' && 'class' in tc)
-        .map((tc) => {
-          const classData = (tc as { class: ClassRow }).class
+        .filter((tc: TeacherClassData) => typeof tc === 'object' && 'class' in tc)
+        .map((tc: TeacherClassData) => {
+          const classData = tc.class
           return mapSupabaseClassToCCAClass(classData, teacherId, [])
         })
 

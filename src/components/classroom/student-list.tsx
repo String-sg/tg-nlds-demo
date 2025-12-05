@@ -27,6 +27,7 @@ import { useClasses } from '@/hooks/queries/use-classes-query'
 import { useStudents } from '@/hooks/queries/use-students-query'
 import { getInitials, getAvatarColor } from '@/lib/utils'
 import { PageLayout } from '@/components/layout/page-layout'
+import type { Student } from '@/types/classroom'
 
 interface StudentListProps {
   classId: string
@@ -58,7 +59,7 @@ export function StudentList({ classId, onBack, onStudentClick, onNavigate, class
 
   // Filter and sort students - must be before early return
   const filteredStudents = useMemo(() => {
-    return students.filter(student => {
+    return students.filter((student: Student) => {
       const matchesSearch = student.name.toLowerCase().includes(searchQuery.toLowerCase())
       const matchesStatus = filterStatus === 'all' || student.status === filterStatus
       return matchesSearch && matchesStatus
@@ -93,7 +94,7 @@ export function StudentList({ classId, onBack, onStudentClick, onNavigate, class
 
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
-      setSelectedStudents(students.map(s => s.student_id))
+      setSelectedStudents(students.map((s: Student) => s.student_id))
     } else {
       setSelectedStudents([])
     }

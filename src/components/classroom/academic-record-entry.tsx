@@ -15,6 +15,7 @@ import { Badge } from '@/components/ui/badge'
 import { useStudents } from '@/hooks/queries/use-students-query'
 import { PageLayout } from '@/components/layout/page-layout'
 import { cn } from '@/lib/utils'
+import type { Student } from '@/types/classroom'
 
 interface AcademicRecordEntryProps {
   classId: string
@@ -97,17 +98,17 @@ export function AcademicRecordEntry({ classId, className, subject, onBack }: Aca
 
   // Calculate statistics
   const stats = useMemo(() => {
-    const completedCount = students.filter(student => {
+    const completedCount = students.filter((student: Student) => {
       const scores = studentScores[student.student_id]?.scores || {}
       return ASSESSMENT_COMPONENTS.every(comp => scores[comp.id] !== null && scores[comp.id] !== undefined)
     }).length
 
     const totals = students
-      .map(student => calculateTotal(student.student_id))
-      .filter(t => t.total > 0)
+      .map((student: Student) => calculateTotal(student.student_id))
+      .filter((t: { total: number; percentage: number }) => t.total > 0)
 
     const average = totals.length > 0
-      ? totals.reduce((sum, t) => sum + t.percentage, 0) / totals.length
+      ? totals.reduce((sum: number, t: { total: number; percentage: number }) => sum + t.percentage, 0) / totals.length
       : 0
 
     const sortedTotals = [...totals].sort((a, b) => a.percentage - b.percentage)
@@ -292,7 +293,7 @@ export function AcademicRecordEntry({ classId, className, subject, onBack }: Aca
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-stone-200">
-                  {students.map((student, index) => {
+                  {students.map((student: Student, index: number) => {
                     const { total, percentage } = calculateTotal(student.student_id)
                     return (
                       <tr key={student.student_id} className="hover:bg-stone-50">

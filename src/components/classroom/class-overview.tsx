@@ -78,7 +78,7 @@ export function ClassOverview({ classId, onBack, onNavigateToGrades, onStudentCl
   // Filter and sort students - must be before early return
   const filteredStudents = useMemo(() => {
     // Filter by search
-    const filtered = students.filter(student => {
+    const filtered = students.filter((student: Student) => {
       const matchesSearch = !searchQuery.trim() ||
         student.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         student.student_id.toLowerCase().includes(searchQuery.toLowerCase())

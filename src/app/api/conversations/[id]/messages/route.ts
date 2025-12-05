@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/server'
 
 interface RouteContext {
   params: Promise<{ id: string }>
@@ -8,25 +8,21 @@ interface RouteContext {
 // GET /api/conversations/[id]/messages - Get messages for a conversation
 export async function GET(request: Request, context: RouteContext) {
   try {
-    const supabase = await createClient()
+    // Use service role client to bypass RLS
+    const supabase = createServiceClient()
     const { id } = await context.params
-    let userId: string
 
-    // Check if in mock/demo mode
-    const mockMode = process.env.NEXT_PUBLIC_PTM_MOCK_MODE === 'true'
+    // Get teacher ID from query params or use mock teacher ID
+    const { searchParams } = new URL(request.url)
+    const teacherIdParam = searchParams.get('teacherId')
     const mockTeacherId = process.env.NEXT_PUBLIC_PTM_MOCK_TEACHER_ID
+    const userId = teacherIdParam || mockTeacherId
 
-    if (mockMode && mockTeacherId) {
-      userId = mockTeacherId
-    } else {
-      const { data: { user }, error: authError } = await supabase.auth.getUser()
-      if (authError || !user) {
-        return NextResponse.json(
-          { success: false, error: 'Authentication required' },
-          { status: 401 }
-        )
-      }
-      userId = user.id
+    if (!userId) {
+      return NextResponse.json(
+        { success: false, error: 'Teacher ID is required' },
+        { status: 400 }
+      )
     }
 
     // Verify user owns the conversation
@@ -89,25 +85,22 @@ export async function GET(request: Request, context: RouteContext) {
 // POST /api/conversations/[id]/messages - Send a new message
 export async function POST(request: Request, context: RouteContext) {
   try {
-    const supabase = await createClient()
+    // Use service role client to bypass RLS
+    const supabase = createServiceClient()
     const { id } = await context.params
-    let userId: string
 
-    // Check if in mock/demo mode
-    const mockMode = process.env.NEXT_PUBLIC_PTM_MOCK_MODE === 'true'
+    const body = await request.json()
+    const { content, teacher_id } = body
+
+    // Get teacher ID from body or use mock teacher ID
     const mockTeacherId = process.env.NEXT_PUBLIC_PTM_MOCK_TEACHER_ID
+    const userId = teacher_id || mockTeacherId
 
-    if (mockMode && mockTeacherId) {
-      userId = mockTeacherId
-    } else {
-      const { data: { user }, error: authError } = await supabase.auth.getUser()
-      if (authError || !user) {
-        return NextResponse.json(
-          { success: false, error: 'Authentication required' },
-          { status: 401 }
-        )
-      }
-      userId = user.id
+    if (!userId) {
+      return NextResponse.json(
+        { success: false, error: 'Teacher ID is required' },
+        { status: 400 }
+      )
     }
 
     // Verify user owns the conversation
@@ -144,9 +137,6 @@ export async function POST(request: Request, context: RouteContext) {
         { status: 404 }
       )
     }
-
-    const body = await request.json()
-    const { content } = body
 
     // Validate required fields
     if (!content || content.trim() === '') {

@@ -6,6 +6,27 @@ import { fetchStudentsInClass } from '@/lib/queries/student-queries'
 import { mapSupabaseStudentToStudent } from '@/lib/supabase/adapters'
 import type { Student } from '@/types/classroom'
 
+interface EnrichedStudentData {
+  student_id: string
+  name: string
+  class_id: string
+  class_name: string
+  year_level: string
+  profile_photo: string | null
+  gender: string | null
+  nationality: string | null
+  attendance_rate: number
+  grades: { [subject: string]: number }
+  average_grade?: number
+  status?: string
+  has_sen: boolean
+  guardian?: {
+    name: string
+    email: string
+    phone: string
+  }
+}
+
 /**
  * TanStack Query hook for fetching students in a class
  *
@@ -28,7 +49,7 @@ export function useStudentsQuery(classId: string) {
       const enrichedStudents = await fetchStudentsInClass(classId)
 
       // Map to Student type expected by components
-      return enrichedStudents.map((s) => {
+      return enrichedStudents.map((s: EnrichedStudentData) => {
         const student: Student = {
           student_id: s.student_id,
           name: s.name,

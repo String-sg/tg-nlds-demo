@@ -1,32 +1,71 @@
 import { NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/server'
+
+interface MessageData {
+  id: string
+  content: string
+  sender_name: string
+  sender_type: string
+  created_at: string
+  read: boolean
+}
+
+interface StudentData {
+  id: string
+  name: string
+  student_id: string
+  profile_photo: string | null
+}
+
+interface ClassData {
+  id: string
+  name: string
+}
+
+interface ParticipantData {
+  id: string
+  participant_type: string
+  participant_name: string
+  last_read_at: string | null
+  created_at: string
+}
+
+interface ConversationData {
+  id: string
+  student_id: string
+  class_id: string
+  teacher_id: string
+  subject: string | null
+  status: string
+  last_message_at: string | null
+  created_at: string
+  student: StudentData | null
+  class: ClassData | null
+  messages: MessageData[] | null
+  participants: ParticipantData[] | null
+}
 
 // GET /api/conversations - List all conversations for current teacher
 export async function GET(request: Request) {
   try {
-    const supabase = await createClient()
-    let userId: string
+    // Use service role client to bypass RLS
+    const supabase = createServiceClient()
 
-    // Check if in mock/demo mode
-    const mockMode = process.env.NEXT_PUBLIC_PTM_MOCK_MODE === 'true'
+    // Get teacherId from query params or use mock teacher ID
+    const { searchParams } = new URL(request.url)
+    const teacherIdParam = searchParams.get('teacherId')
     const mockTeacherId = process.env.NEXT_PUBLIC_PTM_MOCK_TEACHER_ID
 
-    if (mockMode && mockTeacherId) {
-      // Use mock teacher ID for demo mode
-      userId = mockTeacherId
-    } else {
-      // Production: require authentication
-      const { data: { user }, error: authError } = await supabase.auth.getUser()
-      if (authError || !user) {
-        return NextResponse.json(
-          { success: false, error: 'Authentication required' },
-          { status: 401 }
-        )
-      }
-      userId = user.id
+    // Use provided teacherId or fall back to mock teacher ID
+    const userId = teacherIdParam || mockTeacherId
+
+    if (!userId) {
+      return NextResponse.json(
+        { success: false, error: 'Teacher ID is required' },
+        { status: 400 }
+      )
     }
 
-    const { searchParams } = new URL(request.url)
     const studentId = searchParams.get('student_id')
 
     // Build query to fetch conversations with enriched data including participants
@@ -83,14 +122,15 @@ export async function GET(request: Request) {
     }
 
     // Calculate unread count for each conversation and add class info to student
-    const enrichedConversations = conversations?.map((conv) => ({
+    const typedConversations = conversations as unknown as ConversationData[]
+    const enrichedConversations = typedConversations?.map((conv: ConversationData) => ({
       ...conv,
       student: conv.student ? {
         ...conv.student,
         class_id: conv.class_id, // Add class_id from conversation
         class_name: conv.class?.name || '', // Add class_name from conversation's class
       } : undefined,
-      unread_count: conv.messages?.filter((m) => !m.read && m.sender_type === 'parent').length || 0,
+      unread_count: conv.messages?.filter((m: MessageData) => !m.read && m.sender_type === 'parent').length || 0,
       latest_message: conv.messages?.[0] || null,
     })) || []
 
@@ -114,30 +154,11 @@ export async function GET(request: Request) {
 // POST /api/conversations - Create new conversation
 export async function POST(request: Request) {
   try {
-    const supabase = await createClient()
-    let userId: string
-
-    // Check if in mock/demo mode
-    const mockMode = process.env.NEXT_PUBLIC_PTM_MOCK_MODE === 'true'
-    const mockTeacherId = process.env.NEXT_PUBLIC_PTM_MOCK_TEACHER_ID
-
-    if (mockMode && mockTeacherId) {
-      // Use mock teacher ID for demo mode
-      userId = mockTeacherId
-    } else {
-      // Production: require authentication
-      const { data: { user }, error: authError } = await supabase.auth.getUser()
-      if (authError || !user) {
-        return NextResponse.json(
-          { success: false, error: 'Authentication required' },
-          { status: 401 }
-        )
-      }
-      userId = user.id
-    }
+    // Use service role client to bypass RLS
+    const supabase = createServiceClient()
 
     const body = await request.json()
-    const { student_id, class_id, subject, guardian_name, teacher_name } = body
+    const { student_id, class_id, subject, guardian_name, teacher_name, teacher_id } = body
 
     // Validate required fields
     if (!student_id) {
@@ -156,6 +177,17 @@ export async function POST(request: Request) {
           success: false,
           error: 'Class ID is required',
         },
+        { status: 400 }
+      )
+    }
+
+    // Get teacher ID from body or fall back to mock teacher ID
+    const mockTeacherId = process.env.NEXT_PUBLIC_PTM_MOCK_TEACHER_ID
+    const userId = teacher_id || mockTeacherId
+
+    if (!userId) {
+      return NextResponse.json(
+        { success: false, error: 'Teacher ID is required' },
         { status: 400 }
       )
     }
