@@ -383,10 +383,22 @@ export async function fetchStudentsInClass(classId: string) {
 
 /**
  * Fetch student alerts for home page
- * TODO: Implement when student_alerts table is added to the schema
+ * Uses API route with service role client
  */
 export async function fetchStudentAlerts(userId: string, limit: number = 3) {
-  // Placeholder: student_alerts table does not exist yet
-  // Return empty array until alerts functionality is implemented
-  return []
+  const response = await fetch(`/api/student-alerts?teacherId=${userId}&limit=${limit}`)
+
+  if (!response.ok) {
+    console.error('Failed to fetch student alerts')
+    return []
+  }
+
+  const data = await response.json()
+
+  if (!data.success) {
+    console.error('Error fetching student alerts:', data.error)
+    return []
+  }
+
+  return data.alerts
 }
