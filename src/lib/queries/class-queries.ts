@@ -217,19 +217,33 @@ export async function fetchTeacherByEmail(email: string) {
 
 /**
  * Fetch class name for breadcrumbs
+ * Uses API route with service role client
  */
 export async function fetchClassName(classId: string) {
-  const supabase = createClient()
+  const response = await fetch(`/api/classes/name?classId=${classId}`)
 
-  const { data, error } = await supabase
-    .from('classes')
-    .select('id, name')
-    .eq('id', classId)
-    .single()
+  if (!response.ok) {
+    // Fall back to direct query if API route doesn't exist yet
+    const supabase = createClient()
 
-  if (error) throw error
+    const { data, error } = await supabase
+      .from('classes')
+      .select('id, name')
+      .eq('id', classId)
+      .single()
 
-  return data
+    if (error) throw error
+
+    return data
+  }
+
+  const data = await response.json()
+
+  if (!data.success) {
+    throw new Error(data.error || 'Failed to fetch class name')
+  }
+
+  return data.class
 }
 
 /**
