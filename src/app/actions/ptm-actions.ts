@@ -2,7 +2,7 @@
 
 // PTM (Parent-Teacher Meeting) Server Actions
 
-import { createClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/server'
 import {
   getFormClassStudents,
   getStudentAttendance,
@@ -29,7 +29,7 @@ async function calculateAttendanceRate(
   studentId: string,
   lowAttendanceThreshold: number = 85
 ): Promise<number> {
-  const supabase = await createClient()
+  const supabase = createServiceClient()
 
   // Get attendance from start of academic year (January 1st of current year)
   const currentYear = new Date().getFullYear()
@@ -63,7 +63,7 @@ async function calculateAttendanceRate(
  * Get active cases for a student
  */
 async function getActiveCases(studentId: string): Promise<Case[]> {
-  const supabase = await createClient()
+  const supabase = createServiceClient()
 
   const { data: cases, error } = await getStudentCases(supabase, studentId)
 
@@ -95,7 +95,7 @@ async function getActiveCases(studentId: string): Promise<Case[]> {
  * Get recent academic grades for a student
  */
 async function getRecentGrades(studentId: string): Promise<PTMGrade[]> {
-  const supabase = await createClient()
+  const supabase = createServiceClient()
 
   // Get current term - for simplicity, using "Term 1 2025"
   // In production, this should be dynamically determined
@@ -252,7 +252,7 @@ export async function getPTMStudents(
   teacherId?: string,
   config: PTMConfig = {}
 ): Promise<PTMStudentData> {
-  const supabase = await createClient()
+  const supabase = createServiceClient()
 
   // Determine teacher ID based on config and parameters
   let effectiveTeacherId = teacherId

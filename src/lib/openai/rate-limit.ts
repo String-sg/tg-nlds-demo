@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/server'
 
 /**
  * Rate limit configuration
@@ -29,7 +29,7 @@ export async function checkRateLimit(
   type: RateLimitType
 ): Promise<{ allowed: boolean; remaining: number; resetAt: Date }> {
   try {
-    const supabase = await createClient()
+    const supabase = createServiceClient()
     const config = RATE_LIMITS[type]
 
     // Calculate time window start
@@ -93,7 +93,7 @@ export async function recordRateLimit(
   endpoint?: string
 ): Promise<void> {
   try {
-    const supabase = await createClient()
+    const supabase = createServiceClient()
 
     // Note: rate_limits table exists but types may not be generated yet
     await supabase.from('rate_limits' as any).insert({
@@ -125,7 +125,7 @@ export async function trackUsage(params: {
   error?: string
 }): Promise<void> {
   try {
-    const supabase = await createClient()
+    const supabase = createServiceClient()
 
     // Note: openai_usage table exists but types may not be generated yet
     await supabase.from('openai_usage' as any).insert({

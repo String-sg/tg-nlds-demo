@@ -103,12 +103,11 @@ export async function POST(request: NextRequest) {
     ]
 
     // Create OpenAI stream
-    // Note: GPT-5 models use reasoning_effort and verbosity instead of temperature/top_p
     const stream = (await openai.chat.completions.create({
       model: OPENAI_CONFIG.chat.model,
       messages: messages as any,
-      reasoning_effort: OPENAI_CONFIG.chat.reasoning_effort,
-      verbosity: OPENAI_CONFIG.chat.verbosity,
+      temperature: OPENAI_CONFIG.chat.temperature,
+      max_tokens: OPENAI_CONFIG.chat.max_tokens,
       stream: true, // Enable streaming
     } as any)) as unknown as AsyncIterable<any>
 

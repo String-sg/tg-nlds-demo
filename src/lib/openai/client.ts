@@ -20,14 +20,12 @@ export const openai = new OpenAI({
 export const OPENAI_CONFIG = {
   /**
    * Chat completion settings
-   * Using GPT-5-mini for latest model capabilities
-   * Note: GPT-5 models don't support temperature, top_p, logprobs, or max_output_tokens
-   * Instead, use reasoning_effort and verbosity parameters to control output
+   * Using GPT-4o-mini for fast, cost-effective responses
    */
   chat: {
-    model: 'gpt-5-mini' as const,
-    reasoning_effort: 'medium' as const, // Options: minimal, low, medium, high
-    verbosity: 'medium' as const, // Options: low, medium, high
+    model: 'gpt-4o-mini' as const,
+    temperature: 0.7,
+    max_tokens: 2048,
     stream: true, // Enable streaming by default
   },
 
