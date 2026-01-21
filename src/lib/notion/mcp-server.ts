@@ -31,6 +31,7 @@ export class NotionMCPService {
       notionVersion: config.version || '2022-06-28'
     })
 
+    // Read-only tools for Notion workspace access
     this.tools = [
       {
         name: 'notion_search',
@@ -42,11 +43,11 @@ export class NotionMCPService {
               type: 'string',
               description: 'The search query to execute'
             },
-            filter?: {
+            filter: {
               type: 'object',
               description: 'Optional filter to limit search scope'
             },
-            sort?: {
+            sort: {
               type: 'object',
               description: 'Optional sort configuration'
             }
@@ -70,7 +71,7 @@ export class NotionMCPService {
       },
       {
         name: 'notion_get_database',
-        description: 'Query a Notion database and retrieve entries',
+        description: 'Query a Notion database and retrieve entries (read-only)',
         inputSchema: {
           type: 'object',
           properties: {
@@ -78,78 +79,20 @@ export class NotionMCPService {
               type: 'string',
               description: 'The ID of the database to query'
             },
-            filter?: {
+            filter: {
               type: 'object',
               description: 'Filter criteria for database query'
             },
-            sorts?: {
+            sorts: {
               type: 'array',
               description: 'Sort configuration for results'
             },
-            page_size?: {
+            page_size: {
               type: 'number',
               description: 'Number of results to return (max 100)'
             }
           },
           required: ['database_id']
-        }
-      },
-      {
-        name: 'notion_create_page',
-        description: 'Create a new page in Notion',
-        inputSchema: {
-          type: 'object',
-          properties: {
-            parent: {
-              type: 'object',
-              description: 'Parent page or database where the page should be created'
-            },
-            properties: {
-              type: 'object',
-              description: 'Page properties (title, etc.)'
-            },
-            children?: {
-              type: 'array',
-              description: 'Initial content blocks for the page'
-            }
-          },
-          required: ['parent', 'properties']
-        }
-      },
-      {
-        name: 'notion_update_page',
-        description: 'Update properties of an existing Notion page',
-        inputSchema: {
-          type: 'object',
-          properties: {
-            page_id: {
-              type: 'string',
-              description: 'The ID of the page to update'
-            },
-            properties: {
-              type: 'object',
-              description: 'Page properties to update'
-            }
-          },
-          required: ['page_id', 'properties']
-        }
-      },
-      {
-        name: 'notion_append_blocks',
-        description: 'Add content blocks to an existing Notion page',
-        inputSchema: {
-          type: 'object',
-          properties: {
-            page_id: {
-              type: 'string',
-              description: 'The ID of the page to add content to'
-            },
-            children: {
-              type: 'array',
-              description: 'Array of block objects to add'
-            }
-          },
-          required: ['page_id', 'children']
         }
       }
     ]
@@ -163,7 +106,7 @@ export class NotionMCPService {
   }
 
   /**
-   * Execute an MCP tool
+   * Execute a read-only MCP tool
    */
   async executeTool(toolName: string, args: Record<string, any>): Promise<any> {
     try {
@@ -177,17 +120,8 @@ export class NotionMCPService {
         case 'notion_get_database':
           return await this.queryDatabase(args.database_id, args.filter, args.sorts, args.page_size)
 
-        case 'notion_create_page':
-          return await this.createPage(args.parent, args.properties, args.children)
-
-        case 'notion_update_page':
-          return await this.updatePage(args.page_id, args.properties)
-
-        case 'notion_append_blocks':
-          return await this.appendBlocks(args.page_id, args.children)
-
         default:
-          throw new Error(`Unknown tool: ${toolName}`)
+          throw new Error(`Unknown or unsupported tool: ${toolName}. Only read-only operations are supported.`)
       }
     } catch (error) {
       console.error(`Error executing tool ${toolName}:`, error)
@@ -270,58 +204,6 @@ export class NotionMCPService {
     }
   }
 
-  /**
-   * Create new page
-   */
-  private async createPage(parent: any, properties: any, children?: any[]) {
-    const response = await this.client.pages.create({
-      parent,
-      properties,
-      children
-    })
-
-    return {
-      id: response.id,
-      url: (response as any).url,
-      title: this.extractPageTitle(response),
-      created: (response as any).created_time
-    }
-  }
-
-  /**
-   * Update page properties
-   */
-  private async updatePage(pageId: string, properties: any) {
-    const response = await this.client.pages.update({
-      page_id: pageId,
-      properties
-    })
-
-    return {
-      id: response.id,
-      url: (response as any).url,
-      title: this.extractPageTitle(response),
-      last_edited: (response as any).last_edited_time
-    }
-  }
-
-  /**
-   * Append blocks to page
-   */
-  private async appendBlocks(pageId: string, children: any[]) {
-    const response = await this.client.blocks.children.append({
-      block_id: pageId,
-      children
-    })
-
-    return {
-      success: true,
-      results: response.results.map(block => ({
-        id: (block as any).id,
-        type: (block as any).type
-      }))
-    }
-  }
 
   /**
    * Extract page title from page object

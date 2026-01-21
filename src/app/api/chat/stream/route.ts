@@ -230,13 +230,42 @@ export async function POST(request: NextRequest) {
 
 /**
  * Build system prompt with contextual information
- * Enriches with PTM data if requested
+ * Enriches with PTM data if requested and adds Notion MCP capabilities
  */
 async function buildSystemPrompt(
   isPTMRequest: boolean,
   userId: string
 ): Promise<string> {
   let prompt = SYSTEM_PROMPT
+
+  // Add Notion MCP capabilities to system prompt
+  prompt += `
+
+===== NOTION INTEGRATION =====
+
+You have READ-ONLY access to a Notion workspace through MCP (Model Context Protocol) tools. You can:
+
+1. **Search Notion**: Search across all accessible pages and databases
+2. **Read Pages**: Retrieve content from specific Notion pages
+3. **Query Databases**: Get entries from Notion databases with filtering and sorting
+
+Available Notion Tools (READ-ONLY):
+- notion_search: Search workspace for relevant content
+- notion_get_page: Retrieve specific page content
+- notion_get_database: Query database entries
+
+When the user asks about information that might be in Notion (lesson plans, notes, schedules, etc.),
+you should proactively search the workspace to provide accurate, up-to-date information.
+
+Example queries that should trigger Notion search:
+- "What's in my lesson plan for tomorrow?"
+- "Show me my meeting notes from last week"
+- "What are the upcoming deadlines?"
+- "Find information about student John Doe"
+- "What resources do I have for teaching math?"
+
+Always format Notion content in a clear, readable way and cite the source page/database.
+Note: You can only READ from Notion - you cannot create, update, or modify any content.`
 
   // If PTM request, enrich with student data
   if (isPTMRequest) {
@@ -280,7 +309,10 @@ Instructions:
 3. Balance concerns with positive highlights
 4. Suggest strategies parents can implement at home
 5. Be empathetic and solution-oriented
-6. Keep responses concise and practical`
+6. Keep responses concise and practical
+
+You can also search your Notion workspace for additional information about these students,
+lesson plans, or meeting notes that might be relevant to the parent-teacher meeting.`
       }
     } catch (error) {
       console.error('Failed to fetch PTM data for context:', error)
