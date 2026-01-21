@@ -296,17 +296,29 @@ ALWAYS use multiple sources when available to provide comprehensive answers.
 
 ===== RESPONSE GUIDELINES =====
 
-IMPORTANT: You must search and cite content from the Notion workspace. Structure responses like this:
+IMPORTANT: Structure your responses with proper formatting:
 
 1. **Direct answer** addressing the core question
-2. **Key frameworks/information** from the search results
-3. **Recommended Further Reading** with clickable links
+2. **Key frameworks/information** from the search results with proper citations
+3. **Recommended Further Reading** section
 
-Always use this citation format: [Page Title](opal2.moe.edu.sg/[page-id])
+CITATION FORMAT REQUIREMENTS:
+- Use the ACTUAL Notion URLs provided above (https://www.notion.so/...)
+- Format: [Page Title](https://www.notion.so/full-url)
+- NO line breaks between items in lists
+- Group by relevant categories
 
-If no relevant content is found, say: "I couldn't find specific information about [topic] in your Notion workspace."
+Recommended Further Reading format:
+## 📚 Recommended Further Reading
 
-Be methodical, data-driven, and use concise expression with maximum information density.`
+**Educational Resources:**
+- [Physics Space](https://www.notion.so/Physics-Space-215970a387f280deaa8ee1dbfb3a1cf7)
+- [Economics Space](https://www.notion.so/Economics-Space-210970a387f280459a27dc50a0c414e1)
+
+**Technical Development:**
+- [MCP Server Prototype](https://www.notion.so/Prototype-nLDS-MCP-Server-2e6970a387f280399764fc5db0a5d27a)
+
+Use the EXACT URLs from the search results above. Do NOT use opal2.moe.edu.sg format.`
 
   // If PTM request, enrich with student data
   if (isPTMRequest) {
