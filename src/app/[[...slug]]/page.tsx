@@ -935,8 +935,7 @@ const TabContent = memo(function TabContent({
         <Button size="sm" onClick={() => handleNavigate('home')}>
           Go Home
         </Button>
-        <Button size="sm" variant="outline" onClick={() => handleNavigate('daily-roundup')}>
-          Open Daily Roundup
+        {/* Daily Roundup button removed */}
         </Button>
       </div>
     </div>
@@ -1667,12 +1666,7 @@ export default function Home() {
         classroomNamesRef.current = parsedMap
       }
 
-      // Check if user has seen Daily Roundup - if not and on home, navigate to daily-roundup
-      const hasSeenDailyRoundup = sessionStorage.getItem('hasSeenDailyRoundup')
-      if (!hasSeenDailyRoundup && currentUrl === 'home') {
-        // First-time user, navigate to daily-roundup
-        router.push('/daily-roundup')
-      }
+      // Daily Roundup disabled - users start on home page
     } catch (error) {
       // If sessionStorage is corrupted or full, clear it and start fresh
       console.error('Failed to restore tabs from sessionStorage:', error)
