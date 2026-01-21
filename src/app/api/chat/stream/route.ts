@@ -404,9 +404,18 @@ async function buildSystemPrompt(
                 .slice(0, 4) // Limit properties shown
                 .join(', ')
 
+              // Extract title from database entry
+              let entryTitle = 'Database Entry'
+              const titleProp = Object.values(properties).find((prop: any) =>
+                prop.type === 'title' && prop.title?.[0]?.plain_text
+              )
+              if (titleProp) {
+                entryTitle = (titleProp as any).title[0].plain_text
+              }
+
               enrichedPages.push({
                 id: entry.id,
-                title: this.extractPageTitle(entry) || `Database Entry`,
+                title: entryTitle,
                 object: 'database_entry',
                 url: entry.url,
                 contentPreview: `Database: ${dbResult.database.title || 'Unnamed'}\n  Properties: ${propertyText}`,
@@ -424,30 +433,35 @@ async function buildSystemPrompt(
           return `- **${page.title}** (${page.object}): ${page.url}${page.contentPreview ? `\n  ${page.contentPreview}` : ''}`
         }).join('\n')
 
+        const hasPages = searchResult?.results?.length > 0
+        const hasDatabases = databaseResults.length > 0
+
         notionSearchResults = `
 
 ===== NOTION WORKSPACE CONTENT FOUND =====
 
-Based on your query "${searchQuery}", I found these relevant pages in your workspace:
+Based on your query "${searchQuery}", I found relevant content in your workspace:
+${hasPages ? `\n**Pages:**` : ''}${hasDatabases ? `\n**Database Entries:**` : ''}
 
 ${pageList}
 
 CRITICAL: YOU MUST ONLY USE THE CONTENT ABOVE TO ANSWER THE QUESTION.
 
 STRICT INSTRUCTIONS:
-1. ONLY use information from the Notion pages listed above
+1. ONLY use information from the Notion pages and database entries listed above
 2. DO NOT use general knowledge or external information
 3. If the Notion content doesn't fully answer the question, say "Based on your workspace, [partial answer from Notion], but I don't have additional information in your Notion workspace to fully answer this question."
-4. Always cite MULTIPLE relevant pages when available - don't just use one source
-5. Reference different pages for different aspects of your answer
+4. Always cite MULTIPLE relevant sources when available - don't just use one
+5. Reference different pages/database entries for different aspects of your answer
 6. MENTION FILES AND ATTACHMENTS when they appear on pages (PDFs, images, videos, etc.)
-7. Use [source] hyperlinked citations throughout the text
+7. When citing database entries, mention the database name and relevant properties
+8. Use [source] hyperlinked citations throughout the text
 
 HYPERLINKED CITATIONS:
 Use [source] citations that link directly to the sources: [source](URL) format.
 
 Example response with hyperlinked citations:
-"According to your SEND Space [source](https://www.notion.so/send-space-url), the CALM framework includes: Check for safety, Avoid power struggles, Let others know, Make sure an adult stays. Your Student Support Guide [source](https://www.notion.so/guide-url) provides additional de-escalation scripts..."
+"According to your SEND Space [source](https://www.notion.so/send-space-url), the CALM framework includes: Check for safety, Avoid power struggles, Let others know, Make sure an adult stays. Your Student Database shows that [source](database-entry-url) has relevant information..."
 
 Citation format: [source](actual-notion-url) for all citations.
 
