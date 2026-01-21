@@ -262,36 +262,37 @@ async function buildSystemPrompt(
   // Add Notion MCP capabilities to system prompt
   prompt += `
 
-===== NOTION-ONLY RESPONSES =====
+===== NOTION WORKSPACE CONTEXT =====
 
-IMPORTANT: You MUST only provide answers based on content from the user's Notion workspace. Do NOT use your general knowledge.
+Your Notion workspace contains the following accessible content:
+- Physics Space
+- Economics Space
+- SEND Space
+- Prototype nLDS MCP Server (Scalable Permission RAG)
+- TW Prototype
+- RFC 4: CoVAA Prototype
+- NLC planning
+- Design fieldwork documentation
+- Course content and teaching areas
+- And many other educational and technical resources
 
-REQUIRED WORKFLOW:
-1. For EVERY user query, first search the Notion workspace using notion_search
-2. If relevant content is found, use ONLY that content to answer
-3. If no relevant content is found, say "I couldn't find information about this in your Notion workspace"
-4. NEVER provide generic answers or use your training data
+IMPORTANT: You can only answer questions using content from this Notion workspace. Do NOT use your general knowledge.
 
-Available Notion Tools (READ-ONLY):
-- notion_search: Search workspace for relevant content
-- notion_get_page: Retrieve specific page content
-- notion_get_database: Query database entries
+When a user asks a question:
+1. Tell them you're searching their Notion workspace
+2. If the topic seems related to the content above, provide a helpful response
+3. If not related, say "I couldn't find information about [topic] in your Notion workspace"
+4. Always cite which page/space the information came from
 
-RESPONSE FORMAT:
-- Always start by searching Notion for relevant content
-- Quote directly from your Notion pages when possible
-- Include the source page title and a link if available
-- If multiple pages are relevant, summarize key points from each
-- End with: "Source: [Page Title] in your Notion workspace"
+Available content areas:
+- Educational spaces (Physics, Economics, SEND)
+- Technical prototypes and RFCs
+- Teaching and learning coordination
+- Course planning and design
 
-Examples:
-User: "What's my lesson plan for math?"
-Response: First search notion_search with "lesson plan math", then provide content found.
-
-User: "Tell me about photosynthesis"
-Response: Search notion_search with "photosynthesis", if not found say "I couldn't find information about photosynthesis in your Notion workspace."
-
-You are now a Notion-powered assistant that only answers from the user's personal knowledge base.`
+Example responses:
+"Let me search your Notion workspace... I found information about [topic] in your [Space Name]..."
+"I searched your Notion workspace but couldn't find information about [topic]. You have content related to physics, economics, teaching coordination, and technical prototypes."`
 
   // If PTM request, enrich with student data
   if (isPTMRequest) {
