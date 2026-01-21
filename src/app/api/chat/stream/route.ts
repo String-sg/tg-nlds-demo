@@ -88,7 +88,7 @@ export async function POST(request: NextRequest) {
     await recordRateLimit(userId, 'chat', 'stream')
 
     // Build system prompt with context
-    const systemPrompt = await buildSystemPrompt(isPTMRequest, userId)
+    const systemPrompt = await buildSystemPrompt(isPTMRequest, userId, message)
 
     // Prepare messages for OpenAI
     // Limit conversation history to last 10 messages to control token usage
@@ -100,36 +100,13 @@ export async function POST(request: NextRequest) {
       { role: 'user', content: message },
     ]
 
-    // Define Notion function tools for OpenAI
-    const functions = [
-      {
-        type: "function",
-        function: {
-          name: "notion_search",
-          description: "Search across all accessible pages and databases in the Notion workspace",
-          parameters: {
-            type: "object",
-            properties: {
-              query: {
-                type: "string",
-                description: "The search query to execute"
-              }
-            },
-            required: ["query"]
-          }
-        }
-      }
-    ]
-
-    // Create OpenAI stream with function calling
+    // Create OpenAI stream
     const stream = (await openai.chat.completions.create({
       model: OPENAI_CONFIG.chat.model,
       messages: messages as any,
       temperature: OPENAI_CONFIG.chat.temperature,
       max_tokens: OPENAI_CONFIG.chat.max_tokens,
       stream: true, // Enable streaming
-      tools: functions,
-      tool_choice: "auto" // Let OpenAI decide when to call functions
     } as any)) as unknown as AsyncIterable<any>
 
     // Track token usage and cost
@@ -255,44 +232,79 @@ export async function POST(request: NextRequest) {
  */
 async function buildSystemPrompt(
   isPTMRequest: boolean,
-  userId: string
+  userId: string,
+  message: string
 ): Promise<string> {
   let prompt = SYSTEM_PROMPT
 
-  // Add Notion MCP capabilities to system prompt
+  // Add Notion content by actually searching the workspace
+  let notionSearchResults = ''
+  try {
+    // Import Notion MCP service
+    const { default: NotionMCPService } = await import('@/lib/notion/mcp-server')
+
+    const notionApiKey = process.env.NOTION_API_KEY
+    if (notionApiKey) {
+      const notionMCP = new NotionMCPService({
+        apiKey: notionApiKey,
+        version: process.env.NOTION_VERSION || '2022-06-28'
+      })
+
+      // Search for content related to the user's message
+      const searchQuery = message.toLowerCase()
+      const searchResult = await notionMCP.executeTool('notion_search', {
+        query: searchQuery
+      })
+
+      if (searchResult?.results?.length > 0) {
+        const pageList = searchResult.results.slice(0, 10).map((page: any) => {
+          const pageId = page.url ? page.url.split('/').pop()?.split('?')[0] : page.id
+          return `- **${page.title}** (${page.object}): [View Page](opal2.moe.edu.sg/${pageId})`
+        }).join('\n')
+
+        notionSearchResults = `
+
+===== RELEVANT NOTION CONTENT FOUND =====
+
+Based on your query "${searchQuery}", I found these relevant pages in your workspace:
+
+${pageList}
+
+IMPORTANT INSTRUCTIONS:
+1. Use ONLY the content from these pages to answer the question
+2. Always cite specific pages when referencing information
+3. Structure your response like the example: direct answer, frameworks, citations
+4. End with a "Recommended Further Reading" section with clickable links
+
+Citation format: [Page Title](opal2.moe.edu.sg/page-id)
+
+Example response structure:
+"According to your [SEND Space](opal2.moe.edu.sg/page-id) resources, the CALM framework includes: Check for safety, Avoid power struggles, Let others know, Make sure an adult stays..."
+
+`
+      }
+    }
+  } catch (error) {
+    console.error('Error searching Notion:', error)
+  }
+
+  prompt += notionSearchResults
+
   prompt += `
 
-===== NOTION WORKSPACE CONTEXT =====
+===== RESPONSE GUIDELINES =====
 
-Your Notion workspace contains the following accessible content:
-- Physics Space
-- Economics Space
-- SEND Space
-- Prototype nLDS MCP Server (Scalable Permission RAG)
-- TW Prototype
-- RFC 4: CoVAA Prototype
-- NLC planning
-- Design fieldwork documentation
-- Course content and teaching areas
-- And many other educational and technical resources
+IMPORTANT: You must search and cite content from the Notion workspace. Structure responses like this:
 
-IMPORTANT: You can only answer questions using content from this Notion workspace. Do NOT use your general knowledge.
+1. **Direct answer** addressing the core question
+2. **Key frameworks/information** from the search results
+3. **Recommended Further Reading** with clickable links
 
-When a user asks a question:
-1. Tell them you're searching their Notion workspace
-2. If the topic seems related to the content above, provide a helpful response
-3. If not related, say "I couldn't find information about [topic] in your Notion workspace"
-4. Always cite which page/space the information came from
+Always use this citation format: [Page Title](opal2.moe.edu.sg/[page-id])
 
-Available content areas:
-- Educational spaces (Physics, Economics, SEND)
-- Technical prototypes and RFCs
-- Teaching and learning coordination
-- Course planning and design
+If no relevant content is found, say: "I couldn't find specific information about [topic] in your Notion workspace."
 
-Example responses:
-"Let me search your Notion workspace... I found information about [topic] in your [Space Name]..."
-"I searched your Notion workspace but couldn't find information about [topic]. You have content related to physics, economics, teaching coordination, and technical prototypes."`
+Be methodical, data-driven, and use concise expression with maximum information density.`
 
   // If PTM request, enrich with student data
   if (isPTMRequest) {
