@@ -17,6 +17,7 @@ import {
   UserCheck,
   CheckSquare,
   ClipboardList,
+  AlertTriangle,
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -84,20 +85,21 @@ const getTodayDate = () => {
 
 const upcomingClassesData = [
   { time: '11:15 AM', subject: 'Math 10B', room: 'Room 204' },
-  { time: '1:00 PM', subject: 'Math 9A', room: 'Room 201' },
+  { time: '1:00 PM', subject: 'Assessment Literacy for H1 Economics @ AST', room: 'AST' },
 ]
 
 // Fallback data for when no alerts are found
 const fallbackStudentAlertsData = [
   {
-    student_id: '',
-    student_name: 'No alerts',
-    initials: 'NA',
-    message: 'All students doing well',
-    priority: 'info' as const,
-    alert_type: 'performance' as const,
-    class_id: null,
-    class_name: null,
+    student_id: 'demo-student-1',
+    student_name: 'Tan Ah Kow',
+    initials: 'TAK',
+    message: 'missed 20 days of school this term.\nRecommended learning: Strategies for managing long term absenteeism',
+    priority: 'medium' as const,
+    alert_type: 'attendance' as const,
+    class_id: '4A',
+    class_name: '4A',
+    recommendedLink: 'https://www.notion.so/moediva/Managing-Long-Term-Absenteeism-1d9970a387f2801db143f6ee7b49ad59?source=copy_link'
   },
 ]
 
@@ -285,22 +287,24 @@ export function HomeContent({ onNavigateToClassroom, onNavigateToExplore, onNavi
             {/* Student Alert Widget */}
             <Card
               className={cn(
-                "flex h-full min-h-full flex-col rounded-2xl border-stone-200 bg-white shadow-sm py-0",
-                studentAlerts && studentAlerts.length > 0 && studentAlerts[0].student_name !== 'No alerts' && "cursor-pointer transition-all hover:shadow-md hover:border-stone-300"
+                "flex h-full min-h-full flex-col rounded-2xl border-yellow-200 shadow-sm py-0",
+                studentAlerts && studentAlerts.length > 0 && studentAlerts[0].student_name !== 'No alerts' && studentAlerts[0].priority === 'medium'
+                  ? "bg-yellow-50"
+                  : "bg-white border-stone-200"
               )}
-              onClick={() => {
-                if (studentAlerts && studentAlerts.length > 0 && studentAlerts[0].student_name !== 'No alerts') {
-                  const firstAlert = studentAlerts[0]
-                  if (onStudentClickWithClass && firstAlert.class_id) {
-                    onStudentClickWithClass(firstAlert.class_id, firstAlert.student_name)
-                  } else if (onStudentClick) {
-                    onStudentClick(firstAlert.student_name)
-                  }
-                }
-              }}
             >
-              <CardContent className="flex flex-col gap-3 items-start p-0" style={{ padding: `${widgetPadding}px` }}>
-                <div>
+              <CardContent className="flex flex-col gap-3 items-start p-0 relative" style={{ padding: `${widgetPadding}px` }}>
+                {/* Hazard Icon for warning alerts */}
+                {studentAlerts && studentAlerts.length > 0 && studentAlerts[0].student_name !== 'No alerts' && studentAlerts[0].priority === 'medium' && (
+                  <div className="absolute top-3 left-3">
+                    <AlertTriangle className="h-5 w-5 text-yellow-600" />
+                  </div>
+                )}
+
+                <div className={cn(
+                  studentAlerts && studentAlerts.length > 0 && studentAlerts[0].student_name !== 'No alerts' && studentAlerts[0].priority === 'medium'
+                    ? "ml-8" : ""
+                )}>
                   <p className="text-xs font-medium uppercase tracking-wide text-stone-500">STUDENT ALERTS</p>
                 </div>
 
@@ -332,7 +336,12 @@ export function HomeContent({ onNavigateToClassroom, onNavigateToExplore, onNavi
                       {studentAlerts.length > 0 && studentAlerts[0].student_name !== 'No alerts' ? (
                         <div className="space-y-2.5">
                           {/* Student Card */}
-                          <div className="rounded-lg bg-stone-100/80 p-3 space-y-2">
+                          <div className={cn(
+                            "rounded-lg p-3 space-y-2",
+                            studentAlerts[0].priority === 'medium'
+                              ? "bg-yellow-100/60 border border-yellow-200"
+                              : "bg-stone-100/80"
+                          )}>
                             {/* Student Name & Class */}
                             <div className="flex items-center justify-between">
                               <div>
@@ -353,9 +362,26 @@ export function HomeContent({ onNavigateToClassroom, onNavigateToExplore, onNavi
                             </div>
 
                             {/* Alert Message */}
-                            <p className="text-sm leading-relaxed text-stone-700">
-                              {studentAlerts[0].message}
-                            </p>
+                            <div className="text-sm leading-relaxed text-stone-700">
+                              {studentAlerts[0].message.split('\n').map((line, index) => (
+                                <p key={index}>
+                                  {line.includes('Recommended learning:') && (studentAlerts[0] as any).recommendedLink ? (
+                                    <>
+                                      Recommended learning: <a
+                                        href={(studentAlerts[0] as any).recommendedLink}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="text-blue-600 hover:text-blue-800 underline"
+                                      >
+                                        Strategies for long term absenteeism
+                                      </a>
+                                    </>
+                                  ) : (
+                                    line
+                                  )}
+                                </p>
+                              ))}
+                            </div>
                           </div>
                         </div>
                       ) : (

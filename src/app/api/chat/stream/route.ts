@@ -637,11 +637,12 @@ STRICT INSTRUCTIONS:
 
 HYPERLINKED CITATIONS:
 Use [source] citations that link directly to the sources: [source](URL) format.
+CRITICAL: Place citations at the END of sentences or paragraphs, not at the beginning.
 
-Example response with hyperlinked citations:
-"According to your SEND Space [source](https://www.notion.so/send-space-url), the CALM framework includes: Check for safety, Avoid power struggles, Let others know, Make sure an adult stays. Your Student Database shows that [source](database-entry-url) has relevant information..."
+Example response with properly placed citations:
+"The CALM framework includes: Check for safety, Avoid power struggles, Let others know, Make sure an adult stays [source](https://www.notion.so/send-space-url). Your Student Database contains relevant information about implementation strategies [source](database-entry-url)."
 
-Citation format: [source](actual-notion-url) for all citations.
+Citation format: [source](actual-notion-url) - ALWAYS at the END of the relevant sentence or paragraph.
 
 ALWAYS cite the Notion sources and stick strictly to the workspace content.
 

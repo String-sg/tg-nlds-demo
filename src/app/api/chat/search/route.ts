@@ -303,6 +303,9 @@ CRITICAL: YOU MUST ONLY USE THE FILTERED CONTENT ABOVE TO ANSWER THE QUESTION.
 The content has been specifically filtered for ${subject || 'your query'}${level ? ` at ${level} level` : ''}${contentType ? ` focusing on ${contentType} content` : ''}.
 
 Use [source] hyperlinked citations: [source](URL) format.
+CRITICAL: Place citations at the END of sentences or paragraphs, not at the beginning.
+
+Example: "The CCE Implementation Handbook focuses on developing baseline leadership competencies through the Student Leadership Development (SLD) program [source](URL)."
 
 `
       } else {
