@@ -29,8 +29,19 @@ export async function checkRateLimit(
   type: RateLimitType
 ): Promise<{ allowed: boolean; remaining: number; resetAt: Date }> {
   try {
-    const supabase = createServiceClient()
     const config = RATE_LIMITS[type]
+
+    // In mock/demo mode, skip rate limiting for testing
+    const mockMode = process.env.NEXT_PUBLIC_PTM_MOCK_MODE === 'true'
+    if (mockMode) {
+      return {
+        allowed: true,
+        remaining: config.requests,
+        resetAt: new Date(Date.now() + config.window),
+      }
+    }
+
+    const supabase = createServiceClient()
 
     // Calculate time window start
     const windowStart = new Date(Date.now() - config.window)
@@ -93,6 +104,12 @@ export async function recordRateLimit(
   endpoint?: string
 ): Promise<void> {
   try {
+    // In mock/demo mode, skip recording for testing
+    const mockMode = process.env.NEXT_PUBLIC_PTM_MOCK_MODE === 'true'
+    if (mockMode) {
+      return // Skip recording in mock mode
+    }
+
     const supabase = createServiceClient()
 
     // Note: rate_limits table exists but types may not be generated yet
