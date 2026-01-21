@@ -39,19 +39,17 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Get authenticated user
-    const supabase = await createClient()
-    let userId: string
-
     // Check if in mock/demo mode
     const mockMode = process.env.NEXT_PUBLIC_PTM_MOCK_MODE === 'true'
     const mockTeacherId = process.env.NEXT_PUBLIC_PTM_MOCK_TEACHER_ID
+    let userId: string
 
     if (mockMode && mockTeacherId) {
       // Use mock teacher ID for demo mode
       userId = mockTeacherId
     } else {
       // Production: require authentication
+      const supabase = await createClient()
       const {
         data: { user },
         error: authError,

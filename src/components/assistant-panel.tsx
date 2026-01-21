@@ -397,21 +397,157 @@ function AssistantBody({ onStudentClick, onStudentClickWithClass, incomingMessag
       setMessages((prev) => [...prev, userMessage])
       setIsLoading(true)
 
-      // Simulate assistant response
-      setTimeout(() => {
-        const assistantMessage: Message = {
-          id: generateMessageId(),
-          role: 'assistant',
-          content: 'This is a simulated response. In a real implementation, this would connect to an AI service.',
-          timestamp: new Date(),
-        }
-        setMessages((prev) => [...prev, assistantMessage])
-        setIsLoading(false)
-      }, 1000)
-
+      // Process incoming message with real API call
+      handleRealTimeMessage(incomingMessage)
       onMessageProcessed?.()
     }
-  }, [incomingMessage, onMessageProcessed])
+  }, [incomingMessage, onMessageProcessed, messages, onStudentClick, onStudentClickWithClass])
+
+  // Handle real-time message processing
+  const handleRealTimeMessage = async (messageText: string) => {
+    try {
+      // Check if message matches PTM natural language patterns
+      const ptmPatterns = [
+        'parent teacher meeting',
+        'parents teacher meeting',
+        'parent-teacher meeting',
+        'parent teacher conference',
+        'parents teacher conference',
+        'ptm',
+        'prepare for meeting with parents',
+        'prepare for parent meeting',
+        'help with parent meeting',
+        'parent meeting',
+        'meeting with parents',
+      ]
+
+      const isPTMRequest = ptmPatterns.some(pattern =>
+        messageText.toLowerCase().includes(pattern) &&
+        (messageText.toLowerCase().includes('prepare') ||
+         messageText.toLowerCase().includes('help') ||
+         messageText.toLowerCase().includes('ready') ||
+         messageText.toLowerCase().includes('upcoming') ||
+         messageText.toLowerCase().includes('next') ||
+         messageText.toLowerCase() === pattern)
+      )
+
+      // For PTM requests, skip OpenAI and show component directly
+      if (isPTMRequest) {
+        // Show loading indicator briefly
+        const loadingMessage: Message = {
+          id: generateMessageId(),
+          role: 'assistant',
+          content: 'Loading PTM data...',
+          timestamp: new Date(),
+          isThinking: true,
+        }
+        setMessages((prev) => [...prev, loadingMessage])
+
+        // Small delay for better UX
+        await new Promise(resolve => setTimeout(resolve, 500))
+
+        // Remove loading and show PTM component
+        setMessages((prev) => prev.filter((msg) => !msg.isThinking))
+
+        const ptmMessage: Message = {
+          id: generateMessageId(),
+          role: 'assistant',
+          content: <PTMResponseContent onStudentClick={onStudentClick} onStudentClickWithClass={onStudentClickWithClass} />,
+          timestamp: new Date(),
+        }
+        setMessages((prev) => [...prev, ptmMessage])
+        setIsLoading(false)
+        return
+      }
+
+      // For non-PTM requests, use OpenAI streaming
+      // Create streaming message
+      const streamingMessageId = generateMessageId()
+      const streamingMessage: Message = {
+        id: streamingMessageId,
+        role: 'assistant',
+        content: '',
+        timestamp: new Date(),
+      }
+      setMessages((prev) => [...prev, streamingMessage])
+
+      // Call streaming API
+      const response = await fetch('/api/chat/stream', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: messageText,
+          conversationHistory: messages
+            .filter(m => typeof m.content === 'string' && !m.isThinking)
+            .map(m => ({
+              role: m.role,
+              content: m.content as string,
+            })),
+          isPTMRequest: false,
+        }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to send message')
+      }
+
+      // Handle streaming response
+      const reader = response.body?.getReader()
+      const decoder = new TextDecoder()
+      let accumulatedContent = ''
+
+      if (reader) {
+        while (true) {
+          const { done, value } = await reader.read()
+          if (done) break
+
+          const chunk = decoder.decode(value)
+          const lines = chunk.split('\n\n')
+
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              const data = JSON.parse(line.slice(6))
+
+              if (data.content) {
+                accumulatedContent += data.content
+                // Update streaming message
+                setMessages((prev) =>
+                  prev.map((msg) =>
+                    msg.id === streamingMessageId
+                      ? { ...msg, content: accumulatedContent }
+                      : msg
+                  )
+                )
+              }
+
+              if (data.error) {
+                throw new Error(data.error)
+              }
+            }
+          }
+        }
+      }
+
+      setIsLoading(false)
+    } catch (error) {
+      console.error('Real-time message error:', error)
+      // Remove failed streaming message
+      setMessages((prev) => prev.filter(m => m.content !== ''))
+
+      // Add error message
+      const errorMessage: Message = {
+        id: generateMessageId(),
+        role: 'assistant',
+        content: `Sorry, I encountered an error: ${error instanceof Error ? error.message : 'Unknown error'}. Please try again.`,
+        timestamp: new Date(),
+      }
+      setMessages((prev) => [...prev, errorMessage])
+      setIsLoading(false)
+    }
+  }
 
   const handleSendMessage = async () => {
     if (!input.trim() || isLoading) return
