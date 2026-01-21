@@ -117,6 +117,7 @@ const primaryPages = [
   { key: 'myschool', label: 'My School', icon: School, tooltip: 'My School' },
   { key: 'teaching', label: 'Teaching', icon: GraduationCap, tooltip: 'Teaching' },
   { key: 'learning', label: 'Learning', icon: BookOpen, tooltip: 'Learning', externalUrl: 'https://moesingapore.sana.ai/' },
+  { key: 'goals', label: 'Goal / Journey', icon: TrendingUp, tooltip: 'Goal / Journey' },
   // { key: 'community', label: 'Community', icon: Users2, tooltip: 'Community' }, // Hidden
   { key: 'inbox', label: 'Communications', icon: Inbox, tooltip: 'Communications' },
   { key: 'announcements', label: 'Announcements', icon: MessageSquare, tooltip: 'Announcements' },
@@ -299,6 +300,14 @@ const emptyStates: Record<TabKey, EmptyState> = {
       'Access courses, resources, and professional development opportunities.',
     icon: BookOpen,
     primaryAction: 'Browse courses',
+  },
+  goals: {
+    heading: 'Goal / Journey',
+    title: 'Professional Development Goals',
+    description:
+      'Track your professional development goals and learning progress.',
+    icon: TrendingUp,
+    primaryAction: 'View Goals',
   },
   community: {
     heading: 'Community',
