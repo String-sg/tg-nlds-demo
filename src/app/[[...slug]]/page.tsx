@@ -64,6 +64,7 @@ import { AnnouncementsContent } from '@/components/messages/announcements-conten
 import { FormsContent } from '@/components/forms-content'
 import { TeachingContent } from '@/components/teaching-content'
 import { LearningContent } from '@/components/learning-content'
+import { GoalsContent } from '@/components/goals-content'
 import { CommunityContent } from '@/components/community-content'
 import { TimetableTabContent } from '@/components/timetable/timetable-tab-content'
 import { CalendarContent } from '@/components/calendar-content'
@@ -537,6 +538,10 @@ const TabContent = memo(function TabContent({
       ? currentUrl.split('/')[1] as 'my-courses' | 'browse' | 'certificates'
       : undefined
     return <LearningContent defaultTab={tabFromUrl} />
+  }
+
+  if (currentUrl === 'goals') {
+    return <GoalsContent />
   }
 
   if (currentUrl === 'community' || currentUrl.startsWith('community/')) {
@@ -2094,7 +2099,7 @@ export default function Home() {
               <div className="space-y-1">
                 <SidebarGroupLabel className="text-sm">Professional Development</SidebarGroupLabel>
                 <SidebarMenu>
-                  {[primaryPages[4]].filter(page => page !== undefined).map((page) => {
+                  {[primaryPages[4], primaryPages[5]].filter(page => page !== undefined).map((page) => {
                     const Icon = page.icon
 
                     return (
