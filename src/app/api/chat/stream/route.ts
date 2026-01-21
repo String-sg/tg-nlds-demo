@@ -251,14 +251,62 @@ async function buildSystemPrompt(
       })
 
       // Search for content related to the user's message
+      // Try multiple search strategies to find relevant content
       const searchQuery = message.toLowerCase()
-      const searchResult = await notionMCP.executeTool('notion_search', {
+      let searchResult = await notionMCP.executeTool('notion_search', {
         query: searchQuery
       })
 
+      // If no results, try broader search terms
+      if (!searchResult?.results?.length) {
+        const broadTerms = searchQuery.split(' ').filter(word => word.length > 3)
+        if (broadTerms.length > 0) {
+          searchResult = await notionMCP.executeTool('notion_search', {
+            query: broadTerms[0]
+          })
+        }
+      }
+
+      // If still no results, try empty search to get all accessible content
+      if (!searchResult?.results?.length) {
+        searchResult = await notionMCP.executeTool('notion_search', {
+          query: ''
+        })
+      }
+
       if (searchResult?.results?.length > 0) {
-        const pageList = searchResult.results.slice(0, 10).map((page: any) => {
-          return `- **${page.title}** (${page.object}): ${page.url}`
+        // Try to get actual page content for the top results
+        const enrichedPages = []
+
+        for (const page of searchResult.results.slice(0, 5)) {
+          try {
+            if (page.object === 'page') {
+              // Get full page content
+              const pageContent = await notionMCP.executeTool('notion_get_page', {
+                page_id: page.id
+              })
+
+              const contentPreview = pageContent.content
+                ?.map((block: any) => block.text || '')
+                .filter((text: string) => text.trim())
+                .slice(0, 3)
+                .join(' ')
+
+              enrichedPages.push({
+                ...page,
+                contentPreview: contentPreview ? `Content: ${contentPreview}...` : ''
+              })
+            } else {
+              enrichedPages.push(page)
+            }
+          } catch (error) {
+            console.error(`Error getting page content for ${page.id}:`, error)
+            enrichedPages.push(page)
+          }
+        }
+
+        const pageList = enrichedPages.map((page: any) => {
+          return `- **${page.title}** (${page.object}): ${page.url}${page.contentPreview ? `\n  ${page.contentPreview}` : ''}`
         }).join('\n')
 
         notionSearchResults = `
