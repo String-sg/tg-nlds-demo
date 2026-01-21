@@ -258,8 +258,7 @@ async function buildSystemPrompt(
 
       if (searchResult?.results?.length > 0) {
         const pageList = searchResult.results.slice(0, 10).map((page: any) => {
-          const pageId = page.url ? page.url.split('/').pop()?.split('?')[0] : page.id
-          return `- **${page.title}** (${page.object}): [View Page](opal2.moe.edu.sg/${pageId})`
+          return `- **${page.title}** (${page.object}): ${page.url}`
         }).join('\n')
 
         notionSearchResults = `
