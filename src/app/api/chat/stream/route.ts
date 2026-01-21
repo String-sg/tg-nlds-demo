@@ -338,22 +338,21 @@ IMPORTANT INSTRUCTIONS:
 2. Always cite MULTIPLE relevant pages when available - don't just use one source
 3. Reference different pages for different aspects of your answer
 4. MENTION FILES AND ATTACHMENTS when they appear on pages (PDFs, images, videos, etc.)
-5. Structure your response: direct answer, frameworks from multiple sources, file references, citations
-6. End with a comprehensive "Recommended Further Reading" section organized by topic
+5. Structure your response: direct answer, frameworks from multiple sources, file references, inline citations
+6. Use numbered hyperlinked citations throughout the text
 
-Citation format: [Page Title](actual-notion-url)
+NUMBERED HYPERLINKED CITATIONS:
+Use small numbered citations that link directly to the sources: [1](URL), [2](URL), etc.
+
+Example response with numbered hyperlinked citations:
+"According to your SEND Space [1](https://www.notion.so/send-space-url), the CALM framework includes: Check for safety, Avoid power struggles, Let others know, Make sure an adult stays. Your Student Support Guide [2](https://www.notion.so/guide-url) provides additional de-escalation scripts, while the School SOPs [3](https://www.notion.so/sops-url) outline follow-up procedures..."
 
 When pages contain files, mention them:
-"Your [SEND Space](https://www.notion.so/page-url) contains the CALM framework and includes a PDF guide for implementation..."
+"Your SEND Space [1](https://www.notion.so/page-url) contains the CALM framework and includes supporting PDF documents for implementation..."
 
-Example multi-source response with files:
-"According to your [SEND Space](https://www.notion.so/url1), the CALM framework includes... The page also contains supporting PDF documents. Additionally, your [Student Support Guide](https://www.notion.so/url2) provides de-escalation scripts and video examples..."
+Citation format: [1](actual-notion-url), [2](actual-notion-url), etc.
 
-MARKDOWN LINK RULES:
-1. NEVER put URLs in plain parentheses like: (https://...)
-2. ALWAYS use markdown syntax: [Title](URL)
-3. NO spaces between ] and (
-4. Format each link as: [Page Title](https://www.notion.so/full-url)
+NO "Recommended Further Reading" section needed - citations are inline and clickable.
 
 ALWAYS use multiple sources AND mention any files/attachments found on the pages.
 
@@ -382,28 +381,7 @@ CITATION FORMAT REQUIREMENTS:
 - NO line breaks between items in lists
 - Group by relevant categories
 
-PROPER MARKDOWN FORMATTING REQUIRED:
-
-## 📚 Recommended Further Reading
-
-**Educational Resources:**
-- [Physics Space](https://www.notion.so/Physics-Space-215970a387f280deaa8ee1dbfb3a1cf7)
-- [Economics Space](https://www.notion.so/Economics-Space-210970a387f280459a27dc50a0c414e1)
-
-**Technical Development:**
-- [MCP Server Prototype](https://www.notion.so/Prototype-nLDS-MCP-Server-2e6970a387f280399764fc5db0a5d27a)
-
-CRITICAL:
-- Use proper markdown link syntax: [Title](URL)
-- NO line breaks within links
-- NO parentheses around URLs without proper markdown syntax
-- Ensure URLs are properly formatted and clickable
-
-WRONG FORMAT:
-[Title] (URL)
-
-CORRECT FORMAT:
-[Title](URL)`
+Keep responses clean and focused with inline citations only.`
 
   // If PTM request, enrich with student data
   if (isPTMRequest) {
