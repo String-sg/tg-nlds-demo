@@ -116,8 +116,8 @@ const primaryPages = [
   { key: 'classroom', label: 'My Classes', icon: Users, tooltip: 'My Classes' },
   { key: 'myschool', label: 'My School', icon: School, tooltip: 'My School' },
   { key: 'teaching', label: 'Teaching', icon: GraduationCap, tooltip: 'Teaching' },
-  { key: 'learning', label: 'Learning', icon: BookOpen, tooltip: 'Learning' },
-  { key: 'community', label: 'Community', icon: Users2, tooltip: 'Community' },
+  { key: 'learning', label: 'Learning', icon: BookOpen, tooltip: 'Learning', externalUrl: 'https://moesingapore.sana.ai/' },
+  // { key: 'community', label: 'Community', icon: Users2, tooltip: 'Community' }, // Hidden
   { key: 'inbox', label: 'Communications', icon: Inbox, tooltip: 'Communications' },
   { key: 'announcements', label: 'Announcements', icon: MessageSquare, tooltip: 'Announcements' },
   { key: 'inbox', label: 'Parent Communication', icon: Presentation, tooltip: 'Parent Communication' },
@@ -2085,7 +2085,7 @@ export default function Home() {
               <div className="space-y-1">
                 <SidebarGroupLabel className="text-sm">Professional Development</SidebarGroupLabel>
                 <SidebarMenu>
-                  {[primaryPages[4], primaryPages[5]].map((page) => {
+                  {[primaryPages[4]].filter(page => page !== undefined).map((page) => {
                     const Icon = page.icon
 
                     return (
@@ -2093,7 +2093,14 @@ export default function Home() {
                         <SidebarMenuButton
                           tooltip={page.tooltip}
                           isActive={activeTab === page.key}
-                          onClick={() => handleNavigate(page.key)}
+                          onClick={() => {
+                            // Handle external URL
+                            if (page.externalUrl) {
+                              window.open(page.externalUrl, '_blank', 'noopener,noreferrer')
+                            } else {
+                              handleNavigate(page.key)
+                            }
+                          }}
                           type="button"
                         >
                           <Icon className="size-4" />
@@ -2428,8 +2435,8 @@ export default function Home() {
               </div>
             </div>
             <div className="flex flex-col bg-background">
-              {/* Page Header */}
-              <div className="flex h-16 items-center gap-3 px-4 border-b border-muted">
+              {/* Page Header - Hidden for cleaner interface */}
+              <div className="hidden h-16 items-center gap-3 px-4 border-b border-muted">
                 <SidebarTrigger className="md:hidden" />
                 <div className="hidden flex-1 md:flex items-center">
                   {/* Breadcrumbs */}

@@ -66,6 +66,13 @@ export default function RootLayout({
               enableSystem
               disableTransitionOnChange
             >
+              {/* Demo Banner - Absolute top of the app */}
+              <div className="bg-blue-50 border-b border-blue-200 px-6 py-2 w-full">
+                <p className="text-sm text-blue-800 text-center">
+                  This is a demo and may not 100% mirror the actual implementation of Teachers Workspace
+                </p>
+              </div>
+
               <QueryProvider>
                 <UserProvider>
                   <UserRoleProvider>
