@@ -372,14 +372,13 @@ ALWAYS use multiple sources AND mention any files/attachments found on the pages
 IMPORTANT: Structure your responses with proper formatting:
 
 1. **Direct answer** addressing the core question
-2. **Key frameworks/information** from the search results with proper citations
-3. **Recommended Further Reading** section
+2. **Key frameworks/information** from the search results with inline numbered citations
+3. **NO separate reading section** - use only inline citations
 
 CITATION FORMAT REQUIREMENTS:
-- Use the ACTUAL Notion URLs provided above (https://www.notion.so/...)
-- Format: [Page Title](https://www.notion.so/full-url)
-- NO line breaks between items in lists
-- Group by relevant categories
+- Use numbered hyperlinked citations: [1](URL), [2](URL), [3](URL)
+- Reference sources directly in the text flow
+- Multiple sources should be cited throughout the response
 
 Keep responses clean and focused with inline citations only.`
 
