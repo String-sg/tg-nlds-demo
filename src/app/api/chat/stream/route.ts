@@ -286,15 +286,31 @@ async function buildSystemPrompt(
                 page_id: page.id
               })
 
-              const contentPreview = pageContent.content
-                ?.map((block: any) => block.text || '')
+              // Extract both text content and files
+              const textContent = pageContent.content
+                ?.filter((block: any) => block.text)
+                .map((block: any) => block.text)
                 .filter((text: string) => text.trim())
                 .slice(0, 3)
                 .join(' ')
 
+              const files = pageContent.content
+                ?.filter((block: any) => ['file', 'pdf', 'image', 'video', 'audio', 'embed'].includes(block.type))
+                .map((block: any) => `${block.type}: ${block.file_name || block.url || 'Unknown'}`)
+
+              let contentPreview = ''
+              if (textContent) {
+                contentPreview += `Content: ${textContent}...`
+              }
+              if (files && files.length > 0) {
+                contentPreview += (contentPreview ? '\n  ' : '') + `Files: ${files.join(', ')}`
+              }
+
               enrichedPages.push({
                 ...page,
-                contentPreview: contentPreview ? `Content: ${contentPreview}...` : ''
+                contentPreview,
+                hasFiles: files && files.length > 0,
+                fileCount: files ? files.length : 0
               })
             } else {
               enrichedPages.push(page)
@@ -321,15 +337,25 @@ IMPORTANT INSTRUCTIONS:
 1. Use ONLY the content from these pages to answer the question
 2. Always cite MULTIPLE relevant pages when available - don't just use one source
 3. Reference different pages for different aspects of your answer
-4. Structure your response: direct answer, frameworks from multiple sources, citations
-5. End with a comprehensive "Recommended Further Reading" section organized by topic
+4. MENTION FILES AND ATTACHMENTS when they appear on pages (PDFs, images, videos, etc.)
+5. Structure your response: direct answer, frameworks from multiple sources, file references, citations
+6. End with a comprehensive "Recommended Further Reading" section organized by topic
 
 Citation format: [Page Title](actual-notion-url)
 
-Example multi-source response:
-"According to your [SEND Space](notion-url-1), the CALM framework includes... Additionally, your [Student Support Guide](notion-url-2) provides de-escalation scripts, while [School SOPs](notion-url-3) outline the follow-up procedures..."
+When pages contain files, mention them:
+"Your [SEND Space](https://www.notion.so/page-url) contains the CALM framework and includes a PDF guide for implementation..."
 
-ALWAYS use multiple sources when available to provide comprehensive answers.
+Example multi-source response with files:
+"According to your [SEND Space](https://www.notion.so/url1), the CALM framework includes... The page also contains supporting PDF documents. Additionally, your [Student Support Guide](https://www.notion.so/url2) provides de-escalation scripts and video examples..."
+
+MARKDOWN LINK RULES:
+1. NEVER put URLs in plain parentheses like: (https://...)
+2. ALWAYS use markdown syntax: [Title](URL)
+3. NO spaces between ] and (
+4. Format each link as: [Page Title](https://www.notion.so/full-url)
+
+ALWAYS use multiple sources AND mention any files/attachments found on the pages.
 
 `
       }
@@ -356,7 +382,8 @@ CITATION FORMAT REQUIREMENTS:
 - NO line breaks between items in lists
 - Group by relevant categories
 
-Recommended Further Reading format:
+PROPER MARKDOWN FORMATTING REQUIRED:
+
 ## 📚 Recommended Further Reading
 
 **Educational Resources:**
@@ -366,7 +393,17 @@ Recommended Further Reading format:
 **Technical Development:**
 - [MCP Server Prototype](https://www.notion.so/Prototype-nLDS-MCP-Server-2e6970a387f280399764fc5db0a5d27a)
 
-Use the EXACT URLs from the search results above. Do NOT use opal2.moe.edu.sg format.`
+CRITICAL:
+- Use proper markdown link syntax: [Title](URL)
+- NO line breaks within links
+- NO parentheses around URLs without proper markdown syntax
+- Ensure URLs are properly formatted and clickable
+
+WRONG FORMAT:
+[Title] (URL)
+
+CORRECT FORMAT:
+[Title](URL)`
 
   // If PTM request, enrich with student data
   if (isPTMRequest) {

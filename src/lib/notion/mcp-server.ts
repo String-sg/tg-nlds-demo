@@ -267,7 +267,57 @@ export class NotionMCPService {
           text: block.to_do?.rich_text?.map((t: any) => t.plain_text).join('') || '',
           checked: block.to_do?.checked || false
         }
+      case 'file':
+        return {
+          ...baseBlock,
+          type: 'file',
+          file_url: block.file?.url || block.file?.file?.url,
+          file_name: block.file?.name || block.file?.file?.name || 'Unnamed file',
+          caption: block.file?.caption?.map((t: any) => t.plain_text).join('') || '',
+          file_type: block.file?.type || 'unknown'
+        }
+      case 'pdf':
+        return {
+          ...baseBlock,
+          type: 'pdf',
+          file_url: block.pdf?.url || block.pdf?.file?.url,
+          file_name: block.pdf?.name || block.pdf?.file?.name || 'Unnamed PDF',
+          caption: block.pdf?.caption?.map((t: any) => t.plain_text).join('') || ''
+        }
+      case 'video':
+        return {
+          ...baseBlock,
+          type: 'video',
+          file_url: block.video?.url || block.video?.file?.url || block.video?.external?.url,
+          file_name: block.video?.name || block.video?.file?.name || 'Video',
+          caption: block.video?.caption?.map((t: any) => t.plain_text).join('') || ''
+        }
+      case 'image':
+        return {
+          ...baseBlock,
+          type: 'image',
+          file_url: block.image?.url || block.image?.file?.url || block.image?.external?.url,
+          file_name: block.image?.name || block.image?.file?.name || 'Image',
+          caption: block.image?.caption?.map((t: any) => t.plain_text).join('') || ''
+        }
+      case 'audio':
+        return {
+          ...baseBlock,
+          type: 'audio',
+          file_url: block.audio?.url || block.audio?.file?.url || block.audio?.external?.url,
+          file_name: block.audio?.name || block.audio?.file?.name || 'Audio',
+          caption: block.audio?.caption?.map((t: any) => t.plain_text).join('') || ''
+        }
+      case 'embed':
+        return {
+          ...baseBlock,
+          type: 'embed',
+          url: block.embed?.url,
+          caption: block.embed?.caption?.map((t: any) => t.plain_text).join('') || ''
+        }
       default:
+        // Log unknown block types for debugging
+        console.log('Unknown block type:', block.type, block)
         return baseBlock
     }
   }
