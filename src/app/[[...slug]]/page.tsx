@@ -112,7 +112,15 @@ import {
 import { useRouteBreadcrumbs } from '@/hooks/queries/use-route-breadcrumbs-query'
 import { Breadcrumbs } from '@/components/ui/breadcrumbs'
 
-const primaryPages = [
+type PrimaryPage = {
+  key: string
+  label: string
+  icon: any
+  tooltip: string
+  externalUrl?: string
+}
+
+const primaryPages: PrimaryPage[] = [
   { key: 'home', label: 'Home', icon: HomeIcon, tooltip: 'Home' },
   { key: 'classroom', label: 'My Classes', icon: Users, tooltip: 'My Classes' },
   { key: 'myschool', label: 'My School', icon: School, tooltip: 'My School' },
@@ -126,7 +134,7 @@ const primaryPages = [
   { key: 'calendar', label: 'Timetable', icon: CalendarDays, tooltip: 'Timetable' },
   { key: 'forms', label: 'Forms', icon: FileText, tooltip: 'Forms' },
   { key: 'explore', label: 'Discover', icon: Compass, tooltip: 'Discover' },
-] as const
+]
 
 const newTabConfig = {
   key: 'new-tab',
@@ -309,14 +317,6 @@ const emptyStates: Record<TabKey, EmptyState> = {
       'Track your professional development goals and learning progress.',
     icon: TrendingUp,
     primaryAction: 'View Goals',
-  },
-  community: {
-    heading: 'Community',
-    title: 'Connect with colleagues',
-    description:
-      'Engage with your school community, share resources, and collaborate.',
-    icon: Users2,
-    primaryAction: 'Join discussion',
   },
   forms: {
     heading: 'Forms',
