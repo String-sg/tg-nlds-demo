@@ -64,6 +64,7 @@ import { AnnouncementsContent } from '@/components/messages/announcements-conten
 import { FormsContent } from '@/components/forms-content'
 import { TeachingContent } from '@/components/teaching-content'
 import { LearningContent } from '@/components/learning-content'
+import { GoalsContent } from '@/components/goals-content'
 import { CommunityContent } from '@/components/community-content'
 import { TimetableTabContent } from '@/components/timetable/timetable-tab-content'
 import { CalendarContent } from '@/components/calendar-content'
@@ -116,8 +117,9 @@ const primaryPages = [
   { key: 'classroom', label: 'My Classes', icon: Users, tooltip: 'My Classes' },
   { key: 'myschool', label: 'My School', icon: School, tooltip: 'My School' },
   { key: 'teaching', label: 'Teaching', icon: GraduationCap, tooltip: 'Teaching' },
-  { key: 'learning', label: 'Learning', icon: BookOpen, tooltip: 'Learning' },
-  { key: 'community', label: 'Community', icon: Users2, tooltip: 'Community' },
+  { key: 'learning', label: 'Learning', icon: BookOpen, tooltip: 'Learning', externalUrl: 'https://moesingapore.sana.ai/' },
+  { key: 'goals', label: 'Goal / Journey', icon: TrendingUp, tooltip: 'Goal / Journey' },
+  // { key: 'community', label: 'Community', icon: Users2, tooltip: 'Community' }, // Hidden
   { key: 'inbox', label: 'Communications', icon: Inbox, tooltip: 'Communications' },
   { key: 'announcements', label: 'Announcements', icon: MessageSquare, tooltip: 'Announcements' },
   { key: 'inbox', label: 'Parent Communication', icon: Presentation, tooltip: 'Parent Communication' },
@@ -299,6 +301,14 @@ const emptyStates: Record<TabKey, EmptyState> = {
       'Access courses, resources, and professional development opportunities.',
     icon: BookOpen,
     primaryAction: 'Browse courses',
+  },
+  goals: {
+    heading: 'Goal / Journey',
+    title: 'Professional Development Goals',
+    description:
+      'Track your professional development goals and learning progress.',
+    icon: TrendingUp,
+    primaryAction: 'View Goals',
   },
   community: {
     heading: 'Community',
@@ -528,6 +538,10 @@ const TabContent = memo(function TabContent({
       ? currentUrl.split('/')[1] as 'my-courses' | 'browse' | 'certificates'
       : undefined
     return <LearningContent defaultTab={tabFromUrl} />
+  }
+
+  if (currentUrl === 'goals') {
+    return <GoalsContent />
   }
 
   if (currentUrl === 'community' || currentUrl.startsWith('community/')) {
@@ -935,9 +949,7 @@ const TabContent = memo(function TabContent({
         <Button size="sm" onClick={() => handleNavigate('home')}>
           Go Home
         </Button>
-        <Button size="sm" variant="outline" onClick={() => handleNavigate('daily-roundup')}>
-          Open Daily Roundup
-        </Button>
+        {/* Daily Roundup button removed */}
       </div>
     </div>
   )
@@ -1667,12 +1679,7 @@ export default function Home() {
         classroomNamesRef.current = parsedMap
       }
 
-      // Check if user has seen Daily Roundup - if not and on home, navigate to daily-roundup
-      const hasSeenDailyRoundup = sessionStorage.getItem('hasSeenDailyRoundup')
-      if (!hasSeenDailyRoundup && currentUrl === 'home') {
-        // First-time user, navigate to daily-roundup
-        router.push('/daily-roundup')
-      }
+      // Daily Roundup disabled - users start on home page
     } catch (error) {
       // If sessionStorage is corrupted or full, clear it and start fresh
       console.error('Failed to restore tabs from sessionStorage:', error)
@@ -2055,7 +2062,8 @@ export default function Home() {
                 </>
               )}
 
-              {/* School life section */}
+              {/* School life section - HIDDEN */}
+              {/*
               <div className="space-y-1">
                 <SidebarGroupLabel className="text-sm">School Life</SidebarGroupLabel>
                 <SidebarMenu>
@@ -2083,6 +2091,7 @@ export default function Home() {
                   })}
                 </SidebarMenu>
               </div>
+              */}
 
               <SidebarSeparator className="mx-0 my-2 w-full" />
 
@@ -2090,7 +2099,7 @@ export default function Home() {
               <div className="space-y-1">
                 <SidebarGroupLabel className="text-sm">Professional Development</SidebarGroupLabel>
                 <SidebarMenu>
-                  {[primaryPages[4], primaryPages[5]].map((page) => {
+                  {[primaryPages[4], primaryPages[5]].filter(page => page !== undefined).map((page) => {
                     const Icon = page.icon
 
                     return (
@@ -2098,7 +2107,14 @@ export default function Home() {
                         <SidebarMenuButton
                           tooltip={page.tooltip}
                           isActive={activeTab === page.key}
-                          onClick={() => handleNavigate(page.key)}
+                          onClick={() => {
+                            // Handle external URL
+                            if (page.externalUrl) {
+                              window.open(page.externalUrl, '_blank', 'noopener,noreferrer')
+                            } else {
+                              handleNavigate(page.key)
+                            }
+                          }}
                           type="button"
                         >
                           <Icon className="size-4" />
@@ -2433,8 +2449,8 @@ export default function Home() {
               </div>
             </div>
             <div className="flex flex-col bg-background">
-              {/* Page Header */}
-              <div className="flex h-16 items-center gap-3 px-4 border-b border-muted">
+              {/* Page Header - Hidden for cleaner interface */}
+              <div className="hidden h-16 items-center gap-3 px-4 border-b border-muted">
                 <SidebarTrigger className="md:hidden" />
                 <div className="hidden flex-1 md:flex items-center">
                   {/* Breadcrumbs */}

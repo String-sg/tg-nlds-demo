@@ -31,7 +31,7 @@ function looksLikeHeading(block: string): boolean {
 }
 
 function renderInline(text: string): React.ReactNode[] {
-  // Basic inline formatting: **bold**, *italic*, `code`
+  // Basic inline formatting: **bold**, *italic*, `code`, [link](url)
   const parts: React.ReactNode[] = []
   let remaining = text
   // Simple, non-greedy passes; order matters
@@ -40,7 +40,23 @@ function renderInline(text: string): React.ReactNode[] {
     parts.push(t)
   }
 
-  // Replace backtick code first
+  // Replace hyperlinks first [text](url)
+  remaining = remaining.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_m, linkText, url) => {
+    parts.push(
+      <a
+        key={`link-${parts.length}`}
+        href={url}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="text-blue-600 hover:text-blue-800 underline"
+      >
+        {String(linkText)}
+      </a>
+    )
+    return '\u0003' // placeholder for consumed segment
+  })
+
+  // Replace backtick code
   remaining = remaining.replace(/`([^`]+)`/g, (_m, p1) => {
     parts.push(
       <code key={`code-${parts.length}`} className="rounded bg-muted px-1 py-0.5 text-[0.9em]">
@@ -50,43 +66,49 @@ function renderInline(text: string): React.ReactNode[] {
     return '\u0000' // placeholder for consumed segment
   })
 
-  // Split by placeholder to interleave
-  const codeSplit = remaining.split('\u0000')
-  for (let i = 0; i < codeSplit.length; i++) {
-    const seg = codeSplit[i]
-    // bold
-    let tmpParts: React.ReactNode[] = []
-    let tmp = seg
-    tmp = tmp.replace(/\*\*([^*]+)\*\*/g, (_m, p1) => {
-      tmpParts.push(
-        <strong key={`b-${parts.length}-${tmpParts.length}`}>{String(p1)}</strong>
-      )
-      return '\u0001'
-    })
-    const boldSplit = tmp.split('\u0001')
-    for (let j = 0; j < boldSplit.length; j++) {
-      const seg2 = boldSplit[j]
-      // italic
-      let italParts: React.ReactNode[] = []
-      let ital = seg2
-      ital = ital.replace(/\*([^*]+)\*/g, (_m, p1) => {
-        italParts.push(
-          <em key={`i-${parts.length}-${tmpParts.length}-${italParts.length}`}>{
-            String(p1)
-          }</em>
+  // Split by link placeholder first, then by code placeholder to interleave
+  const linkSplit = remaining.split('\u0003')
+  for (let l = 0; l < linkSplit.length; l++) {
+    const linkSeg = linkSplit[l]
+    const codeSplit = linkSeg.split('\u0000')
+    for (let i = 0; i < codeSplit.length; i++) {
+      const seg = codeSplit[i]
+      // bold
+      let tmpParts: React.ReactNode[] = []
+      let tmp = seg
+      tmp = tmp.replace(/\*\*([^*]+)\*\*/g, (_m, p1) => {
+        tmpParts.push(
+          <strong key={`b-${parts.length}-${tmpParts.length}`}>{String(p1)}</strong>
         )
-        return '\u0002'
+        return '\u0001'
       })
-      const italSplit = ital.split('\u0002')
-      // Interleave plain/italic
-      for (let k = 0; k < italSplit.length; k++) {
-        pushText(italSplit[k])
-        if (k < italParts.length) parts.push(italParts[k])
+      const boldSplit = tmp.split('\u0001')
+      for (let j = 0; j < boldSplit.length; j++) {
+        const seg2 = boldSplit[j]
+        // italic
+        let italParts: React.ReactNode[] = []
+        let ital = seg2
+        ital = ital.replace(/\*([^*]+)\*/g, (_m, p1) => {
+          italParts.push(
+            <em key={`i-${parts.length}-${tmpParts.length}-${italParts.length}`}>{
+              String(p1)
+            }</em>
+          )
+          return '\u0002'
+        })
+        const italSplit = ital.split('\u0002')
+        // Interleave plain/italic
+        for (let k = 0; k < italSplit.length; k++) {
+          pushText(italSplit[k])
+          if (k < italParts.length) parts.push(italParts[k])
+        }
+        // After each plain segment, add bold if available
+        if (j < tmpParts.length) parts.push(tmpParts[j])
       }
-      // After each plain segment, add bold if available
-      if (j < tmpParts.length) parts.push(tmpParts[j])
+      // After each segment, add code if available
+      // (already interleaved via placeholder splitting)
     }
-    // After each segment, add code if available
+    // After each segment, add link if available
     // (already interleaved via placeholder splitting)
   }
 
