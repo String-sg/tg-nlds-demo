@@ -24,8 +24,8 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { cn } from '@/lib/utils'
-import { createClient } from '@/lib/supabase/client'
-import { getStudentAlerts, type StudentAlert } from '@/lib/supabase/queries'
+import { fetchStudentAlerts } from '@/lib/queries/student-queries'
+import type { StudentAlert } from '@/lib/supabase/queries'
 import { useUser } from '@/contexts/user-context'
 import { comingSoonToast } from '@/lib/coming-soon-toast'
 
@@ -138,7 +138,7 @@ export function HomeContent({ onNavigateToClassroom, onNavigateToExplore, onNavi
   useEffect(() => {
     let isMounted = true
 
-    async function fetchStudentAlerts() {
+    async function loadStudentAlerts() {
       // Wait for user context to finish loading before proceeding
       if (isUserLoading) {
         return
@@ -152,15 +152,12 @@ export function HomeContent({ onNavigateToClassroom, onNavigateToExplore, onNavi
       }
 
       try {
-        const supabase = createClient()
-        const { data, error } = await getStudentAlerts(supabase, userId, 3)
+        // Use API route with service role client to bypass RLS
+        const data = await fetchStudentAlerts(userId, 3)
 
         if (!isMounted) return
 
-        if (error) {
-          console.error('Error fetching student alerts:', error)
-          setStudentAlerts(fallbackStudentAlertsData)
-        } else if (data && data.length > 0) {
+        if (data && data.length > 0) {
           setStudentAlerts(data)
         } else {
           // No alerts found, use fallback
@@ -173,7 +170,7 @@ export function HomeContent({ onNavigateToClassroom, onNavigateToExplore, onNavi
       }
     }
 
-    fetchStudentAlerts()
+    loadStudentAlerts()
 
     return () => {
       isMounted = false
