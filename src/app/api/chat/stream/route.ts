@@ -315,8 +315,8 @@ async function buildSystemPrompt(
             }
 
             // Find matching subject/area
-            let foundSubject = null
-            let foundKeywords = []
+            let foundSubject: string | null = null
+            let foundKeywords: string[] = []
 
             for (const [area, keywords] of Object.entries(subjectAreas)) {
               const matchedKeywords = keywords.filter(keyword =>

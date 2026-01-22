@@ -184,7 +184,7 @@ export class NotionMCPService {
    * Query database
    */
   private async queryDatabase(databaseId: string, filter?: any, sorts?: any[], pageSize: number = 20) {
-    const response = await this.client.databases.query({
+    const response = await (this.client.databases as any).query({
       database_id: databaseId,
       filter,
       sorts,
@@ -192,12 +192,12 @@ export class NotionMCPService {
     })
 
     return {
-      results: response.results.map(page => ({
+      results: response.results.map((page: any) => ({
         id: page.id,
-        properties: (page as any).properties,
-        url: (page as any).url,
-        created: (page as any).created_time,
-        last_edited: (page as any).last_edited_time
+        properties: page.properties,
+        url: page.url,
+        created: page.created_time,
+        last_edited: page.last_edited_time
       })),
       has_more: response.has_more,
       next_cursor: response.next_cursor
