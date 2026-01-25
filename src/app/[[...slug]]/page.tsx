@@ -36,6 +36,7 @@ import {
   ChevronDown,
   RotateCcw,
   Sparkle,
+  Sparkles,
   Presentation,
   Shield,
 } from 'lucide-react'
@@ -64,6 +65,7 @@ import { AnnouncementsContent } from '@/components/messages/announcements-conten
 import { FormsContent } from '@/components/forms-content'
 import { TeachingContent } from '@/components/teaching-content'
 import { LearningContent } from '@/components/learning-content'
+import EducatorHub from '@/components/educator-hub'
 import { GoalsContent } from '@/components/goals-content'
 import { CommunityContent } from '@/components/community-content'
 import { TimetableTabContent } from '@/components/timetable/timetable-tab-content'
@@ -134,6 +136,7 @@ const primaryPages: PrimaryPage[] = [
   { key: 'calendar', label: 'Timetable', icon: CalendarDays, tooltip: 'Timetable' },
   { key: 'forms', label: 'Forms', icon: FileText, tooltip: 'Forms' },
   { key: 'explore', label: 'Discover', icon: Compass, tooltip: 'Discover' },
+  { key: 'educator-hub', label: 'Educator Hub', icon: Sparkles, tooltip: 'Educator Hub' },
 ]
 
 const newTabConfig = {
@@ -237,6 +240,14 @@ const emptyStates: Record<TabKey, EmptyState> = {
       'Browse through all apps and find the tools you need to enhance your workflow.',
     icon: Compass,
     primaryAction: 'View all apps',
+  },
+  'educator-hub': {
+    heading: 'Educator Hub',
+    title: 'Discover your learning path',
+    description:
+      'Explore courses, track growth, and find new opportunities.',
+    icon: Sparkles,
+    primaryAction: 'Start exploring',
   },
   classroom: {
     heading: 'My Classes',
@@ -506,6 +517,10 @@ const TabContent = memo(function TabContent({
         clearSelection={selectedExploreApp === null}
       />
     )
+  }
+
+  if (currentUrl === 'educator-hub') {
+    return <EducatorHub />
   }
 
   if (currentUrl === 'classroom') {
@@ -2099,7 +2114,11 @@ export default function Home() {
               <div className="space-y-1">
                 <SidebarGroupLabel className="text-sm">Professional Development</SidebarGroupLabel>
                 <SidebarMenu>
-                  {[primaryPages[4], primaryPages[5]].filter(page => page !== undefined).map((page) => {
+                  {[
+                    primaryPages[4], 
+                    primaryPages[5],
+                    primaryPages.find(p => p.key === 'educator-hub')
+                  ].filter((page) => page !== undefined).map((page) => {
                     const Icon = page.icon
 
                     return (
