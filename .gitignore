@@ -50,3 +50,5 @@ supabase/.temp/
 
 # claude code
 .claude/settings.json
+
+.vscode/
