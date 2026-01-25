@@ -2,25 +2,20 @@ import React from "react";
 import {
   Search,
   BookOpen,
-  MessageSquare,
   Play,
   FileText,
   Users,
   ChevronRight,
-  Download,
-  Filter,
   Sparkles,
   Bot,
   Brain,
-  Plus,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Table,
   TableBody,
@@ -37,8 +32,25 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 export default function LearningDiscovery() {
+  const [isSearchOpen, setIsSearchOpen] = React.useState(false);
+  const [searchQuery, setSearchQuery] = React.useState("");
+
+  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter" && searchQuery.trim()) {
+       e.preventDefault();
+       setIsSearchOpen(true);
+    }
+  };
+
   return (
     <ScrollArea className="h-full">
       <div className="min-h-screen bg-slate-50 font-sans text-slate-900 pb-20">
@@ -50,6 +62,9 @@ export default function LearningDiscovery() {
                   <Input 
                       className="pl-12 h-12 text-lg shadow-sm border-slate-200 focus-visible:ring-blue-500" 
                       placeholder="Search for &quot;student panic attack in class&quot;..." 
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      onKeyDown={handleSearchKeyDown}
                   />
               </div>
           </section>
@@ -310,6 +325,16 @@ export default function LearningDiscovery() {
                               </Button>
                           </CardContent>
                       </Card>
+                      
+                       <Card className="w-[100px] shrink-0 border-dashed flex items-center justify-center bg-slate-50 hover:bg-slate-100 transition-colors cursor-pointer">
+                          <div className="text-center p-4">
+                              <div className="w-10 h-10 rounded-full bg-slate-200 mx-auto flex items-center justify-center mb-2">
+                                  <ChevronRight className="h-5 w-5 text-slate-500" />
+                              </div>
+                              <span className="text-xs font-medium text-slate-500">View All</span>
+                          </div>
+                      </Card>
+
                   </div>
                   <ScrollBar orientation="horizontal" />
               </ScrollArea>
@@ -432,6 +457,68 @@ export default function LearningDiscovery() {
               </Button>
           </div>
         </div>
+
+        <Dialog open={isSearchOpen} onOpenChange={setIsSearchOpen}>
+            <DialogContent className="sm:max-w-[700px] p-0 overflow-hidden">
+                <div className="p-4 border-b border-slate-100 bg-slate-50/50">
+                    <div className="relative">
+                        <Search className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
+                        <Input 
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="pl-9 h-10 border-slate-200 bg-white" 
+                        />
+                    </div>
+                </div>
+                <ScrollArea className="max-h-[70vh]">
+                    <div className="p-6 space-y-8">
+                        
+                        {/* Section 1: AI Explanation */}
+                        <div className="space-y-4">
+                            <div className="flex items-center gap-2 text-amber-600">
+                                <Sparkles className="h-4 w-4" />
+                                <h4 className="text-sm font-bold uppercase tracking-wider">AI Knowledge Summary</h4>
+                            </div>
+                            <div className="bg-slate-50 p-4 rounded-lg border border-slate-100 text-slate-700 leading-relaxed text-sm">
+                                <p>
+                                    <strong>Student distress</strong> manifests through drastic behavioral changes, academic decline, emotional volatility, and social withdrawal, often triggered by stress, anxiety, or personal crises. Key signs include excessive absences, poor hygiene, in-class outbursts, and mentions of hopelessness or self-harm. Early intervention, open communication, and referrals to counseling services are vital support strategies.
+                                </p>
+                            </div>
+                        </div>
+
+                        {/* Section 2: Course Suggestions */}
+                        <div className="space-y-4">
+                             <div className="flex items-center gap-2 text-blue-600">
+                                <BookOpen className="h-4 w-4" />
+                                <h4 className="text-sm font-bold uppercase tracking-wider">Recommended Resources</h4>
+                            </div>
+                            <div className="grid gap-3">
+                                <div className="p-3 rounded-lg border hover:border-blue-300 hover:bg-blue-50/50 transition-all cursor-pointer group">
+                                    <div className="flex justify-between items-start mb-1">
+                                         <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-200 border-none">Course</Badge>
+                                         <span className="text-xs text-slate-400">45m</span>
+                                    </div>
+                                    <h4 className="font-bold text-slate-800 group-hover:text-blue-700 mb-1">Crisis Intervention Strategies</h4>
+                                    <p className="text-xs text-slate-500">Learn to identify early warning signs and de-escalate emotional crises.</p>
+                                </div>
+                                <div className="p-3 rounded-lg border hover:border-indigo-300 hover:bg-indigo-50/50 transition-all cursor-pointer group">
+                                    <div className="flex justify-between items-start mb-1">
+                                         <Badge className="bg-indigo-100 text-indigo-700 hover:bg-indigo-200 border-none">Article</Badge>
+                                         <span className="text-xs text-slate-400">10m read</span>
+                                    </div>
+                                    <h4 className="font-bold text-slate-800 group-hover:text-indigo-700 mb-1">Understanding Student Anxiety</h4>
+                                    <p className="text-xs text-slate-500">A guide on recognizing the difference between stress and clinical anxiety.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </ScrollArea>
+                <div className="p-2 border-t border-slate-100 bg-slate-50 text-center text-xs text-slate-400">
+                   Press <kbd className="font-sans border rounded px-1 bg-white">Esc</kbd> to close
+                </div>
+            </DialogContent>
+        </Dialog>
 
       </div>
     </ScrollArea>
