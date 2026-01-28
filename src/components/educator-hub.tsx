@@ -43,11 +43,65 @@ import {
 export default function LearningDiscovery() {
   const [isSearchOpen, setIsSearchOpen] = React.useState(false);
   const [searchQuery, setSearchQuery] = React.useState("");
+  const [aiSummary, setAiSummary] = React.useState<string | null>(null);
+  const [isSummaryLoading, setIsSummaryLoading] = React.useState(false);
+  const [recommendations, setRecommendations] = React.useState<any[]>([]);
+  const [isRecsLoading, setIsRecsLoading] = React.useState(false);
 
-  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleSearchKeyDown = async (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && searchQuery.trim()) {
        e.preventDefault();
        setIsSearchOpen(true);
+       
+       // 1. Reset States
+       setIsSummaryLoading(true);
+       setAiSummary(null);
+       setIsRecsLoading(true);
+       setRecommendations([]);
+
+       // 2. Fetch AI Summary
+       const fetchSummary = async () => {
+           try {
+             const response = await fetch('/api/ai-summary', {
+               method: 'POST',
+               headers: { 'Content-Type': 'application/json' },
+               body: JSON.stringify({ query: searchQuery }),
+             });
+             if (response.ok) {
+               const data = await response.json();
+               setAiSummary(data.summary);
+             } else {
+               setAiSummary("Unable to generate summary.");
+             }
+           } catch (error) {
+             setAiSummary("Error generating summary.");
+           } finally {
+             setIsSummaryLoading(false);
+           }
+       };
+
+       // 3. Fetch AI Recommendations
+       const fetchRecs = async () => {
+           try {
+             const response = await fetch('/api/ai-recommendations', {
+               method: 'POST',
+               headers: { 'Content-Type': 'application/json' },
+               body: JSON.stringify({ query: searchQuery }),
+             });
+             if (response.ok) {
+               const data = await response.json();
+               setRecommendations(data.recommendations || []);
+             }
+           } catch (error) {
+             console.error("Recs Error", error);
+           } finally {
+             setIsRecsLoading(false);
+           }
+       };
+
+       // Run in parallel
+       fetchSummary();
+       fetchRecs();
     }
   };
 
@@ -61,13 +115,15 @@ export default function LearningDiscovery() {
                   <Search className="absolute left-4 top-3.5 h-5 w-5 text-slate-400" />
                   <Input 
                       className="pl-12 h-12 text-lg shadow-sm border-slate-200 focus-visible:ring-blue-500" 
-                      placeholder="Search for &quot;student panic attack in class&quot;..." 
+                      placeholder="Search for &quot;my student is having a panic attack&quot;..." 
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       onKeyDown={handleSearchKeyDown}
                   />
               </div>
           </section>
+
+          {/* ... (rest of the component until modal) ... */}
 
           {/* SECTION 2: MY GROWTH COMPASS */}
           <section>
@@ -218,7 +274,7 @@ export default function LearningDiscovery() {
                                <div>
                                    <h4 className="font-bold text-slate-800 text-lg">AI Growth Insight</h4>
                                    <p className="text-sm text-slate-600 mt-1 leading-relaxed">
-                                       "Hi <strong>Danial</strong>, I noticed your learning momentum has slowed since the September peak. While you are excelling as a <strong>Competent Professional (18h)</strong>, your <strong>Transformational Leader (6h)</strong> dimension could use a boost to achieve a balanced profile."
+                                       "Hi <strong>Daniel</strong>, I noticed your learning momentum has slowed since the September peak. While you are excelling as a <strong>Competent Professional (18h)</strong>, your <strong>Transformational Leader (6h)</strong> dimension could use a boost to achieve a balanced profile."
                                    </p>
                                </div>
                             </div>
@@ -466,6 +522,7 @@ export default function LearningDiscovery() {
                         <Input 
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
+                             onKeyDown={handleSearchKeyDown}
                             className="pl-9 h-10 border-slate-200 bg-white" 
                         />
                     </div>
@@ -479,10 +536,15 @@ export default function LearningDiscovery() {
                                 <Sparkles className="h-4 w-4" />
                                 <h4 className="text-sm font-bold uppercase tracking-wider">AI Knowledge Summary</h4>
                             </div>
-                            <div className="bg-slate-50 p-4 rounded-lg border border-slate-100 text-slate-700 leading-relaxed text-sm">
-                                <p>
-                                    <strong>Student distress</strong> manifests through drastic behavioral changes, academic decline, emotional volatility, and social withdrawal, often triggered by stress, anxiety, or personal crises. Key signs include excessive absences, poor hygiene, in-class outbursts, and mentions of hopelessness or self-harm. Early intervention, open communication, and referrals to counseling services are vital support strategies.
-                                </p>
+                            <div className="bg-slate-50 p-4 rounded-lg border border-slate-100 text-slate-700 leading-relaxed text-sm min-h-[80px]">
+                                {isSummaryLoading ? (
+                                    <div className="space-y-2 animate-pulse">
+                                        <div className="h-4 bg-slate-200 rounded w-3/4"></div>
+                                        <div className="h-4 bg-slate-200 rounded w-1/2"></div>
+                                    </div>
+                                ) : (
+                                    <p>{aiSummary || "Search for a term to see an AI-generated summary."}</p>
+                                )}
                             </div>
                         </div>
 
@@ -493,22 +555,39 @@ export default function LearningDiscovery() {
                                 <h4 className="text-sm font-bold uppercase tracking-wider">Recommended Resources</h4>
                             </div>
                             <div className="grid gap-3">
-                                <div className="p-3 rounded-lg border hover:border-blue-300 hover:bg-blue-50/50 transition-all cursor-pointer group">
-                                    <div className="flex justify-between items-start mb-1">
-                                         <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-200 border-none">Course</Badge>
-                                         <span className="text-xs text-slate-400">45m</span>
+                                {isRecsLoading ? (
+                                    <>
+                                        <div className="h-20 bg-slate-100 rounded-lg animate-pulse"></div>
+                                        <div className="h-20 bg-slate-100 rounded-lg animate-pulse"></div>
+                                    </>
+                                ) : recommendations.length > 0 ? (
+                                    recommendations.map((course: any, idx: number) => (
+                                        <a 
+                                            key={idx} 
+                                            href={`https://moesingapore.sana.ai/s/${course.course_id}`} 
+                                            target="_blank" 
+                                            rel="noopener noreferrer"
+                                            className="block"
+                                        >
+                                            <div className="p-3 rounded-lg border hover:border-blue-300 hover:bg-blue-50/50 transition-all cursor-pointer group">
+                                                <div className="flex justify-between items-start mb-1">
+                                                     <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-200 border-none">
+                                                         {course.course_tags_title || 'Course'}
+                                                     </Badge>
+                                                     <span className="text-xs text-slate-400">
+                                                         {course.courses_duration_seconds ? `${Math.round(course.courses_duration_seconds / 60)}m` : 'N/A'}
+                                                     </span>
+                                                </div>
+                                                <h4 className="font-bold text-slate-800 group-hover:text-blue-700 mb-1">{course.course_title}</h4>
+                                                <p className="text-xs text-slate-500">{course.course_tags_title}</p>
+                                            </div>
+                                        </a>
+                                    ))
+                                ) : (
+                                    <div className="text-center p-4 text-slate-400 text-sm">
+                                        No specific recommendations found.
                                     </div>
-                                    <h4 className="font-bold text-slate-800 group-hover:text-blue-700 mb-1">Crisis Intervention Strategies</h4>
-                                    <p className="text-xs text-slate-500">Learn to identify early warning signs and de-escalate emotional crises.</p>
-                                </div>
-                                <div className="p-3 rounded-lg border hover:border-indigo-300 hover:bg-indigo-50/50 transition-all cursor-pointer group">
-                                    <div className="flex justify-between items-start mb-1">
-                                         <Badge className="bg-indigo-100 text-indigo-700 hover:bg-indigo-200 border-none">Article</Badge>
-                                         <span className="text-xs text-slate-400">10m read</span>
-                                    </div>
-                                    <h4 className="font-bold text-slate-800 group-hover:text-indigo-700 mb-1">Understanding Student Anxiety</h4>
-                                    <p className="text-xs text-slate-500">A guide on recognizing the difference between stress and clinical anxiety.</p>
-                                </div>
+                                )}
                             </div>
                         </div>
 
