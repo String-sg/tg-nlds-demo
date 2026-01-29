@@ -9,6 +9,7 @@ import {
   Sparkles,
   Bot,
   Brain,
+  School,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -281,7 +282,7 @@ export default function LearningDiscovery() {
 
                             <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-amber-200/50 p-4 relative z-10">
                                 <h5 className="text-xs font-bold text-amber-700 uppercase tracking-wider mb-3 flex items-center gap-2">
-                                    <Sparkles className="h-3 w-3" />Recommended Next Steps: Leadership & Community
+                                    <Sparkles className="h-3 w-3" />Recommended Next Steps: Courses for Transformational Leader
                                 </h5>
                                 
                                 <div className="space-y-3">
@@ -319,68 +320,57 @@ export default function LearningDiscovery() {
               <h2 className="text-xl md:text-2xl font-bold tracking-tight text-slate-900 mb-6">Continue Your Learning</h2>
               <ScrollArea className="w-full whitespace-nowrap pb-4">
                   <div className="flex w-max space-x-4">
-                      {/* Item 1 */}
-                      <Card className="w-[300px] shrink-0">
+                      {/* Refactored to use array map */}
+                      {[
+                        {
+                          type: "Course",
+                          typeColor: "bg-emerald-600",
+                          icon: FileText,
+                          title: "Upholding the Ethos and Values of the Teaching Profession",
+                          outcome: "Ethical",
+                          progress: 75,
+                          link: "https://moesingapore.sana.ai/program/1e472c90-1439-45a7-99a3-4cccd16bdb39"
+                        },
+                        {
+                          type: "Face-to-face",
+                          typeColor: "bg-emerald-600",
+                          icon: Users,
+                          title: "2026 TSN Foundational Module: Engaging Students with Special Needs in Mainstream Classrooms (IEC4019)",
+                          outcome: "Community",
+                          progress: 0,
+                        },
+                        {
+                          type: "Course",
+                          typeColor: "bg-emerald-600",
+                          icon: FileText,
+                          title: "Standard Malay Language for Beginning Teachers (All",
+                          outcome: "Competent",
+                          progress: 0,
+                        }
+                      ].map((item, index) => (
+                        <Card key={index} className="w-[300px] shrink-0">
                           <div className="h-32 bg-slate-100 relative rounded-t-xl overflow-hidden">
-                               <div className="absolute inset-0 flex items-center justify-center bg-slate-200/50">
-                                  <Play className="h-10 w-10 text-slate-400" />
-                               </div>
-                               <Badge className="absolute top-3 left-3 bg-blue-600">VIDEO MODULE</Badge>
+                              <div className="absolute inset-0 flex items-center justify-center bg-slate-200/50">
+                                <item.icon className="h-10 w-10 text-slate-400" />
+                              </div>
+                              <Badge className={`absolute top-3 left-3 ${item.typeColor}`}>{item.type}</Badge>
                           </div>
                           <CardContent className="p-4">
-                              <h3 className="font-bold text-lg mb-1 truncate">Fostering Student Well-being</h3>
+                              <h3 className="font-bold text-lg mb-1 truncate">{item.title}</h3>
                               <div className="flex items-center justify-between text-sm text-slate-500 mb-3">
-                                  <span>Outcome 1</span>
-                                  <span>60%</span>
+                                  <span>{item.outcome}</span>
+                                  <span>{item.progress}%</span>
                               </div>
-                              <Progress value={60} className="h-2 mb-4" />
-                              <Button className="w-full" variant="outline">
-                                  RESUME <ChevronRight className="h-4 w-4 ml-2" />
-                              </Button>
+                              <Progress value={item.progress} className="h-2 mb-4" />
+                              <a href={item.link || "#"} target="_blank" rel="noopener noreferrer" className="w-full block">
+                                <Button className="w-full" variant="default">
+                                    RESUME <ChevronRight className="h-4 w-4 ml-2" />
+                                </Button>
+                              </a>
                           </CardContent>
-                      </Card>
+                        </Card>
+                      ))}
 
-                      {/* Item 2 */}
-                      <Card className="w-[300px] shrink-0">
-                           <div className="h-32 bg-slate-100 relative rounded-t-xl overflow-hidden">
-                               <div className="absolute inset-0 flex items-center justify-center bg-slate-200/50">
-                                  <FileText className="h-10 w-10 text-slate-400" />
-                               </div>
-                               <Badge className="absolute top-3 left-3 bg-indigo-600">ARTICLE SERIES</Badge>
-                          </div>
-                          <CardContent className="p-4">
-                              <h3 className="font-bold text-lg mb-1 truncate">Leading Change Management</h3>
-                              <div className="flex items-center justify-between text-sm text-slate-500 mb-3">
-                                  <span>Outcome 4</span>
-                                  <span>20%</span>
-                              </div>
-                              <Progress value={20} className="h-2 mb-4" />
-                              <Button className="w-full" variant="outline">
-                                  RESUME <ChevronRight className="h-4 w-4 ml-2" />
-                              </Button>
-                          </CardContent>
-                      </Card>
-
-                      {/* Item 3 */}
-                      <Card className="w-[300px] shrink-0">
-                           <div className="h-32 bg-slate-100 relative rounded-t-xl overflow-hidden">
-                               <div className="absolute inset-0 flex items-center justify-center bg-slate-200/50">
-                                  <Users className="h-10 w-10 text-slate-400" />
-                               </div>
-                               <Badge className="absolute top-3 left-3 bg-emerald-600">WORKSHOP</Badge>
-                          </div>
-                          <CardContent className="p-4">
-                              <h3 className="font-bold text-lg mb-1 truncate">Digital Literacy & AI</h3>
-                              <div className="flex items-center justify-between text-sm text-slate-500 mb-3">
-                                  <span>Outcome 2</span>
-                                  <span>90%</span>
-                              </div>
-                              <Progress value={90} className="h-2 mb-4" />
-                              <Button className="w-full" variant="outline">
-                                  RESUME <ChevronRight className="h-4 w-4 ml-2" />
-                              </Button>
-                          </CardContent>
-                      </Card>
                       
                        <Card className="w-[100px] shrink-0 border-dashed flex items-center justify-center bg-slate-50 hover:bg-slate-100 transition-colors cursor-pointer">
                           <div className="text-center p-4">
