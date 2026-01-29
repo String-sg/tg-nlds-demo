@@ -343,7 +343,7 @@ export default function LearningDiscovery() {
                           type: "Course",
                           typeColor: "bg-emerald-600",
                           icon: FileText,
-                          title: "Standard Malay Language for Beginning Teachers (All",
+                          title: "Standard Malay Language for Beginning Teachers",
                           outcome: "Competent",
                           progress: 0,
                         }
@@ -356,7 +356,9 @@ export default function LearningDiscovery() {
                               <Badge className={`absolute top-3 left-3 ${item.typeColor}`}>{item.type}</Badge>
                           </div>
                           <CardContent className="p-4">
-                              <h3 className="font-bold text-lg mb-1 truncate">{item.title}</h3>
+                              <div className="flex items-center min-h-[3rem] mb-1">
+                                <h3 className="font-bold text-base line-clamp-2 leading-tight whitespace-normal" title={item.title}>{item.title}</h3>
+                              </div>
                               <div className="flex items-center justify-between text-sm text-slate-500 mb-3">
                                   <span>{item.outcome}</span>
                                   <span>{item.progress}%</span>
