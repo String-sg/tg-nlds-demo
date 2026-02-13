@@ -73,11 +73,8 @@ export async function GET(request: Request) {
 
     const studentId = studentData.id
 
-    // Calculate date range for current term (last 60 days)
-    const today = new Date()
-    const termStartDate = new Date(today)
-    termStartDate.setDate(today.getDate() - 60)
-    const termStartStr = termStartDate.toISOString().split('T')[0]
+    // Use academic year 2025 start date for attendance filtering
+    const termStartStr = '2025-01-01'
 
     // 2-10. Fetch all other data in parallel
     const [
