@@ -38,6 +38,7 @@ import {
   Sparkle,
   Presentation,
   Shield,
+  FolderOpen,
 } from 'lucide-react'
 
 import {
@@ -65,6 +66,7 @@ import { FormsContent } from '@/components/forms-content'
 import { TeachingContent } from '@/components/teaching-content'
 import { LearningContent } from '@/components/learning-content'
 import { GoalsContent } from '@/components/goals-content'
+import { ResourcesContent } from '@/components/resources-content'
 import { CommunityContent } from '@/components/community-content'
 import { TimetableTabContent } from '@/components/timetable/timetable-tab-content'
 import { CalendarContent } from '@/components/calendar-content'
@@ -127,6 +129,7 @@ const primaryPages: PrimaryPage[] = [
   { key: 'teaching', label: 'Teaching', icon: GraduationCap, tooltip: 'Teaching' },
   { key: 'learning', label: 'Learning', icon: BookOpen, tooltip: 'Learning', externalUrl: 'https://moesingapore.sana.ai/' },
   { key: 'goals', label: 'Goal / Journey', icon: TrendingUp, tooltip: 'Goal / Journey' },
+  { key: 'resources', label: 'Resources', icon: FolderOpen, tooltip: 'Resources' },
   // { key: 'community', label: 'Community', icon: Users2, tooltip: 'Community' }, // Hidden
   { key: 'inbox', label: 'Communications', icon: Inbox, tooltip: 'Communications' },
   { key: 'announcements', label: 'Announcements', icon: MessageSquare, tooltip: 'Announcements' },
@@ -317,6 +320,14 @@ const emptyStates: Record<TabKey, EmptyState> = {
       'Track your professional development goals and learning progress.',
     icon: TrendingUp,
     primaryAction: 'View Goals',
+  },
+  resources: {
+    heading: 'Resources',
+    title: 'Professional learning resources',
+    description:
+      'Access teaching materials, essential documents, and curated recommendations.',
+    icon: FolderOpen,
+    primaryAction: 'Browse Resources',
   },
   forms: {
     heading: 'Forms',
@@ -542,6 +553,9 @@ const TabContent = memo(function TabContent({
 
   if (currentUrl === 'goals') {
     return <GoalsContent />
+  }
+  if (currentUrl === 'resources') {
+    return <ResourcesContent />
   }
 
   if (currentUrl === 'community' || currentUrl.startsWith('community/')) {
@@ -2099,7 +2113,7 @@ export default function Home() {
               <div className="space-y-1">
                 <SidebarGroupLabel className="text-sm">Professional Development</SidebarGroupLabel>
                 <SidebarMenu>
-                  {[primaryPages[4], primaryPages[5]].filter(page => page !== undefined).map((page) => {
+                  {[primaryPages[4], primaryPages[5], primaryPages[6]].filter(page => page !== undefined).map((page) => {
                     const Icon = page.icon
 
                     return (

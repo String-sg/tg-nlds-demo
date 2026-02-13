@@ -1,12 +1,12 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { ExternalLink, BookOpen, FileText, ChevronRight, Play, Clock, Users, Heart, Bookmark, X, Search, Video, Lightbulb, ThumbsUp, ThumbsDown } from 'lucide-react'
+import { ExternalLink, BookOpen, FileText, ChevronRight, Play, Clock, Users, Heart, Bookmark, X, Search, Video, Lightbulb, ThumbsUp, ThumbsDown, Plus } from 'lucide-react'
 
 // T&L Essentials - Pinned documents
 const essentialDocuments = [
@@ -92,73 +92,67 @@ const inspirationContent = [
   }
 ]
 
-// CSV parsing function
-function parseCSV(csvText: string) {
-  const lines = csvText.split('\n').filter(line => line.trim())
-  const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''))
-
-  return lines.slice(1).map(line => {
-    const values: string[] = []
-    let current = ''
-    let inQuotes = false
-
-    for (let i = 0; i < line.length; i++) {
-      const char = line[i]
-      if (char === '"') {
-        inQuotes = !inQuotes
-      } else if (char === ',' && !inQuotes) {
-        values.push(current.trim())
-        current = ''
-      } else {
-        current += char
-      }
-    }
-    values.push(current.trim())
-
-    const resource: any = {}
-    headers.forEach((header, index) => {
-      resource[header] = values[index] || ''
-    })
-
-    return {
-      title: resource.Title || '',
-      author: resource.By || '',
-      type: resource.Type || '',
-      pedApproaches: resource['Ped Approaches'] || '',
-      url: resource.URL || '',
-      description: resource.Description || '',
-      saves: Math.floor(Math.random() * 200) + 10 // Mock engagement data
-    }
-  })
-}
+// Sample resources data (similar to goals-content dummy data)
+const dummyResourcesData = [
+  {
+    title: "21st Century Competencies Framework",
+    author: "Ministry of Education",
+    type: "Policy",
+    pedApproaches: "Competency-based Learning",
+    url: "https://www.moe.gov.sg/education-in-sg/21st-century-competencies",
+    description: "Comprehensive framework for developing 21st century skills",
+    saves: 245
+  },
+  {
+    title: "Assessment Literacy for Teachers",
+    author: "Academy of Singapore Teachers",
+    type: "Guide",
+    pedApproaches: "Assessment Literacy",
+    url: "https://www.academyofsingaporeteachers.moe.edu.sg",
+    description: "Professional learning guide on effective assessment practices",
+    saves: 189
+  },
+  {
+    title: "Differentiated Instruction Strategies",
+    author: "Dr. Sarah Chen",
+    type: "Video",
+    pedApproaches: "Differentiated Learning",
+    url: "#",
+    description: "Practical strategies for meeting diverse learning needs",
+    saves: 156
+  },
+  {
+    title: "Digital Literacy Framework",
+    author: "MOE ICT Division",
+    type: "Framework",
+    pedApproaches: "Technology Integration",
+    url: "https://www.moe.gov.sg/education/programmes/digital-literacy",
+    description: "Framework for developing digital literacy across subjects",
+    saves: 201
+  },
+  {
+    title: "Student-Centered Learning Approaches",
+    author: "NIE Singapore",
+    type: "Book",
+    pedApproaches: "Student-Centered Learning",
+    url: "https://www.nie.edu.sg",
+    description: "Comprehensive guide to student-centered pedagogies",
+    saves: 134
+  }
+]
 
 export function ResourcesContent() {
   const [searchTerm, setSearchTerm] = useState('')
   const [typeFilter, setTypeFilter] = useState('all')
   const [pedFilter, setPedFilter] = useState('all')
   const [dismissedCards, setDismissedCards] = useState<string[]>([])
-  const [csvResources, setCsvResources] = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    fetch('/resources.csv')
-      .then(response => response.text())
-      .then(csvText => {
-        const parsed = parseCSV(csvText)
-        setCsvResources(parsed)
-        setLoading(false)
-      })
-      .catch(error => {
-        console.error('Error loading CSV:', error)
-        setLoading(false)
-      })
-  }, [])
 
   const handleDismiss = (cardId: string) => {
     setDismissedCards(prev => [...prev, cardId])
   }
 
-  const filteredResources = csvResources.filter(resource => {
+  const filteredResources = dummyResourcesData.filter(resource => {
     const matchesSearch = resource.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          resource.author.toLowerCase().includes(searchTerm.toLowerCase())
     const matchesType = typeFilter === 'all' || resource.type.includes(typeFilter)
@@ -169,216 +163,251 @@ export function ResourcesContent() {
 
   const visibleInspirationContent = inspirationContent.filter(content => !dismissedCards.includes(content.id))
 
-  if (loading) {
-    return (
-      <div className="flex h-full items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-2"></div>
-          <p className="text-muted-foreground">Loading resources...</p>
-        </div>
-      </div>
-    )
-  }
 
   return (
     <div className="flex flex-col h-full overflow-hidden">
-      <div className="flex-1 overflow-y-auto p-6 space-y-8">
+      <div className="flex-1 overflow-y-auto p-6 space-y-6">
 
         {/* Header */}
-        <div className="space-y-2">
-          <div className="flex items-center gap-3">
-            <BookOpen className="h-8 w-8 text-blue-600" />
-            <div>
-              <h1 className="text-3xl font-bold tracking-tight">Resources</h1>
-              <p className="text-muted-foreground">Curated teaching resources and inspiration</p>
-            </div>
+        <div className="flex items-center gap-3">
+          <BookOpen className="h-7 w-7 text-blue-600" />
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight">Resources</h1>
+            <p className="text-sm text-muted-foreground">Curated teaching resources and inspiration</p>
           </div>
         </div>
 
-        {/* Essentials Section */}
-        <Card className="border-2">
-          <CardHeader className="pb-4">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-lg font-semibold">ESSENTIALS</CardTitle>
-              <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-800">
-                View all <ChevronRight className="ml-1 h-4 w-4" />
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {essentialDocuments.map((doc, index) => {
-                const Icon = doc.icon
-                return (
-                  <a
-                    key={index}
-                    href={doc.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="group"
-                  >
-                    <Card className="h-24 hover:shadow-md transition-shadow cursor-pointer border-2 hover:border-blue-200">
-                      <CardContent className="p-4 h-full flex flex-col items-center justify-center text-center">
-                        <div className={`w-8 h-8 rounded-lg ${doc.color} flex items-center justify-center mb-2`}>
-                          <Icon className="h-4 w-4" />
-                        </div>
-                        <p className="text-sm font-medium line-clamp-2">{doc.title}</p>
-                      </CardContent>
-                    </Card>
-                  </a>
-                )
-              })}
-            </div>
-          </CardContent>
-        </Card>
+        {/* Pinned Resources - Slack-style tabs */}
+        <div className="border-b border-gray-200 pb-4">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-sm font-medium text-gray-700 uppercase tracking-wide">Pinned Resources</h2>
+            <Button variant="ghost" size="sm" className="text-gray-500 hover:text-gray-700 h-6 px-2 text-xs">
+              Customize
+            </Button>
+          </div>
+          <div className="flex items-center gap-1 overflow-x-auto pb-1">
+            {essentialDocuments.map((doc, index) => {
+              const Icon = doc.icon
+              return (
+                <a
+                  key={index}
+                  href={doc.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group"
+                >
+                  <div className="flex items-center gap-2 px-3 py-2 rounded-md bg-gray-50 hover:bg-gray-100 border border-gray-200 hover:border-gray-300 transition-all cursor-pointer whitespace-nowrap">
+                    <div className={`w-4 h-4 rounded ${doc.color} flex items-center justify-center flex-shrink-0`}>
+                      <Icon className="h-2.5 w-2.5" />
+                    </div>
+                    <span className="text-sm font-medium text-gray-700">{doc.title}</span>
+                    <ExternalLink className="h-3 w-3 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+                  </div>
+                </a>
+              )
+            })}
+            <Button variant="ghost" size="sm" className="text-gray-500 hover:text-gray-700 px-2 py-1 h-8 border border-dashed border-gray-300 rounded-md">
+              <Plus className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
 
         {/* Teaching Inspiration Section */}
         <div className="space-y-4">
           <div className="flex items-center gap-2">
             <Lightbulb className="h-5 w-5 text-orange-500" />
-            <h2 className="text-lg font-semibold text-gray-700">TEACHING INSPIRATION</h2>
+            <h2 className="text-sm font-medium text-gray-700 uppercase tracking-wide">TEACHING INSPIRATION</h2>
             <div className="ml-auto">
-              <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-800">
+              <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-800 h-6 px-2 text-xs">
                 Show more like this
               </Button>
             </div>
           </div>
 
-          <div className="space-y-4">
-            {visibleInspirationContent.map((content) => {
-              const getIcon = (iconType: string) => {
-                switch(iconType) {
-                  case 'video': return <Video className="h-6 w-6 text-red-600" />
-                  case 'document': return <FileText className="h-6 w-6 text-blue-600" />
-                  case 'book': return <BookOpen className="h-6 w-6 text-orange-600" />
-                  default: return <FileText className="h-6 w-6 text-gray-600" />
+          <div className="grid grid-cols-3 gap-4">
+            {/* Main content cards - take up 2 columns */}
+            <div className="col-span-2 space-y-3">
+              {visibleInspirationContent.slice(0, 2).map((content) => {
+                const getIcon = (iconType: string) => {
+                  switch(iconType) {
+                    case 'video': return <Video className="h-5 w-5 text-red-600" />
+                    case 'document': return <FileText className="h-5 w-5 text-blue-600" />
+                    case 'book': return <BookOpen className="h-5 w-5 text-orange-600" />
+                    default: return <FileText className="h-5 w-5 text-gray-600" />
+                  }
                 }
-              }
 
-              return (
-                <Card key={content.id} className="relative border border-gray-200 hover:border-gray-300 transition-colors">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="absolute top-4 right-4 h-8 w-8 p-0 hover:bg-gray-100"
-                    onClick={() => handleDismiss(content.id)}
-                  >
-                    <X className="h-4 w-4 text-gray-400" />
-                  </Button>
+                return (
+                  <Card key={content.id} className="relative border border-gray-200 hover:border-gray-300 transition-colors">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="absolute top-3 right-3 h-6 w-6 p-0 hover:bg-gray-100"
+                      onClick={() => handleDismiss(content.id)}
+                    >
+                      <X className="h-3 w-3 text-gray-400" />
+                    </Button>
 
-                  <CardContent className="p-6">
-                    <div className="flex gap-6">
-                      {/* Thumbnail */}
-                      <div className={`w-20 h-20 ${content.thumbnail} rounded-lg flex items-center justify-center flex-shrink-0`}>
-                        {getIcon(content.icon)}
-                      </div>
-
-                      {/* Content */}
-                      <div className="flex-1 space-y-4">
-                        <div>
-                          <h3 className="font-semibold text-xl text-gray-900">{content.title}</h3>
-                          <p className="text-gray-600 mt-1">"{content.subtitle}"</p>
+                    <CardContent className="p-4">
+                      <div className="flex gap-4">
+                        {/* Thumbnail */}
+                        <div className={`w-12 h-12 ${content.thumbnail} rounded-lg flex items-center justify-center flex-shrink-0`}>
+                          {getIcon(content.icon)}
                         </div>
 
-                        <div className="flex items-center gap-4">
-                          <Badge variant="secondary" className="bg-red-100 text-red-700 hover:bg-red-100">
-                            {content.type}
-                          </Badge>
-                          <div className="flex items-center gap-1 text-sm text-gray-500">
-                            <Clock className="h-4 w-4" />
-                            <span>{content.duration}</span>
+                        {/* Content */}
+                        <div className="flex-1 space-y-3">
+                          <div>
+                            <h3 className="font-semibold text-base text-gray-900">{content.title}</h3>
+                            <p className="text-gray-600 text-sm mt-1">"{content.subtitle}"</p>
                           </div>
-                          <Badge variant="outline" className="text-gray-600">
-                            {content.approach}
-                          </Badge>
-                        </div>
 
-                        {/* Why this recommendation */}
-                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                          <div className="flex items-start gap-2">
-                            <Lightbulb className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
-                            <div>
-                              <span className="text-blue-800 font-medium text-sm">Why this?</span>
-                              <span className="text-blue-700 text-sm ml-1">{content.reason}</span>
+                          <div className="flex items-center gap-3">
+                            <Badge variant="secondary" className="bg-red-100 text-red-700 hover:bg-red-100 text-xs">
+                              {content.type}
+                            </Badge>
+                            <div className="flex items-center gap-1 text-xs text-gray-500">
+                              <Clock className="h-3 w-3" />
+                              <span>{content.duration}</span>
+                            </div>
+                            <Badge variant="outline" className="text-gray-600 text-xs">
+                              {content.approach}
+                            </Badge>
+                          </div>
+
+                          {/* Why this recommendation */}
+                          <div className="bg-blue-50 border border-blue-200 rounded-lg p-2">
+                            <div className="flex items-start gap-2">
+                              <Lightbulb className="h-3 w-3 text-blue-600 mt-0.5 flex-shrink-0" />
+                              <div>
+                                <span className="text-blue-800 font-medium text-xs">Why this?</span>
+                                <span className="text-blue-700 text-xs ml-1">{content.reason}</span>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Actions */}
+                          <div className="flex items-center justify-between">
+                            <div className="text-xs text-gray-500">
+                              {content.saves && `${content.saves} teachers saved`}
+                            </div>
+                            <div className="flex gap-2">
+                              <Button size="sm" variant="outline" className="border-blue-200 text-blue-700 hover:bg-blue-50 h-6 px-2 text-xs">
+                                <Bookmark className="mr-1 h-3 w-3" />
+                                Save
+                              </Button>
+                              <Button size="sm" variant="ghost" className="text-gray-500 hover:text-gray-700 h-6 w-6 p-0">
+                                <ThumbsDown className="h-3 w-3" />
+                              </Button>
                             </div>
                           </div>
                         </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )
+              })}
+            </div>
 
-                        {/* Actions */}
-                        <div className="flex items-center justify-between">
-                          <div className="text-sm text-gray-500">
-                            {content.saves && `${content.saves} teachers saved`}
-                          </div>
-                          <div className="flex gap-3">
-                            <Button size="sm" variant="outline" className="border-blue-200 text-blue-700 hover:bg-blue-50">
-                              <Bookmark className="mr-2 h-4 w-4" />
-                              Save
-                            </Button>
-                            <Button size="sm" variant="ghost" className="text-gray-500 hover:text-gray-700">
-                              <ThumbsDown className="h-4 w-4" />
-                            </Button>
+            {/* Embedded video - takes up 1 column */}
+            <div className="col-span-1">
+              <Card className="border border-gray-200 h-full">
+                <CardContent className="p-4 h-full flex flex-col">
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="font-semibold text-sm text-gray-900">Featured Video</h3>
+                    <Video className="h-4 w-4 text-red-600" />
+                  </div>
+
+                  <div className="flex-1 rounded-lg overflow-hidden mb-3">
+                    <a
+                      href="https://www.tiktok.com/@mr_physixs/video/7195186195175853313"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="block relative group"
+                    >
+                      <div className="aspect-[9/16] bg-gradient-to-br from-pink-400 via-purple-500 to-blue-600 rounded-lg flex items-center justify-center relative overflow-hidden">
+                        {/* Play button overlay */}
+                        <div className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center group-hover:bg-opacity-30 transition-all">
+                          <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
+                            <Play className="h-6 w-6 text-black ml-1" fill="black" />
                           </div>
                         </div>
+
+                        {/* TikTok logo */}
+                        <div className="absolute top-3 right-3 w-6 h-6 bg-white rounded flex items-center justify-center">
+                          <Video className="h-4 w-4 text-black" />
+                        </div>
+
+                        {/* Creator info at bottom */}
+                        <div className="absolute bottom-3 left-3 right-3 text-white">
+                          <p className="text-xs font-medium">@mr_physixs</p>
+                          <p className="text-xs opacity-80 line-clamp-2">Physics experiments - JC concepts made visual</p>
+                        </div>
                       </div>
+                    </a>
+                  </div>
+
+                  <div className="space-y-2">
+                    <p className="text-xs text-gray-600">Physics experiments - JC concepts made visual</p>
+                    <div className="flex items-center justify-between">
+                      <Badge variant="secondary" className="bg-orange-100 text-orange-700 text-xs">
+                        TikTok
+                      </Badge>
+                      <a
+                        href="https://www.youtube.com/@knowgets"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs text-blue-600 hover:text-blue-800 font-medium"
+                      >
+                        See more →
+                      </a>
                     </div>
-                  </CardContent>
-                </Card>
-              )
-            })}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           </div>
         </div>
 
         {/* Browse All Section */}
-        <Card className="border-2">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-lg font-semibold">BROWSE ALL</CardTitle>
-            </div>
+        <div className="space-y-6">
+          <h2 className="text-lg font-semibold text-gray-700">BROWSE ALL</h2>
 
-            {/* Search and Filters */}
-            <div className="flex flex-wrap items-center gap-4 pt-2">
-              <div className="relative flex-1 min-w-64">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search resources..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-9"
-                />
-              </div>
-              <Select value={typeFilter} onValueChange={setTypeFilter}>
-                <SelectTrigger className="w-40">
-                  <SelectValue placeholder="All Types" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Types</SelectItem>
-                  <SelectItem value="Document">Documents</SelectItem>
-                  <SelectItem value="Books">Books</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select value={pedFilter} onValueChange={setPedFilter}>
-                <SelectTrigger className="w-40">
-                  <SelectValue placeholder="All Approaches" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Approaches</SelectItem>
-                  <SelectItem value="Assessment Literacy">Assessment Literacy</SelectItem>
-                  <SelectItem value="Brain-based Learning">Brain-based Learning</SelectItem>
-                  <SelectItem value="Content Teaching">Content Teaching</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select defaultValue="newest">
-                <SelectTrigger className="w-32">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="newest">Newest</SelectItem>
-                  <SelectItem value="popular">Most Popular</SelectItem>
-                  <SelectItem value="relevant">Most Relevant</SelectItem>
-                </SelectContent>
-              </Select>
+          {/* Search and Filters */}
+          <div className="flex flex-wrap items-center gap-4">
+            <div className="relative flex-1 min-w-64">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search resources..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-9 bg-gray-50 border-gray-200"
+              />
             </div>
-          </CardHeader>
+            <Select value={typeFilter} onValueChange={setTypeFilter}>
+              <SelectTrigger className="w-40 bg-white border-gray-200">
+                <SelectValue placeholder="All Types" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Types</SelectItem>
+                <SelectItem value="Document">Documents</SelectItem>
+                <SelectItem value="Books">Books</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={pedFilter} onValueChange={setPedFilter}>
+              <SelectTrigger className="w-40 bg-white border-gray-200">
+                <SelectValue placeholder="All Approaches" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Approaches</SelectItem>
+                <SelectItem value="Assessment Literacy">Assessment Literacy</SelectItem>
+                <SelectItem value="Brain-based Learning">Brain-based Learning</SelectItem>
+                <SelectItem value="Content Teaching">Content Teaching</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <Card className="border border-gray-200">
 
           <CardContent className="p-0">
             <div className="overflow-x-auto">
@@ -393,50 +422,60 @@ export function ResourcesContent() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredResources.slice(0, 20).map((resource, index) => (
-                    <tr key={index} className="border-b hover:bg-muted/25">
-                      <td className="p-4">
-                        <div className="space-y-1">
-                          <div className="font-medium">{resource.title}</div>
-                          {resource.description && (
-                            <div className="text-sm text-muted-foreground line-clamp-1">
-                              {resource.description}
+                  {filteredResources.slice(0, 20).map((resource, index) => {
+                    const getTypeIcon = (type: string) => {
+                      if (type.includes('Video') || type.includes('video')) {
+                        return <div className="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center"><Video className="h-4 w-4 text-red-600" /></div>
+                      } else if (type.includes('Book') || type.includes('book')) {
+                        return <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center"><BookOpen className="h-4 w-4 text-green-600" /></div>
+                      } else {
+                        return <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center"><FileText className="h-4 w-4 text-blue-600" /></div>
+                      }
+                    }
+
+                    return (
+                      <tr key={index} className="border-b border-gray-100 hover:bg-gray-50">
+                        <td className="p-4">
+                          <div className="flex items-start gap-3">
+                            {getTypeIcon(resource.type)}
+                            <div className="space-y-1">
+                              <div className="font-medium text-gray-900">{resource.title}</div>
+                              <div className="text-sm text-gray-500">{resource.author}</div>
                             </div>
-                          )}
-                        </div>
-                      </td>
-                      <td className="p-4">
-                        <Badge variant="outline" className="text-xs">
-                          {resource.type}
-                        </Badge>
-                      </td>
-                      <td className="p-4">
-                        {resource.pedApproaches && (
-                          <Badge variant="secondary" className="text-xs">
-                            {resource.pedApproaches}
+                          </div>
+                        </td>
+                        <td className="p-4">
+                          <Badge variant="outline" className="text-xs text-red-700 bg-red-50 border-red-200">
+                            {resource.type}
                           </Badge>
-                        )}
-                      </td>
-                      <td className="p-4">
-                        <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                          <Heart className="h-3 w-3" />
-                          <span>{resource.saves} saves</span>
-                        </div>
-                      </td>
-                      <td className="p-4">
-                        {resource.url && (
-                          <a
-                            href={resource.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-blue-600 hover:text-blue-800"
-                          >
-                            <ExternalLink className="h-4 w-4" />
-                          </a>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
+                        </td>
+                        <td className="p-4">
+                          {resource.pedApproaches && (
+                            <Badge variant="outline" className="text-xs text-gray-600 bg-gray-50">
+                              {resource.pedApproaches}
+                            </Badge>
+                          )}
+                        </td>
+                        <td className="p-4">
+                          <div className="text-sm text-gray-600">
+                            {resource.saves} saves
+                          </div>
+                        </td>
+                        <td className="p-4">
+                          {resource.url && (
+                            <a
+                              href={resource.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-blue-600 hover:text-blue-800"
+                            >
+                              <ExternalLink className="h-4 w-4" />
+                            </a>
+                          )}
+                        </td>
+                      </tr>
+                    )
+                  })}
                 </tbody>
               </table>
             </div>
@@ -454,7 +493,8 @@ export function ResourcesContent() {
               </div>
             )}
           </CardContent>
-        </Card>
+          </Card>
+        </div>
 
       </div>
     </div>
